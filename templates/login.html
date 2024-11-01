@@ -1,11 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+{% load static %}
+<html>
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
+        <title>Iniciar Sesión</title>
+        <!-- Enlace al archivo CSS personalizado -->
+        <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+
+        <!--Navbar personalizado -->
+        <nav class="navbar">
+            <img src="{% static 'img/Logo_2500x2500.png' %}" alt="Company Logo" class="logo">
+            <!-- Menú hamburguesa -->
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <!-- Links de navegación, ocultos en pantallas pequeñas -->
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#">Properties</a>
+                <a href="#">About Us</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-login">Login</button>
+                <button class="btn btn-signup">Sign Up</button>
+            </div>
+        </nav>
     </head>
     <body>
-        <h1>holaaaaa</h1>
+        <div class="container">
+            
+            <!-- Panel izquierdo que contiene el formulario de inicio de sesión -->
+            <div class="left-panel">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.errors %}
+                    <div class="alert alert-error">
+                    {% for field, errors in form.errors.items %}
+                        <p><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+                <!-- Mensaje de bienvenida -->
+                <h1>Hola,<br>¡bienvenido!</h1>
+                <!-- Formulario de inicio de sesión -->
+                <form method="post" onsubmit="return validarFormulario();">
+                    {% csrf_token %}
+                    <!-- Campo para ingresar el correo electrónico -->
+                    <input type="email" name="email" id="email" placeholder="Correo electrónico" required>
+                    <!-- Campo para ingresar la contraseña -->
+                     <div class="password-container">
+                        <input type="password" name="password" id="password" placeholder="Contraseña" required>
+                        <i class="toggle-password" onclick="togglePasswordVisibility('password')">🔒</i>
+                    </div>
+                    <!-- Opciones de recordar sesión y recuperación de contraseña -->
+                    <div class="remember-forgot">
+                        <a href="#">¿Olvidaste tu contraseña?</a>
+                    </div>
+                    <!-- Botones para enviar el formulario y registrarse -->
+                    <div class="buttons">
+                        <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+                        <button type="button" onclick=window.location.href="{% url 'register' %}" class="btn btn-secondary">Registrarse</button>
+                    </div>
+                </form>
+            </div>
+            <!-- Panel derecho decorativo (puede usarse para imágenes o información adicional) -->
+            <div class="right-panel"></div>
+        </div>
+        <!-- Archivo JavaScript para interactividad -->
+        <script src="{% static 'js/login.js' %}"></script>
+
     </body>
 </html>

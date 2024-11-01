@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Registro</title>
+        <!-- Enlace al archivo CSS personalizado -->
+        <link rel="stylesheet" href="{% static 'css/register.css' %}" />
+        
+        <!--Navbar personalizado -->
+        <nav class="navbar">
+            <img src="{% static 'img/Logo_2500x2500.png' %}" alt="Company Logo" class="logo">
+            <!-- Menú hamburguesa -->
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <!-- Links de navegación, ocultos en pantallas pequeñas -->
+            <div class="nav-links">
+                <a href="#">Home</a>
+                <a href="#">Properties</a>
+                <a href="#">About Us</a>
+                <a href="#">Contact</a>
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-login">Login</button>
+                <button class="btn btn-signup">Sign Up</button>
+            </div>
+        </nav>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Panel izquierdo que contiene el formulario de registro -->
+            <div class="left-panel">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.errors %}
+                    <div class="alert alert-error">
+                    {% for field, errors in form.errors.items %}
+                        <p><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+                <!-- Mensaje para crear cuenta -->
+                <h1>Es hora<br>de sentirse en casa,</h1>
+                <!-- Formulario de registro -->
+                <form method="post" onsubmit="return validarFormulario();">
+                    {% csrf_token %}
+                    
+                    <!-- Campo para ingresar el nombre completo -->
+                    <input type="text" id="nombre" name="nombre"placeholder="Nombre" required>
+                    <!-- Campo para ingresar el nombre completo -->
+                    <input type="text" id="apellido" name="apellido"placeholder="Apellido" required>
+                    <!-- Campo para ingresar el correo electrónico -->
+                    <input type="email" id="email" name="email" placeholder="Correo Electrónico" required>
+                   <!-- Campo para ingresar la contraseña -->
+                    <div class="password-field">
+                        <i class="toggle-password" onclick="togglePasswordVisibility('password')">🔒</i>
+                        <input type="password" id="password" name="password1" placeholder="Contraseña" required>
+                    </div>
+
+                    <!-- Campo para confirmar la contraseña -->
+                    <div class="password-field-confirm">
+                        <i class="toggle-password" onclick="togglePasswordVisibility('confirm_password')">🔒</i>
+                        <input type="password" id="confirm_password" name="password2" placeholder="Confirmar Contraseña" required>
+                    </div>
+                    <!-- Selección del rol de usuario -->
+                    <select name="rol" id="user_type" required>
+                        <option value="" disabled selected>Selecciona tu rol</option>
+                        <option value="Arrendador">Arrendador</option>
+                        <option value="Arrendatario">Arrendatario</option>
+                    </select>
+                    <!-- Descripción de los roles -->
+                    <div class="help-box">
+                        <p><strong>🏡 Arrendador:</strong> Persona que posee la propiedad y la arrienda.</p>
+                        <p><strong>🛋️ Arrendatario:</strong> Persona que arrienda y vive en la propiedad.</p>
+                    </div>
+                    <!-- Botones para enviar el formulario o ir al inicio de sesión -->
+                    <div class="buttons">
+                        <button type="submit" class="btn btn-primary">Registrarse</button>
+                        <button type="button" onclick=window.location.href="{% url 'login' %}" class="btn btn-secondary">Iniciar sesión</button>
+                    </div>
+                </form>
+            </div>
+            <!-- Panel derecho decorativo (puede usarse para imágenes o información adicional) -->
+            <div class="right-panel"></div>
+        </div>
+        <!-- Archivo JavaScript para validación -->
+        <script src="{% static 'js/register.js' %}"></script>
+    </body>
+</html>
