@@ -9,7 +9,7 @@ body, html {
 /* Contenedor principal que usa Flexbox para dividir la pantalla en dos paneles */
 .container {
     display: flex;
-    min-height: 100vh; /* Asegura que el contenedor cubra toda la altura de la pantalla */
+    min-height: 100vh; 
     flex-wrap: wrap;
 }
 

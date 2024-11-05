@@ -1,14 +1,19 @@
-/* Estilos generales */
-body, html {
+/* Estilos generales de la página para eliminar márgenes y rellenos, 
+   establecer una fuente base y permitir que los elementos ocupen toda la altura */
+   body, html {
     margin: 0;
     padding: 0;
     font-family: Arial, sans-serif;
     height: 100%;
 }
+
+/* Contenedor principal que organiza el diseño de la página en paneles izquierdo y derecho */
 .container {
     display: flex;
     height: 100%;
 }
+
+/* Panel izquierdo con fondo blanco centrado, ajustado para contener elementos verticalmente */
 .left-panel {
     flex: 1;
     background-color: white;
@@ -18,20 +23,27 @@ body, html {
     align-items: center;
     padding: 2rem;
 }
+
+/* Panel derecho con un fondo de gradiente atractivo */
 .right-panel {
     flex: 1;
     background: linear-gradient(135deg, #4CAF50, #00BCD4, #03A9F4, #2196F3);
 }
 
+/* Encabezado principal con tamaño de fuente grande y color llamativo */
 h1 {
     font-size: 2.5rem;
     color: #03A9F4;
     margin-bottom: 2rem;
 }
+
+/* Estilo general para el formulario, centrado con un ancho máximo */
 form {
     width: 100%;
     max-width: 300px;
 }
+
+/* Campos de entrada del formulario con bordes, relleno y estilo consistente */
 input[type="email"], input[type="password"] {
     width: 100%;
     padding: 0.5rem;
@@ -39,16 +51,22 @@ input[type="email"], input[type="password"] {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+
+/* Contenedor para opciones adicionales como recordar contraseña y opciones de recuperación */
 .remember-forgot {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
 }
+
+/* Contenedor para organizar los botones de envío */
 .buttons {
     display: flex;
     gap: 1rem;
 }
+
+/* Estilo base para todos los botones, con bordes redondeados y cursor interactivo */
 .btn {
     flex: 1;
     padding: 0.5rem;
@@ -56,16 +74,21 @@ input[type="email"], input[type="password"] {
     border-radius: 4px;
     cursor: pointer;
 }
+
+/* Botón principal con fondo verde */
 .btn-primary {
     background-color: #4CAF50;
     color: white;
 }
+
+/* Botón secundario con fondo blanco y borde azul */
 .btn-secondary {
     background-color: white;
     color: #03A9F4;
     border: 1px solid #03A9F4;
 }
 
+/* Contenedor para campo de contraseña, que incluye ícono para mostrar/ocultar contraseña */
 .password-container {
     position: relative;
     width: 100%;
@@ -74,23 +97,23 @@ input[type="email"], input[type="password"] {
 .password-container input {
     width: 105%;
     height: 30px;
-    padding-right: 35px; /* Aumenta el espacio para el icono */
-    box-sizing: border-box; /* Asegura que el padding no afecte el tamaño del input */
+    padding-right: 35px; 
+    box-sizing: border-box; 
 }
 
+/* Ícono para alternar visibilidad de la contraseña */
 .toggle-password {
     position: absolute;
     right: 12px;
     top: 32%;
     transform: translateY(-50%);
     cursor: pointer;
-    font-size: 18px; /* Ajusta el tamaño del icono */
+    font-size: 18px; 
     display: flex;
     align-items: center;
 }
 
-
-/* Barra de navegación con fondo blanco y sombra ligera */
+/* Barra de navegación superior con fondo blanco y sombra ligera */
 .navbar {
     background-color: white;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -101,19 +124,18 @@ input[type="email"], input[type="password"] {
     flex-wrap: wrap;
 }
 
-/* Ajuste del tamaño base de la imagen logo y aplicación de un zoom visual */
+/* Estilo de logotipo con zoom visual cuando el usuario coloca el cursor */
 .logo {
     width:80px; 
     height: auto; 
     transform: scale(2.5);
 }
 
-/* Efecto de hover para dar una sensación interactiva */
 .logo:hover {
-    transform: scale(2.9); /* Amplía el zoom al pasar el cursor */
+    transform: scale(2.9); 
 }
 
-/* Menú hamburguesa (solo visible en móviles) */
+/* Menú hamburguesa, visible solo en dispositivos móviles */
 .hamburger {
     display: none;
     flex-direction: column;
@@ -128,7 +150,7 @@ input[type="email"], input[type="password"] {
     transition: all 0.3s;
 }
 
-/* Estilos para enlaces de la barra de navegación */
+/* Enlaces de navegación con color verde y animación de color al pasar el cursor */
 .nav-links {
     display: flex;
     gap: 2rem;
@@ -140,18 +162,17 @@ input[type="email"], input[type="password"] {
     transition: color 0.3s ease;
 }
 
-/* Cambio de color en el hover de los enlaces de navegación */
 .nav-links a:hover {
     color: #03A9F4;
 }
 
-/* Botones de autenticación dentro de la barra de navegación, con un espacio entre ellos */
+/* Botones de autenticación (inicio de sesión y registro) dentro de la barra de navegación */
 .auth-buttons {
     display: flex;
     gap: 1rem;
 }
 
-/* Botón de inicio de sesión con bordes y colores azules */
+/* Botón de inicio de sesión con fondo blanco y borde azul */
 .btn-login {
     background-color: white;
     color: #03A9F4;
@@ -182,7 +203,7 @@ input[type="email"], input[type="password"] {
     background-color: #45a049;
 }
 
-/* Estilos generales de alertas */
+/* Estilos de alertas generales con un contenedor centrado y tamaño de fuente moderado */
 .alert {
     padding: 1rem;
     border-radius: 5px;
@@ -192,26 +213,24 @@ input[type="email"], input[type="password"] {
     max-width: 80%;
     margin-left: auto;
     margin-right: auto;
-
 }
 
-/* Alerta de éxito */
+/* Alerta de éxito con fondo verde claro y borde verde */
 .alert-success {
     background-color: #E8F5E9;
     color: #388E3C;
     border: 1px solid #4CAF50;
 }
 
-/* Alerta de error */
+/* Alerta de error con fondo rojo claro y borde rojo */
 .alert-error {
     background-color: #FFEBEE;
     color: #D32F2F;
     border: 1px solid #F44336;
 }
 
-/* Responsive styling */
+/* Estilos responsivos para dispositivos móviles */
 @media (max-width: 768px) {
-    /* Estilos para mostrar el menú hamburguesa y ocultar nav-links inicialmente */
     .hamburger {
         display: flex;
     }

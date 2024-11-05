@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+    </head>
+    <body>
+        <!-- templates/dashboard.html -->
+
+        <h1>Bienvenido, {{ user.nombre }}</h1>
+
+        {% if user.rol == 'Arrendador' %}
+            <a href="{% url 'crear_publicacion' %}">Crear nueva publicación</a>
+        {% endif %}
+
+        <h2>Publicaciones</h2>
+        <ul>
+            {% for publicacion in publicaciones %}
+                <li>
+                    <h3>{{ publicacion.titulo }}</h3> <!-- Asegúrate de que 'titulo' es un campo en tu modelo -->
+                    <p>Descripción: {{ publicacion.descripcion }}</p>
+                    <p>Cantidad de habitaciones: {{ publicacion.cantidad_habitaciones }}</p>
+                    <p>Dirección: {{ publicacion.direccion }}</p>
+                    <p>Número de contacto: {{ publicacion.numero_contacto }}</p>
+                    <img src="{{ publicacion.fotos.url }}" alt="Foto de la publicación">
+                </li>
+            {% empty %}
+                <li>No hay publicaciones disponibles.</li>
+            {% endfor %}
+        </ul>
+
+    </body>
+</html>

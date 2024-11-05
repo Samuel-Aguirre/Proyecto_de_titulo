@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from ArrendaU.forms import LoginForm, RegisterForm
 from .models import Usuario
+from ArrendaU_publicaciones_app.models import Publicacion
 from django.utils import timezone
 
 def login_view(request):
@@ -14,13 +15,10 @@ def login_view(request):
             password = form.cleaned_data.get('password')
             user = authenticate(request, email=email, password=password)
             if user:
-                user.ultimo_login = timezone.now()  # Actualizar manualmente ultimo_login
+                user.ultimo_login = timezone.now()
                 user.save(update_fields=['ultimo_login'])
                 login(request, user)
-                if user.rol == 'Arrendador':
-                    return redirect('dashboard_arrendador')
-                else:
-                    return redirect('dashboard_arrendatario')
+                return redirect('dashboard')  # Redirige a una única vista
             else:
                 messages.error(request, "Credenciales incorrectas", extra_tags='alert-error')
         else:
@@ -50,3 +48,11 @@ def dashboard_arrendador(request):
 def dashboard_arrendatario(request):
     return render(request, 'arrendatario_home.html')
 
+def home(request):
+    return render(request, 'home.html')
+
+@login_required
+def dashboard_view(request):
+    # Obtén todas las publicaciones
+    publicaciones = Publicacion.objects.all()
+    return render(request, 'dashboard.html', {'publicaciones': publicaciones})

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ArrendaU_app',
+    'ArrendaU_publicaciones_app',
 ]
 
 from django.contrib.messages import constants as messages
@@ -142,3 +143,6 @@ AUTHENTICATION_BACKENDS = [
     'ArrendaU_app.backends.EmailBackend',  # Path to your custom backend
     'django.contrib.auth.backends.ModelBackend',  # Default backend
 ]
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

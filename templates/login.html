@@ -10,7 +10,7 @@
 
         <!--Navbar personalizado -->
         <nav class="navbar">
-            <img src="{% static 'img/Logo_2500x2500.png' %}" alt="Company Logo" class="logo">
+            <img src="{% static 'img/Logo_2500x2500.png' %}" onclick=window.location.href="{% url 'home' %}" alt="Company Logo" class="logo">
             <!-- Menú hamburguesa -->
             <div class="hamburger" onclick="toggleMenu()">
                 <span></span>
@@ -19,14 +19,14 @@
             </div>
             <!-- Links de navegación, ocultos en pantallas pequeñas -->
             <div class="nav-links">
-                <a href="#">Home</a>
-                <a href="#">Properties</a>
-                <a href="#">About Us</a>
-                <a href="#">Contact</a>
+                <a href="#">Inicio</a> 
+                <a href="#">Propiedades</a> 
+                <a href="#">Sobre Nosotros</a> 
+                <a href="#">Contacto</a> 
             </div>
             <div class="auth-buttons">
-                <button class="btn btn-login">Login</button>
-                <button class="btn btn-signup">Sign Up</button>
+                <button class="btn btn-login" >Iniciar Sesión</button> 
+                <button class="btn btn-signup">Registrarse</button> 
             </div>
         </nav>
     </head>

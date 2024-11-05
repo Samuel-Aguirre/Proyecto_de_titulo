@@ -14,14 +14,24 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.urls import path
+from django.urls import path,include
 from django.contrib.auth.decorators import login_required
 from ArrendaU_app import views
 
+from django.conf import settings
+from django.conf.urls.static import static
+
 urlpatterns = [
+    path('', views.home, name='home'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
-    path('dashboard/arrendador/',login_required(views.dashboard_arrendador), name='dashboard_arrendador'),
-    path('dashboard/arrendatario/', login_required(views.dashboard_arrendatario), name='dashboard_arrendatario'),
+    #path('dashboard/arrendador/',login_required(views.dashboard_arrendador), name='dashboard_arrendador'),
+    #path('dashboard/arrendatario/', login_required(views.dashboard_arrendatario), name='dashboard_arrendatario'),
+
+    path('dashboard/', views.dashboard_view, name='dashboard'),  # Ruta unificada
+    path('publicaciones/', include('ArrendaU_publicaciones_app.urls')),
 ]
 
+# Añade esta línea para configurar la URL de los archivos media
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
