@@ -4,32 +4,108 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Document</title>
+        <title>ArrendaU - Property Listings</title>
+        <!-- Enlace al archivo CSS personalizado -->
+        <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+
+        <!--Navbar personalizado -->
+        <nav class="navbar">
+            <img src="{% static 'img/Logo_2500x2500.png' %}" onclick=window.location.href="{% url 'home' %}" alt="Company Logo" class="logo">
+            <!-- Menú hamburguesa -->
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <!-- Links de navegación, ocultos en pantallas pequeñas -->
+            <div class="nav-links">
+                <a href="#">Inicio</a> 
+                <a href="#">Propiedades</a> 
+                <a href="#">Sobre Nosotros</a> 
+                <a href="#">Contacto</a> 
+            </div>
+            <div class="auth-buttons">
+                <button class="btn btn-login" >Iniciar Sesión</button> 
+                <button class="btn btn-signup">Registrarse</button> 
+            </div>
+        </nav>
+
     </head>
     <body>
-        <!-- templates/dashboard.html -->
+    
+        <div class="hero-image">
+            Encuentra tu espacio perfecto <br>
+            {{ user.nombre }} {{ user.apellido }}
+        </div>
 
-        <h1>Bienvenido, {{ user.nombre }}</h1>
+        <div class="container">
+            <aside class="filters">
+                {% if user.rol == 'Arrendador' %}
+                    <a href="{% url 'crear_publicacion' %}">Crear nueva publicación</a>
+                {% endif %}
+                <h2>Filtros</h2>
+                <div class="filter-group">
+                    <label for="city">Ciudad</label>
+                    <input type="text" id="city" placeholder="Ingresa la ciudad">
+                </div>
 
-        {% if user.rol == 'Arrendador' %}
-            <a href="{% url 'crear_publicacion' %}">Crear nueva publicación</a>
-        {% endif %}
+                <div class="filter-group">
+                    <label>Rango de Renta</label>
+                    <div class="range-container">
+                        <div class="range-slider" id="range-slider">
+                            <div class="range-selected"></div>
+                        </div>
+                        <div class="range-input">
+                            <input type="range" class="min-price" min="0" max="400000" value="135000" step="1000">
+                            <input type="range" class="max-price" min="0" max="400000" value="200000" step="1000">
+                        </div>
+                        <div class="range-price">
+                            <span id="min-value">$0</span>
+                            <span id="max-value">$200.000</span>
+                        </div>
+                    </div>
+                </div>
 
-        <h2>Publicaciones</h2>
-        <ul>
-            {% for publicacion in publicaciones %}
-                <li>
-                    <h3>{{ publicacion.titulo }}</h3> <!-- Asegúrate de que 'titulo' es un campo en tu modelo -->
-                    <p>Descripción: {{ publicacion.descripcion }}</p>
-                    <p>Cantidad de habitaciones: {{ publicacion.cantidad_habitaciones }}</p>
-                    <p>Dirección: {{ publicacion.direccion }}</p>
-                    <p>Número de contacto: {{ publicacion.numero_contacto }}</p>
-                    <img src="{{ publicacion.fotos.url }}" alt="Foto de la publicación">
-                </li>
-            {% empty %}
-                <li>No hay publicaciones disponibles.</li>
-            {% endfor %}
-        </ul>
+                <div class="filter-group">
+                    <label for="rooms">Habitaciones Disponibles</label>
+                    <select id="rooms">
+                        <option value="">Cualquier</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" style="width: 100%; padding: 0.75rem; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background-color 0.3s ease;">
+                Aplicar Filtros
+                </button>
+            </aside>
 
+            <main class="listings">
+                {% for publicacion in publicaciones %}
+                <article class="property-card">
+                    {% if publicacion.fotos.all %}
+                        <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
+                    {% else %}
+                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+                    {% endif %}
+                    <div class="property-details">
+                        <h3 class="property-title">{{ publicacion.titulo }}</h3>
+                        <div class="property-info">
+                            <span>{{ publicacion.ciudad }}</span>
+                            <span>${{ publicacion.valor_alquiler }}/month</span>
+                            <span>{{ publicacion.habitaciones_disponibles }} rooms available</span>
+                        </div>
+                        <div>{{ publicacion.direccion }}</div>
+                    </div>
+                </article>
+                {% empty %}
+                    <p>No hay publicaciones disponibles.</p>
+                {% endfor %}
+            </main>
+            
+        </div>
+        <!-- Archivo JavaScript para validación -->
+        <script src="{% static 'js/dashboard.js' %}"></script>
     </body>
 </html>

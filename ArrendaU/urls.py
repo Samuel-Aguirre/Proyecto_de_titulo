@@ -25,9 +25,6 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
-    #path('dashboard/arrendador/',login_required(views.dashboard_arrendador), name='dashboard_arrendador'),
-    #path('dashboard/arrendatario/', login_required(views.dashboard_arrendatario), name='dashboard_arrendatario'),
-
     path('dashboard/', views.dashboard_view, name='dashboard'),  # Ruta unificada
     path('publicaciones/', include('ArrendaU_publicaciones_app.urls')),
 ]

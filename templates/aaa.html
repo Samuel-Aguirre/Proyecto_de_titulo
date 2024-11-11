@@ -71,12 +71,11 @@
                 <div class="form-group">
                     <label>Photos</label>
                     <div id="photo-upload-container" class="photo-upload">
-                        <input type="file" id="photo-upload" name="photos" accept="image/*" multiple style="display: none;">
-                        <div class="photo-upload-box" onclick="document.getElementById('photo-upload').click()">
+                        <div class="photo-upload-box" onclick="addPhotoInput()">
                             <span>+</span>
                         </div>
-                        <div id="preview-container"></div>
                     </div>
+                    <input type="file" id="photo-upload" name="photos" accept="image/*" style="display: none;">
                 </div>
 
                 <button type="submit" class="btn">Create Publication</button>
@@ -84,64 +83,69 @@
         </div>
 
         <script>
+            document.getElementById('publication-form').addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevenir el envío por defecto
+        
+                const formData = new FormData(this); // Crear el objeto FormData a partir del formulario
+        
+                // Enviar datos usando fetch para hacer una solicitud POST
+                fetch('{% url "crear_publicacion" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}' // Token CSRF para Django
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Redirigir a dashboard si el envío es exitoso
+                        window.location.href = "{% url 'dashboard' %}";
+                    } else {
+                        console.error('Error al enviar los datos.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            });
+        
+            // Manejador para previsualización y carga de fotos
             document.getElementById('photo-upload').addEventListener('change', function(e) {
-                const previewContainer = document.getElementById('preview-container');
-                const files = e.target.files;
-
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
+                const container = document.getElementById('photo-upload-container');
+                for (let file of e.target.files) {
                     const preview = document.createElement('div');
                     preview.className = 'photo-preview';
-                    
                     const img = document.createElement('img');
                     img.src = URL.createObjectURL(file);
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.innerHTML = 'X';
-                    deleteBtn.className = 'delete-preview';
-                    deleteBtn.onclick = function() {
-                        preview.remove();
+                    img.onload = function() {
+                        URL.revokeObjectURL(this.src); // Liberar la memoria
                     };
-                    
                     preview.appendChild(img);
-                    preview.appendChild(deleteBtn);
-                    previewContainer.appendChild(preview);
+                    container.insertBefore(preview, container.lastElementChild);
                 }
             });
+        
+            // Añadir un input adicional para fotos al hacer clic en el contenedor
+            function addPhotoInput() {
+                const container = document.getElementById('photo-upload-container');
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.name = 'photos';
+                input.accept = 'image/*';
+                input.style.display = 'none';
+                input.onchange = function(e) {
+                    const preview = document.createElement('div');
+                    preview.className = 'photo-preview';
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(e.target.files[0]);
+                    img.onload = function() {
+                        URL.revokeObjectURL(this.src);
+                    };
+                    preview.appendChild(img);
+                    container.insertBefore(preview, container.lastElementChild);
+                };
+                input.click();
+            }
         </script>
-
-        <style>
-            .photo-preview {
-                position: relative;
-                display: inline-block;
-                margin: 10px;
-            }
-
-            .photo-preview img {
-                width: 100px;
-                height: 100px;
-                object-fit: cover;
-            }
-
-            .delete-preview {
-                position: absolute;
-                top: -10px;
-                right: -10px;
-                background: red;
-                color: white;
-                border: none;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                cursor: pointer;
-            }
-
-            #preview-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin-top: 10px;
-            }
-        </style>
     </body>
 </html>
