@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Publicación - ArrendaU</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/editar_publicacion.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <img src="{% static 'img/Logo_2500x2500.png' %}" onclick="window.location.href='{% url 'home' %}'" alt="ArrendaU Logo" class="logo" />
+    </nav>
+
+    <div class="edit-container">
+        <div class="edit-header">
+            <h1>Editar Publicación</h1>
+            <p>Actualiza los detalles de tu publicación</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="editForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title">Título</label>
+                <input type="text" id="title" name="title" class="form-control" value="{{ publicacion.titulo }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" class="form-control" required>{{ publicacion.descripcion }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="region">Región</label>
+                <input type="text" id="region" name="region" class="form-control" value="{{ publicacion.region }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="city">Ciudad</label>
+                <input type="text" id="city" name="city" class="form-control" value="{{ publicacion.ciudad }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Dirección</label>
+                <input type="text" id="address" name="address" class="form-control" value="{{ publicacion.direccion }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contact">Número de Contacto</label>
+                <input type="text" id="contact" name="contact" class="form-control" value="{{ publicacion.numero_contacto }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rooms">Habitaciones Disponibles</label>
+                <input type="number" id="rooms" name="rooms" class="form-control" value="{{ publicacion.habitaciones_disponibles }}" required min="1">
+            </div>
+
+            <div class="form-group">
+                <label for="rental-value">Valor del Alquiler</label>
+                <input type="number" id="rental-value" name="rental-value" class="form-control" value="{{ publicacion.valor_alquiler }}" required min="0">
+            </div>
+
+            <div class="form-group">
+                <label>Imágenes Actuales</label>
+                <div class="current-images">
+                    {% for foto in publicacion.fotos.all %}
+                    <div class="image-container" id="foto-{{ foto.id }}">
+                        <img src="{{ foto.imagen.url }}" alt="Foto de la propiedad">
+                        <button type="button" class="delete-image" onclick="deleteImage({{ foto.id }})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="photos">Agregar Nuevas Fotos</label>
+                <div class="file-upload" onclick="document.getElementById('photos').click()">
+                    <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                    <p>Haz clic para subir imágenes o arrastra y suelta aquí</p>
+                    <input type="file" id="photos" name="photos" multiple accept="image/*" style="display: none">
+                </div>
+                <div id="preview" class="current-images"></div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'dashboard' %}';">Cancelar</button>
+                <button type="submit" class="btn-save">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="{% static 'js/editar_publicacion.js' %}"></script>
+</body>
+</html> 

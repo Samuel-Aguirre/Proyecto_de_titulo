@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ArrendaU - Encuentra a Tu Roommate Ideal</title>
+
+        <!-- Enlace al archivo CSS personalizado -->
+        <link rel="stylesheet" href="{% static 'css/home.css' %}" />
+    </head>
+    <body>
+        <!-- Navbar actualizado para coincidir con el dashboard -->
+        <nav class="au-navbar">
+            <!-- Logo de la empresa -->
+            <a href="{% url 'home' %}">
+                <img src="{% static 'img/Logo_2500x2500.png' %}" alt="Logo ArrendaU" class="au-logo">
+            </a>
+
+            <!-- Menú hamburguesa para dispositivos móviles -->
+            <div class="au-hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <!-- Links de navegación -->
+            <div class="au-nav-links">
+                <a href="{% url 'home' %}">Inicio</a>
+                <a href="#features">Características</a>
+                <a href="#mission">Misión</a>
+                <a href="#contact">Contacto</a>
+            </div>
+
+            <!-- Botones de autenticación -->
+            <div class="au-auth-buttons">
+                <button class="au-btn-login" onclick="window.location.href='{% url 'login' %}'">
+                    Iniciar Sesión
+                </button>
+                <button class="au-btn-signup" onclick="window.location.href='{% url 'register' %}'">
+                    Registrarse
+                </button>
+            </div>
+        </nav>
+
+        <!-- Sección hero principal -->
+        <section class="hero">
+            <h1>Encuentra a tu roommate ideal con ArrendaU</h1>
+            <p>ArrendaU es una plataforma innovadora diseñada para estudiantes universitarios y jóvenes profesionales que buscan alojamiento compartido en Temuco. Facilitamos la búsqueda de tu espacio ideal con tecnología avanzada y compatibilidad impulsada por IA.</p>
+            <button class="btn-signup" onclick="recomendarRegistro()">Comenzar</button>
+        </section>
+
+        <!-- Sección de características -->
+        <section class="features" id="features">
+            <div class="feature">
+                <h3>Búsqueda Personalizada</h3>
+                <p>Explora opciones de alojamiento según tus necesidades específicas y presupuesto.</p>
+            </div>
+            <div class="feature">
+                <h3>Compatibilidad de Roommates</h3>
+                <p>Completa un formulario para evaluar la compatibilidad con otros usuarios, ayudándote a encontrar roommates con estilos de vida y hábitos similares.</p>
+            </div>
+            <div class="feature">
+                <h3>Publicación de Espacios</h3>
+                <p>Propietarios e inquilinos pueden subir especificaciones y fotos de sus espacios en arriendo, facilitando el acceso a opciones de calidad.</p>
+            </div>
+        </section>
+
+        <!-- Sección de misión -->
+        <section class="mission" id="mission">
+            <h2>Nuestra Misión</h2>
+            <p>Brindar a los estudiantes una experiencia de convivencia armoniosa y reducir el estrés asociado con la búsqueda de una residencia, contribuyendo a un entorno de estudio favorable y positivo.</p>
+        </section>
+
+        <!-- Sección de contacto mejorada -->
+        <section id="contacto" class="contact-section">
+            <div class="contact-container">
+                <h2>¿Necesitas ayuda?</h2>
+                <p class="contact-description">Estamos aquí para responder tus dudas y ayudarte a encontrar el espacio perfecto.</p>
+                
+                <div class="contact-info">
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Correo Electrónico</h3>
+                            <p>soporte@arrendau.cl</p>
+                            <a href="mailto:soporte@arrendau.cl" class="contact-link">Envíanos un mensaje</a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone-alt"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Teléfono</h3>
+                            <p>+56 9 1234 5678</p>
+                            <a href="tel:+56912345678" class="contact-link">Llámanos ahora</a>
+                        </div>
+                    </div>
+                    
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Ubicación</h3>
+                            <p>Temuco, Chile</p>
+                            <a href="#" class="contact-link">Ver en el mapa</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Pie de página -->
+        <footer>
+            <p>&copy; 2023 ArrendaU. Todos los derechos reservados.</p>
+        </footer>
+        
+        <!-- Scripts -->
+        <script src="{% static 'js/home.js' %}"></script>
+        <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    </body>
+</html>

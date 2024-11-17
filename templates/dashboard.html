@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>ArrendaU - Property Listings</title>
+        <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=1.1" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    </head>
+    <body>
+        {% csrf_token %}
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <nav class="navbar">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'img/Logo_2500x2500.png' %}" alt="ArrendaU Logo" class="logo">
+            </a>
+            
+            <div class="hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <div class="nav-links">
+                <a href="{% url 'home' %}">Inicio</a>
+                <a href="#propiedades">Propiedades</a>
+                <a href="#nosotros">Sobre Nosotros</a>
+                <a href="#contacto">Contacto</a>
+            </div>
+            
+            <div class="auth-buttons">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'cerrar_sesion' %}" class="btn-login">Cerrar Sesión</a>
+                    <a href="{% url 'dashboard' %}" class="btn-signup">Dashboard</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn-login">Iniciar Sesión</a>
+                    <a href="{% url 'register' %}" class="btn-signup">Registrarse</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <div class="hero-image">
+            <div class="hero-content">
+                <h1>Encuentra tu espacio perfecto</h1>
+                {% if user.is_authenticated %}
+                    <p>Bienvenido, {{ user.nombre }} {{ user.apellido }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="container">
+            <aside class="filters">
+                {% if user.rol == 'Arrendador' %}
+                    <a href="{% url 'crear_publicacion' %}" class="btn-create">
+                        Crear publicación
+                    </a>
+                    <h2>Mis Publicaciones</h2>
+                {% else %}
+                    <h2>Publicaciones Disponibles</h2>
+                {% endif %}
+                <div class="filter-group">
+                    <label for="city">Ciudad</label>
+                    <input type="text" id="city" placeholder="Ej: Medellín">
+                </div>
+
+                <div class="filter-group">
+                    <label>Rango de Precio</label>
+                    <div class="range-container">
+                        <div class="range-slider" id="range-slider">
+                            <div class="range-selected"></div>
+                        </div>
+                        <div class="range-input">
+                            <input type="range" class="min-price" min="0" max="400000" value="135000" step="1000">
+                            <input type="range" class="max-price" min="0" max="400000" value="200000" step="1000">
+                        </div>
+                        <div class="range-price">
+                            <span id="min-value">$0</span>
+                            <span id="max-value">$200.000</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <label for="rooms">Habitaciones</label>
+                    <select id="rooms">
+                        <option value="">Todas</option>
+                        <option value="1">1 Habitación</option>
+                        <option value="2">2 Habitaciones</option>
+                        <option value="3">3 Habitaciones</option>
+                        <option value="4+">4+ Habitaciones</option>
+                    </select>
+                </div>
+                <button class="btn-signup" style="width: 100%; margin-top: 1rem;">
+                    Aplicar Filtros
+                </button>
+            </aside>
+
+            <main class="listings">
+                {% for publicacion in publicaciones %}
+                <article class="property-card" data-publication-id="{{ publicacion.id }}">
+                    <div class="property-actions">
+                        {% if user.rol == 'Arrendador' and user == publicacion.usuario %}
+                            <a href="{% url 'editar_publicacion' publicacion.id %}" class="btn-action btn-edit" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" 
+                                    class="btn-action btn-delete" 
+                                    onclick="showDeleteModal('{{ publicacion.id }}')" 
+                                    title="Eliminar"
+                                    data-id="{{ publicacion.id }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                    {% if publicacion.fotos.all %}
+                        <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
+                    {% else %}
+                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+                    {% endif %}
+                    <div class="property-details">
+                        <h3 class="property-title">{{ publicacion.titulo }}</h3>
+                        <div class="property-info">
+                            <span>📍 {{ publicacion.ciudad }}</span>
+                            <span>💰 ${{ publicacion.valor_alquiler|floatformat:0 }}/mes</span>
+                            <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
+                        </div>
+                        <p class="property-description">
+                            {{ publicacion.descripcion }}
+                        </p>
+                        <div style="color: var(--text-secondary);">
+                            {{ publicacion.direccion }}
+                        </div>
+                    </div>
+                </article>
+                {% empty %}
+                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                        {% if user.rol == 'Arrendador' %}
+                            <p>No has creado ninguna publicación aún.</p>
+                            <a href="{% url 'crear_publicacion' %}" class="btn-create" style="margin-top: 1rem;">
+                                Crear mi primera publicación
+                            </a>
+                        {% else %}
+                            <p>No hay publicaciones disponibles en este momento.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </main>
+        </div>
+        
+        <div id="deleteModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2>Confirmar Eliminación</h2>
+                <p>¿Estás seguro de que deseas eliminar esta publicación?</p>
+                <div class="modal-buttons">
+                    <button onclick="confirmDelete()" class="btn-delete">Eliminar</button>
+                    <button onclick="hideDeleteModal()" class="btn-cancel">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="notificationModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <h2 id="notificationTitle"></h2>
+                <p id="notificationMessage"></p>
+                <div class="modal-buttons">
+                    <button onclick="hideNotificationModal()" class="btn-signup">Aceptar</button>
+                </div>
+            </div>
+        </div>
+
+        <script src="{% static 'js/dashboard.js' %}"></script>
+    </body>
+</html>

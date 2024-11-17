@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Registro - ArrendaU</title>
+        <link rel="stylesheet" href="{% static 'css/register.css' %}" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    </head>
+    <body>
+        <!-- Navbar con el sistema au- -->
+        <nav class="au-navbar">
+            <a href="{% url 'home' %}">
+                <img src="{% static 'img/Logo_2500x2500.png' %}" alt="ArrendaU Logo" class="au-logo">
+            </a>
+            
+            <div class="au-hamburger" onclick="toggleMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <div class="au-nav-links">
+                <a href="{% url 'home' %}">Inicio</a>
+                <a href="#features">Características</a>
+                <a href="#mission">Misión</a>
+                <a href="#contact">Contacto</a>
+            </div>
+            
+            <div class="au-auth-buttons">
+                <button class="au-btn-login" onclick="window.location.href='{% url 'login' %}'">
+                    Iniciar Sesión
+                </button>
+                <button class="au-btn-signup" onclick="window.location.href='{% url 'register' %}'">
+                    Registrarse
+                </button>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="left-panel">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {{ message.tags }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.errors %}
+                    <div class="alert alert-error">
+                    {% for field, errors in form.errors.items %}
+                        <p><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
+                    {% endfor %}
+                    </div>
+                {% endif %}
+
+                <h1>Es hora de sentirse en casa</h1>
+                
+                <form method="post" onsubmit="return validarFormulario();">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <input type="text" id="nombre" name="nombre" placeholder="Nombre" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="text" id="apellido" name="apellido" placeholder="Apellido" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="email" id="email" name="email" placeholder="Correo Electrónico" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <div class="password-container">
+                            <input type="password" id="password" name="password1" placeholder="Contraseña" required>
+                            <svg class="toggle-password" onclick="togglePasswordVisibility('password')" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path class="eye-open" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                <path class="eye-closed" d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="password-container">
+                            <input type="password" id="confirm_password" name="password2" placeholder="Confirmar Contraseña" required>
+                            <svg class="toggle-password" onclick="togglePasswordVisibility('confirm_password')" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path class="eye-open" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                <path class="eye-closed" d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <select name="rol" id="user_type" required>
+                            <option value="" disabled selected>Selecciona tu rol</option>
+                            <option value="Arrendador">Arrendador</option>
+                            <option value="Arrendatario">Arrendatario</option>
+                        </select>
+                    </div>
+
+                    <div class="help-box">
+                        <p><strong>🏡 Arrendador:</strong> Persona que posee la propiedad y la arrienda.</p>
+                        <p><strong>🛋️ Arrendatario:</strong> Persona que arrienda y vive en la propiedad.</p>
+                    </div>
+
+                    <div class="buttons">
+                        <button type="submit" class="btn btn-primary">Registrarse</button>
+                        <button type="button" onclick="window.location.href='{% url 'login' %}'" class="btn btn-secondary">Iniciar sesión</button>
+                    </div>
+                </form>
+            </div>
+            <div class="right-panel"></div>
+        </div>
+
+        {% if redirect_to_login %}
+        <script>
+            setTimeout(function() {
+                window.location.href = "{% url 'login' %}";
+            }, 2000); // Redirecciona después de 2 segundos
+        </script>
+        {% endif %}
+        
+        <script src="{% static 'js/register.js' %}"></script>
+    </body>
+</html>

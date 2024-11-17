@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArrendaU - Crear Publicación</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/editar_publicacion.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <img src="{% static 'img/Logo_2500x2500.png' %}" onclick="redirectTo('{% url 'home' %}')" alt="ArrendaU Logo" class="logo">
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Inicio</a> 
+            <a href="#propiedades">Propiedades</a> 
+            <a href="#nosotros">Sobre Nosotros</a> 
+            <a href="#contacto">Contacto</a> 
+        </div>
+        <div class="auth-buttons">
+            <button class="btn-login">Iniciar Sesión</button> 
+            <button class="btn-signup">Registrarse</button> 
+        </div>
+    </nav>
+
+    <div class="edit-container">
+        <div class="edit-header">
+            <h1>Crear Nueva Publicación</h1>
+            <p>Ingresa los detalles de tu propiedad</p>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data" id="publicationForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title">Título</label>
+                <input type="text" id="title" name="title" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" class="form-control" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="region">Región</label>
+                <select id="region" name="region" class="form-control" required>
+                    <option value="">Selecciona una región</option>
+                    <option value="araucania">Araucanía</option>
+                    <option value="biobio">Bío Bío</option>
+                    <option value="los-lagos">Los Lagos</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="city">Ciudad</label>
+                <input type="text" id="city" name="city" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Dirección</label>
+                <input type="text" id="address" name="address" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="contact">Número de Contacto</label>
+                <input type="tel" id="contact" name="contact" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rooms">Habitaciones Disponibles</label>
+                <input type="number" id="rooms" name="rooms" class="form-control" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rental-value">Valor del Alquiler</label>
+                <input type="number" id="rental-value" name="rental-value" class="form-control" min="0" step="1000" required>
+            </div>
+
+            <div class="form-group">
+                <label for="photos">Agregar Fotos</label>
+                <div class="file-upload" onclick="document.getElementById('photos').click()">
+                    <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                    <p>Haz clic para subir imágenes o arrastra y suelta aquí</p>
+                    <input type="file" id="photos" name="photos" multiple accept="image/*" style="display: none">
+                </div>
+                <div id="preview" class="current-images"></div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="redirectTo('{% url 'dashboard' %}')">Cancelar</button>
+                <button type="submit" class="btn-save">Crear Publicación</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="{% static 'js/editar_publicacion.js' %}"></script>
+</body>
+</html>
