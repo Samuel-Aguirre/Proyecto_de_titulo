@@ -1,39 +1,96 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
-# Create your models here.
-class UsuarioManager(BaseUserManager):
-    def create_user(self, email, nombre, apellido, rol, password=None):
-        if not email:
-            raise ValueError("El usuario debe tener un correo electrónico")
-        if not rol:
-            raise ValueError("El usuario debe tener un rol")
-        
-        email = self.normalize_email(email)
-        user = self.model(email=email, nombre=nombre, apellido=apellido, rol=rol, fecha_creacion=timezone.now())
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-class Usuario(AbstractBaseUser):
-    ROLES = (
+class Usuario(AbstractUser):
+    ROLES = [
         ('Arrendador', 'Arrendador'),
         ('Arrendatario', 'Arrendatario'),
-    )
+    ]
+    
+    rol = models.CharField(max_length=20, choices=ROLES)
+    nombre = models.CharField(max_length=100)
+    apellido = models.CharField(max_length=100)
     email = models.EmailField(unique=True)
-    nombre = models.CharField(max_length=30)
-    apellido = models.CharField(max_length=30)
-    rol = models.CharField(max_length=15, choices=ROLES)
-    fecha_creacion = models.DateTimeField(default=timezone.now)
-    ultimo_login = models.DateTimeField(blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.nombre} {self.apellido}"
 
-    is_active = models.BooleanField(default=True)
+class PerfilArrendatario(models.Model):
+    OPCIONES_BEBEDOR = [
+        ('no', 'No'),
+        ('casual', 'Casual'),
+        ('si', 'Sí')
+    ]
+    
+    OPCIONES_FUMADOR = [
+        ('no', 'No'),
+        ('ocasional', 'Ocasional'),
+        ('si', 'Sí')
+    ]
+    
+    OPCIONES_MASCOTA = [
+        ('no', 'No'),
+        ('tengo', 'Ya tengo'),
+        ('planeo', 'Planeo tener')
+    ]
 
-    objects = UsuarioManager()
-
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['nombre', 'apellido', 'rol']
+    usuario = models.OneToOneField('Usuario', on_delete=models.CASCADE)
+    descripcion = models.TextField(max_length=500, blank=True)
+    universidad = models.CharField(max_length=100)
+    carrera = models.CharField(max_length=100)
+    documento_estudiante = models.FileField(
+        upload_to='documentos_estudiante/', 
+        blank=True,
+        help_text='Certificado de alumno regular o matrícula'
+    )
+    bebedor = models.CharField(max_length=10, choices=OPCIONES_BEBEDOR)
+    fumador = models.CharField(max_length=10, choices=OPCIONES_FUMADOR)
+    mascota = models.CharField(max_length=10, choices=OPCIONES_MASCOTA)
+    tipo_mascota = models.CharField(max_length=50, blank=True)
+    nivel_ruido = models.IntegerField(
+        choices=[(1, 'Muy silencioso'), (2, 'Normal'), (3, 'Ruidoso')],
+        default=2
+    )
+    horario_llegada = models.TimeField(null=True, blank=True)
+    presupuesto_max = models.IntegerField(null=True, blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.nombre} {self.apellido} - {self.rol}"
+        return f"Perfil de {self.usuario.nombre}"
+
+class PerfilArrendador(models.Model):
+    PREFERENCIAS_CHOICES = [
+        (1, 'No importante'),
+        (2, 'Preferible'),
+        (3, 'Muy importante')
+    ]
+
+    usuario = models.OneToOneField('Usuario', on_delete=models.CASCADE)
+    descripcion = models.TextField(max_length=500, blank=True)
+    pref_no_fumador = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
+    pref_no_bebedor = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
+    pref_no_mascotas = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
+    pref_estudiante_verificado = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
+    pref_nivel_ruido = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
+    horario_visitas = models.CharField(max_length=200, blank=True)
+    reglas_casa = models.TextField(blank=True)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_actualizacion = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Preferencias de {self.usuario.nombre}"
+
+class Compatibilidad(models.Model):
+    arrendatario = models.ForeignKey(PerfilArrendatario, on_delete=models.CASCADE)
+    arrendador = models.ForeignKey(PerfilArrendador, on_delete=models.CASCADE)
+    publicacion = models.ForeignKey('ArrendaU_publicaciones_app.Publicacion', on_delete=models.CASCADE)
+    porcentaje = models.FloatField()
+    fecha_calculo = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['arrendatario', 'publicacion']
+
+    def __str__(self):
+        return f"Compatibilidad: {self.arrendatario.usuario.nombre} - {self.publicacion.titulo}"

@@ -1,128 +1,109 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Iniciar Sesión - ArrendaU</title>
-        <link rel="stylesheet" href="{% static 'css/login.css' %}" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    </head>
-    <body>
-        <!-- Navbar con el sistema au- -->
-        <nav class="au-navbar">
-            <a href="{% url 'home' %}">
-                <img src="{% static 'img/Logo_2500x2500.png' %}" alt="ArrendaU Logo" class="au-logo">
-            </a>
-            
-            <div class="au-hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+
+{% block title %}Iniciar Sesión - ArrendaU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <!-- Frente del card - Login -->
+        <div class="card-front">
+            <div class="login-header">
+                <h1>¡Bienvenido de nuevo!</h1>
+                <p>Ingresa tus credenciales para continuar</p>
             </div>
-            
-            <div class="au-nav-links">
-                <a href="{% url 'home' %}">Inicio</a>
-                <a href="#features">Características</a>
-                <a href="#mission">Misión</a>
-                <a href="#contact">Contacto</a>
-            </div>
-            
-            <div class="au-auth-buttons">
-                <button class="au-btn-login" onclick="window.location.href='{% url 'login' %}'">
-                    Iniciar Sesión
-                </button>
-                <button class="au-btn-signup" onclick="window.location.href='{% url 'register' %}'">
-                    Registrarse
-                </button>
-            </div>
-        </nav>
 
-        <div class="container">
-            <div class="card">
-                <div class="card-inner">
-                    <!-- Cara frontal - Login -->
-                    <div class="card-face card-face-front">
-                        {% if messages %}
-                            {% for message in messages %}
-                                <div class="alert {{ message.tags }}">{{ message }}</div>
-                            {% endfor %}
-                        {% endif %}
+            {% if messages or form.errors %}
+            <div class="alerts">
+                {% for message in messages %}
+                    <div class="alert {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
 
-                        {% if form.errors %}
-                            <div class="alert alert-error">
-                            {% for field, errors in form.errors.items %}
-                                <p><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
-                            {% endfor %}
-                            </div>
-                        {% endif %}
-
-                        <h1>¡Bienvenido de nuevo!</h1>
-                        
-                        <form method="post" onsubmit="return validarFormulario();">
-                            {% csrf_token %}
-                            <div class="input-group">
-                                <input type="email" name="email" id="email" placeholder="Correo electrónico" required>
-                            </div>
-                            
-                            <div class="input-group">
-                                <div class="password-container">
-                                    <input type="password" name="password" id="password" placeholder="Contraseña" required>
-                                    <svg class="toggle-password" onclick="togglePasswordVisibility('password')" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                        <path class="eye-open" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                                        <path class="eye-closed" d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
-                                    </svg>
-                                </div>
-                            </div>
-
-                            <div class="remember-forgot">
-                                <a href="#" onclick="flipCard()">¿Olvidaste tu contraseña?</a>
-                            </div>
-
-                            <div class="buttons">
-                                <button type="submit" class="btn btn-primary">Iniciar sesión</button>
-                                <button type="button" onclick="window.location.href='{% url 'register' %}'" class="btn btn-secondary">Registrarse</button>
-                            </div>
-                        </form>
+                {% if form.errors %}
+                    <div class="alert alert-error">
+                        {% for field, errors in form.errors.items %}
+                            <p>{{ errors|join:", " }}</p>
+                        {% endfor %}
                     </div>
+                {% endif %}
+            </div>
+            {% endif %}
 
-                    <!-- Cara trasera - Recuperar contraseña -->
-                    <div class="card-face card-face-back">
-                        <button class="back-button" onclick="flipCard()">
-                            <span>←</span> Volver al inicio de sesión
-                        </button>
-                        
-                        <h1>Recuperar Contraseña</h1>
-                        <p class="reset-description">Ingresa tu correo electrónico y te enviaremos las instrucciones para restablecer tu contraseña.</p>
-                        
-                        <form onsubmit="handleResetSubmit(event)">
-                            <div class="input-group">
-                                <input type="email" name="reset_email" id="reset_email" placeholder="Correo electrónico" required>
-                            </div>
-
-                            <div class="buttons">
-                                <button type="submit" class="btn btn-primary">Enviar instrucciones</button>
-                            </div>
-                        </form>
+            <form method="post" onsubmit="return validarFormulario();" class="login-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" id="email" 
+                               placeholder="ejemplo@correo.com" required>
                     </div>
                 </div>
-            </div>
-            <div class="right-panel"></div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="password" 
+                               placeholder="Ingresa tu contraseña" required>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <a href="#" class="forgot-password" onclick="flipCard(); return false;">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+                    <a href="{% url 'register' %}" class="btn btn-secondary">Crear cuenta nueva</a>
+                </div>
+            </form>
         </div>
 
-        <script>
-            function flipCard() {
-                document.querySelector('.card-inner').classList.toggle('is-flipped');
-            }
+        <!-- Reverso del card - Recuperación -->
+        <div class="card-back">
+            <div class="login-header">
+                <h1>Recuperar contraseña</h1>
+                <p>Ingresa tu correo electrónico y te enviaremos las instrucciones</p>
+            </div>
 
-            function handleResetSubmit(event) {
-                event.preventDefault();
-                // Aquí irá la lógica de recuperación cuando la implementemos
-                alert('Se han enviado las instrucciones a tu correo electrónico.');
-                flipCard();
-            }
-        </script>
+            <form method="post" action="" class="recovery-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="recovery_email">Correo electrónico</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="recovery_email" name="recovery_email" 
+                               placeholder="ejemplo@correo.com" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Enviar instrucciones</button>
+                    <a href="#" class="btn btn-secondary" onclick="flipCard(); return false;">
+                        Volver al inicio de sesión
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
 
-        <script src="{% static 'js/login.js' %}"></script>
-    </body>
-</html>
+    <!-- Panel derecho -->
+    <div class="image-panel">
+        <div class="overlay">
+            <h2>ArrendaU</h2>
+            <p>Tu plataforma de arriendo universitario</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/login.js' %}"></script>
+{% endblock %}

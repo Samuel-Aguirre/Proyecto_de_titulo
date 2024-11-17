@@ -35,7 +35,6 @@ function hideDeleteModal() {
 }
 
 function showNotification(title, message) {
-    console.log('Mostrando notificación:', title, message);
     const modal = document.getElementById('notificationModal');
     const titleElement = document.getElementById('notificationTitle');
     const messageElement = document.getElementById('notificationMessage');
@@ -52,11 +51,6 @@ function showNotification(title, message) {
     setTimeout(() => {
         modal.classList.add('show');
     }, 10);
-
-    // Auto-ocultar la notificación después de 3 segundos
-    setTimeout(() => {
-        hideNotificationModal();
-    }, 3000);
 }
 
 function hideNotificationModal() {
@@ -69,16 +63,13 @@ function hideNotificationModal() {
 
 function confirmDelete() {
     if (!publicacionIdToDelete) {
-        console.error('No hay ID de publicación para eliminar');
-        showNotification('Error', 'No se encontró la publicación a eliminar');
+        console.log('No hay ID para eliminar');
         return;
     }
 
-    console.log('Eliminando publicación:', publicacionIdToDelete);
-
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-    fetch(`/publicaciones/eliminar/${publicacionIdToDelete}/`, {
+    const csrfToken = document.querySelector('#deleteForm [name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/publicaciones/publicacion/${publicacionIdToDelete}/eliminar/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrfToken,
@@ -86,38 +77,25 @@ function confirmDelete() {
         },
         credentials: 'same-origin'
     })
-    .then(async response => {
-        if (response.ok) {
-            const publicacionCard = document.querySelector(`[data-publication-id="${publicacionIdToDelete}"]`);
-            if (publicacionCard) {
-                publicacionCard.style.opacity = '0';
-                setTimeout(() => {
-                    publicacionCard.remove();
-                    // Verificar si no hay más publicaciones
-                    const remainingCards = document.querySelectorAll('.property-card');
-                    if (remainingCards.length === 0) {
-                        const listings = document.querySelector('.listings');
-                        listings.innerHTML = `
-                            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                                <p>No has creado ninguna publicación aún.</p>
-                                <a href="/publicaciones/crear/" class="btn-create" style="margin-top: 1rem;">
-                                    Crear mi primera publicación
-                                </a>
-                            </div>
-                        `;
-                    }
-                }, 300);
-            }
-            hideDeleteModal();
-            showNotification('Éxito', 'Publicación eliminada exitosamente');
-        } else {
-            throw new Error('Error al eliminar la publicación');
+    .then(response => {
+        console.log('Status de la respuesta:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+        return response.json();
+    })
+    .then(data => {
+        const card = document.querySelector(`[data-publication-id="${publicacionIdToDelete}"]`);
+        if (card) {
+            card.remove();
+        }
+        hideDeleteModal();
+        showNotification('Éxito', 'Publicación eliminada correctamente');
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('Error completo:', error);
         hideDeleteModal();
-        showNotification('Error', 'Hubo un error al eliminar la publicación. Por favor, intenta nuevamente.');
+        showNotification('Error', 'No se pudo eliminar la publicación');
     });
 }
 

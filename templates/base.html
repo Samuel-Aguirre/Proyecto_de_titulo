@@ -4,55 +4,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArrendaU - {% block title %}{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=1.1" />
+    <title>{% block title %}ArrendaU{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block extra_css %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'css/home.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/publicacion_form.css' %}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    {% block extra_css %}{% endblock %}
 </head>
 <body>
-    {% csrf_token %}
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
     <nav class="navbar">
-        <a href="{% url 'home' %}">
-            <img src="{% static 'img/Logo_2500x2500.png' %}" alt="ArrendaU Logo" class="logo">
-        </a>
+        <button class="menu-toggle">
+            <i class="fas fa-bars"></i>
+        </button>
         
-        <div class="hamburger" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
+        <div class="logo-container">
+            <img src="{% static 'img/Logo_2500x2500.png' %}" 
+                 onclick="window.location.href='{% url 'home' %}'; return false;" 
+                 alt="ArrendaU Logo" 
+                 class="au-logo">
         </div>
         
-        <div class="nav-links">
-            <a href="{% url 'home' %}">Inicio</a>
-            <a href="#propiedades">Propiedades</a>
-            <a href="#nosotros">Sobre Nosotros</a>
-            <a href="#contacto">Contacto</a>
-        </div>
-        
-        <div class="auth-buttons">
-            {% if user.is_authenticated %}
-                <a href="{% url 'cerrar_sesion' %}" class="btn-login">Cerrar Sesión</a>
-                <a href="{% url 'dashboard' %}" class="btn-signup">Dashboard</a>
-            {% else %}
-                <a href="{% url 'login' %}" class="btn-login">Iniciar Sesión</a>
-                <a href="{% url 'register' %}" class="btn-signup">Registrarse</a>
-            {% endif %}
-        </div>
+        {% if user.is_authenticated %}
+            <div class="au-nav-links">
+                <a href="{% url 'dashboard' %}">Inicio</a>
+                
+                {% if user.rol == 'Arrendador' %}
+                    <a href="#">Mis Publicaciones</a>
+                    <a href="#">Postulaciones</a>
+                    <a href="#" class="au-btn-create">Crear Publicación</a>
+                {% else %}
+                    <a href="#">Buscar Habitación</a>
+                    <a href="#">Mis Postulaciones</a>
+                    <a href="#">Guardados</a>
+                {% endif %}
+            </div>
+            
+            <div class="au-user-actions">
+                <div class="notifications-dropdown">
+                    <button class="notifications-button">
+                        <i class="fas fa-bell"></i>
+                        <span class="notifications-count">0</span>
+                    </button>
+                    <div class="notifications-content">
+                        <div class="notifications-header">
+                            <h3>Notificaciones</h3>
+                        </div>
+                        <div class="notifications-list">
+                            <p class="no-notifications">No hay notificaciones nuevas</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-dropdown">
+                    <button class="profile-button">
+                        <span class="user-emoji">👤</span>
+                        <span class="user-name">
+                            {% if user.is_authenticated %}
+                                {{ user.nombre }} {{ user.apellido|slice:":1" }}.
+                            {% endif %}
+                        </span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="{% url 'editar_perfil' %}"><i class="fas fa-user"></i> Mi Perfil</a>
+                        <a href="#"><i class="fas fa-cog"></i> Configuración</a>
+                        {% if user.rol == 'Arrendador' %}
+                            <a href="{% url 'cambiar_rol' %}">
+                                <i class="fas fa-exchange-alt"></i> Cambiar a Estudiante
+                            </a>
+                        {% else %}
+                            <a href="{% url 'cambiar_rol' %}">
+                                <i class="fas fa-exchange-alt"></i> Cambiar a Arrendador
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'cerrar_sesion' %}" style="color: #dc3545;">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="au-nav-links">
+                <a href="{% url 'home' %}">Inicio</a>
+                <a href="#features">Características</a>
+                <a href="#mission">Misión</a>
+                <a href="#contact">Contacto</a>
+            </div>
+            <div class="au-auth-buttons">
+                <a href="{% url 'login' %}" class="au-btn-login">Iniciar Sesión</a>
+                <a href="{% url 'register' %}" class="au-btn-signup">Registrarse</a>
+            </div>
+        {% endif %}
     </nav>
 
-    {% block content %}{% endblock %}
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2023 ArrendaU. Todos los derechos reservados.</p>
+        </div>
+    </footer>
 
     {% block extra_js %}{% endblock %}
+    <script src="{% static 'js/base.js' %}"></script>
 </body>
 </html> 

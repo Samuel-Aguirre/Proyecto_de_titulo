@@ -135,28 +135,11 @@ body, html {
 }
 
 .hero-image {
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-    margin-right: calc(-50vw + 50%);
-    position: relative;
-    left: 50%;
-    right: 50%;
-    transform: translateX(-50%);
-    height: 400px;
-    background: linear-gradient(
-        135deg, 
-        rgba(46, 125, 50, 0.95), 
-        rgba(25, 118, 210, 0.85)
-    );
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    font-size: 2.5rem;
-    letter-spacing: -0.5px;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(25, 118, 210, 0.9));
+    padding: 3rem 2rem;
+    text-align: center;
     color: white;
-    overflow: hidden;
+    margin-bottom: 2rem;
 }
 
 .container {
@@ -893,4 +876,20 @@ body, html {
 /* Ajuste para el modal de eliminación */
 #deleteModal .modal-buttons {
     justify-content: flex-end;
+}
+
+.hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-content h1 {
+    font-size: 2.4rem;
+    margin-bottom: 0.8rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.hero-content p {
+    font-size: 1.2rem;
+    opacity: 0.9;
 }

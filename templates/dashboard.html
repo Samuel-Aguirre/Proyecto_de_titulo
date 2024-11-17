@@ -1,73 +1,43 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ArrendaU - Property Listings</title>
-        <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=1.1" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    </head>
-    <body>
-        {% csrf_token %}
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-        <nav class="navbar">
-            <a href="{% url 'home' %}">
-                <img src="{% static 'img/Logo_2500x2500.png' %}" alt="ArrendaU Logo" class="logo">
-            </a>
-            
-            <div class="hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            
-            <div class="nav-links">
-                <a href="{% url 'home' %}">Inicio</a>
-                <a href="#propiedades">Propiedades</a>
-                <a href="#nosotros">Sobre Nosotros</a>
-                <a href="#contacto">Contacto</a>
-            </div>
-            
-            <div class="auth-buttons">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'cerrar_sesion' %}" class="btn-login">Cerrar Sesión</a>
-                    <a href="{% url 'dashboard' %}" class="btn-signup">Dashboard</a>
-                {% else %}
-                    <a href="{% url 'login' %}" class="btn-login">Iniciar Sesión</a>
-                    <a href="{% url 'register' %}" class="btn-signup">Registrarse</a>
-                {% endif %}
-            </div>
-        </nav>
+{% load custom_filters %}
 
-        <div class="hero-image">
-            <div class="hero-content">
+{% block title %}Dashboard - ArrendaU{% endblock %}
+
+{% block extra_head %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="hero-image">
+        <div class="hero-content">
+            {% if user.rol == 'Arrendador' %}
+                <h1>Gestiona tus Propiedades</h1>
+                <p>Bienvenido, {{ user.nombre }} {{ user.apellido }}. Administra tus publicaciones y postulaciones.</p>
+            {% else %}
                 <h1>Encuentra tu espacio perfecto</h1>
-                {% if user.is_authenticated %}
-                    <p>Bienvenido, {{ user.nombre }} {{ user.apellido }}</p>
-                {% endif %}
-            </div>
+                <p>Bienvenido, {{ user.nombre }} {{ user.apellido }}. Explora las mejores opciones de alojamiento.</p>
+            {% endif %}
         </div>
+    </div>
 
-        <div class="container">
+    <div class="container">
+        <!-- Filtros solo para Arrendatarios -->
+        {% if not user.rol == 'Arrendador' %}
             <aside class="filters">
-                {% if user.rol == 'Arrendador' %}
-                    <a href="{% url 'crear_publicacion' %}" class="btn-create">
-                        Crear publicación
-                    </a>
-                    <h2>Mis Publicaciones</h2>
-                {% else %}
-                    <h2>Publicaciones Disponibles</h2>
-                {% endif %}
+                <h2>Publicaciones Disponibles</h2>
+                
+                <!-- Filtros -->
                 <div class="filter-group">
                     <label for="city">Ciudad</label>
                     <input type="text" id="city" placeholder="Ej: Medellín">
@@ -104,80 +74,94 @@
                     Aplicar Filtros
                 </button>
             </aside>
+        {% else %}
+            <!-- Panel para Arrendadores -->
+            <aside class="filters">
+                <a href="{% url 'ArrendaU_publicaciones_app:crear_publicacion' %}" class="btn-create">
+                    Crear publicación
+                </a>
+                <h2>Mis Publicaciones</h2>
+            </aside>
+        {% endif %}
 
-            <main class="listings">
-                {% for publicacion in publicaciones %}
-                <article class="property-card" data-publication-id="{{ publicacion.id }}">
-                    <div class="property-actions">
-                        {% if user.rol == 'Arrendador' and user == publicacion.usuario %}
-                            <a href="{% url 'editar_publicacion' publicacion.id %}" class="btn-action btn-edit" title="Editar">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <button type="button" 
-                                    class="btn-action btn-delete" 
-                                    onclick="showDeleteModal('{{ publicacion.id }}')" 
-                                    title="Eliminar"
-                                    data-id="{{ publicacion.id }}">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        {% endif %}
-                    </div>
-                    {% if publicacion.fotos.all %}
-                        <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
-                    {% else %}
-                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+        <main class="listings">
+            {% for publicacion in publicaciones %}
+            <article class="property-card" data-publication-id="{{ publicacion.id }}">
+                <div class="property-actions">
+                    {% if user.rol == 'Arrendador' and user == publicacion.usuario %}
+                        <a href="{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}" class="btn-action btn-edit" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button type="button" 
+                                class="btn-action btn-delete" 
+                                onclick="showDeleteModal('{{ publicacion.id }}')" 
+                                title="Eliminar"
+                                data-id="{{ publicacion.id }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     {% endif %}
-                    <div class="property-details">
-                        <h3 class="property-title">{{ publicacion.titulo }}</h3>
-                        <div class="property-info">
-                            <span>📍 {{ publicacion.ciudad }}</span>
-                            <span>💰 ${{ publicacion.valor_alquiler|floatformat:0 }}/mes</span>
-                            <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
-                        </div>
-                        <p class="property-description">
-                            {{ publicacion.descripcion }}
-                        </p>
-                        <div style="color: var(--text-secondary);">
-                            {{ publicacion.direccion }}
-                        </div>
-                    </div>
-                </article>
-                {% empty %}
-                    <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                        {% if user.rol == 'Arrendador' %}
-                            <p>No has creado ninguna publicación aún.</p>
-                            <a href="{% url 'crear_publicacion' %}" class="btn-create" style="margin-top: 1rem;">
-                                Crear mi primera publicación
-                            </a>
-                        {% else %}
-                            <p>No hay publicaciones disponibles en este momento.</p>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-            </main>
-        </div>
-        
-        <div id="deleteModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <h2>Confirmar Eliminación</h2>
-                <p>¿Estás seguro de que deseas eliminar esta publicación?</p>
-                <div class="modal-buttons">
-                    <button onclick="confirmDelete()" class="btn-delete">Eliminar</button>
-                    <button onclick="hideDeleteModal()" class="btn-cancel">Cancelar</button>
                 </div>
+                {% if publicacion.fotos.all %}
+                    <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
+                {% else %}
+                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+                {% endif %}
+                <div class="property-details">
+                    <h3 class="property-title">{{ publicacion.titulo }}</h3>
+                    <div class="property-info">
+                        <span>📍 {{ publicacion.ciudad }}</span>
+                        <span>💰 {{ publicacion.valor_alquiler|format_precio }}</span>
+                        <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
+                    </div>
+                    <p class="property-description">
+                        {{ publicacion.descripcion }}
+                    </p>
+                    <div style="color: var(--text-secondary);">
+                        {{ publicacion.direccion }}
+                    </div>
+                </div>
+            </article>
+            {% empty %}
+                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    {% if user.rol == 'Arrendador' %}
+                        <p>No has creado ninguna publicación aún.</p>
+                        <a href="{% url 'ArrendaU_publicaciones_app:crear_publicacion' %}" class="btn-create" style="margin-top: 1rem;">
+                            Crear mi primera publicación
+                        </a>
+                    {% else %}
+                        <p>No hay publicaciones disponibles en este momento.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </main>
+    </div>
+
+    <!-- Modales -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirmar Eliminación</h2>
+            <p>¿Estás seguro de que deseas eliminar esta publicación?</p>
+            <form id="deleteForm">
+                {% csrf_token %}
+                <div class="modal-buttons">
+                    <button type="button" onclick="confirmDelete()" class="btn-delete">Eliminar</button>
+                    <button type="button" onclick="hideDeleteModal()" class="btn-cancel">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="notificationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2 id="notificationTitle"></h2>
+            <p id="notificationMessage"></p>
+            <div class="modal-buttons">
+                <button onclick="hideNotificationModal()" class="btn-signup">Aceptar</button>
             </div>
         </div>
+    </div>
+{% endblock %}
 
-        <div id="notificationModal" class="modal" style="display: none;">
-            <div class="modal-content">
-                <h2 id="notificationTitle"></h2>
-                <p id="notificationMessage"></p>
-                <div class="modal-buttons">
-                    <button onclick="hideNotificationModal()" class="btn-signup">Aceptar</button>
-                </div>
-            </div>
-        </div>
-
-        <script src="{% static 'js/dashboard.js' %}"></script>
-    </body>
-</html>
+{% block extra_js %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

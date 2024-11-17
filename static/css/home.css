@@ -16,6 +16,7 @@ body, html {
     overflow-x: hidden;
     width: 100%;
     box-sizing: border-box;
+    min-height: 100vh;
 }
 
 /* ArrendaU Design System - Navbar Component */
@@ -225,6 +226,8 @@ body, html {
     padding: 8rem 2rem;
     position: relative;
     overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .hero::before {
@@ -259,22 +262,22 @@ body, html {
 }
 
 .features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
     padding: 6rem 2rem;
-    background-color: white;
-    max-width: 1400px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
     margin: 0 auto;
+    background: white;
 }
 
 .feature {
+    text-align: center;
     padding: 2rem;
     border-radius: 12px;
     background: white;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    text-align: center;
 }
 
 .feature:hover {
@@ -313,7 +316,6 @@ body, html {
     padding: 6rem 2rem;
     text-align: center;
     position: relative;
-    overflow: hidden;
 }
 
 .mission::before {
@@ -432,8 +434,8 @@ footer::before {
 
 /* Estilos mejorados para la sección de contacto */
 .contact-section {
-    background-color: white;
     padding: 6rem 2rem;
+    background: white;
     position: relative;
 }
 
@@ -460,38 +462,28 @@ footer::before {
     font-weight: 700;
 }
 
-.contact-description {
-    color: var(--text-secondary);
-    font-size: 1.2rem;
-    margin-bottom: 4rem;
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.6;
-}
-
 .contact-info {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 3rem;
-    margin-top: 2rem;
+    margin-top: 3rem;
 }
 
 .contact-item {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
-    text-align: center;
     display: flex;
     flex-direction: column;
     align-items: center;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
 }
 
 .contact-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 12px 30px rgba(46, 125, 50, 0.15);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .contact-icon {
@@ -510,17 +502,23 @@ footer::before {
     color: white;
 }
 
+.contact-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+}
+
 .contact-details h3 {
     color: var(--text-primary);
     font-size: 1.4rem;
-    margin-bottom: 0.8rem;
-    font-weight: 600;
+    margin: 0;
 }
 
 .contact-details p {
     color: var(--text-secondary);
     font-size: 1.1rem;
-    margin-bottom: 1.2rem;
+    margin: 0;
 }
 
 .contact-link {
@@ -540,31 +538,67 @@ footer::before {
 }
 
 @media (max-width: 992px) {
+    .features {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
     .contact-info {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 768px) {
-    .contact-section {
-        padding: 4rem 1.5rem;
+    .hero h1 {
+        font-size: 2.5rem;
     }
-
-    .contact-section h2 {
-        font-size: 2.2rem;
+    
+    .features {
+        grid-template-columns: 1fr;
     }
-
-    .contact-description {
-        font-size: 1.1rem;
-        margin-bottom: 3rem;
-    }
-
+    
     .contact-info {
         grid-template-columns: 1fr;
         gap: 2rem;
     }
 
     .contact-item {
-        padding: 2rem;
+        padding: 1.5rem;
     }
+}
+
+/* Estilos específicos para la página home */
+.home-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Hero section */
+.home-content .hero {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.95), rgba(25, 118, 210, 0.85));
+    color: white;
+    text-align: center;
+    padding: 8rem 2rem;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Ajuste para el contenedor de home */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 130px);
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 70px;
+    width: 100%;
+}
+
+/* Si tienes un hero section o similar */
+.hero-section {
+    margin: 0;
+    padding: 0;
+    width: 100%;
 }

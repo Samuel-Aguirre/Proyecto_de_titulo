@@ -1,0 +1,302 @@
+:root {
+    --primary-green: #4CAF50;
+    --primary-hover: #45a049;
+    --white: #ffffff;
+}
+
+/* Reset básico */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Logo */
+.au-logo {
+    height: 40px;
+    width: 40px; /* Ancho fijo igual a la altura */
+    object-fit: contain;
+    cursor: pointer;
+    margin-right: 2rem;
+    display: block; /* Asegura que el elemento sea un bloque */
+    flex-shrink: 0; /* Evita que el logo se encoja */
+    padding: 0;
+}
+
+/* Contenedor del logo si es necesario */
+.logo-container {
+    display: flex;
+    align-items: center;
+    height: 40px;
+    width: 40px;
+}
+
+/* Navbar */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 0 3rem;
+    justify-content: space-between;
+}
+
+/* Menú hamburguesa */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+/* Enlaces de navegación */
+.au-nav-links {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+/* Contenedor de acciones de usuario */
+.au-user-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem; /* Espacio uniforme entre elementos */
+    height: 70px; /* Altura del navbar */
+}
+
+/* Estilos compartidos para botones de notificación y perfil */
+.notifications-button,
+.profile-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    height: 40px; /* Altura fija para ambos botones */
+    display: flex;
+    align-items: center;
+}
+
+/* Notificaciones */
+.notifications-dropdown {
+    position: relative;
+}
+
+.notifications-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    padding: 0.5rem;
+    height: 40px;
+    display: flex;
+    align-items: center;
+}
+
+.notifications-button i {
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.notifications-count {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--primary-green);
+    color: var(--white);
+    border-radius: 50%;
+    min-width: 18px;
+    height: 18px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+}
+
+.notifications-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    width: 300px;
+    background: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 1rem;
+}
+
+.notifications-header {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 0.5rem;
+}
+
+.notifications-header h3 {
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.notifications-content.show-mobile {
+    display: block;
+}
+
+/* Perfil */
+.profile-button .user-emoji {
+    font-size: 24px; /* Mismo tamaño exacto que la campana */
+    line-height: 1;
+    display: flex;
+    align-items: center;
+}
+
+.profile-button .user-name {
+    font-size: 14px;
+    margin-left: 0.5rem;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 100%;
+    width: 200px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.dropdown-content.show-mobile {
+    display: block;
+}
+
+.dropdown-content a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    color: #333;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.dropdown-content a:hover {
+    background-color: #f5f5f5;
+}
+
+.dropdown-content a[href*="mi-perfil"] {
+    color: var(--primary-green);
+}
+
+.dropdown-content a[href*="cambiar-rol"] {
+    color: #2196F3;
+}
+
+.dropdown-content a[href*="cerrar-sesion"] {
+    color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .au-logo {
+        height: 35px;
+        width: 35px;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    .au-nav-links {
+        display: none;
+        position: absolute;
+        top: 70px;
+        left: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .au-nav-links.active {
+        display: flex;
+    }
+
+    .au-user-actions {
+        margin-left: auto;
+    }
+
+    .notifications-content,
+    .dropdown-content {
+        position: fixed;
+        top: 70px;
+        right: 0;
+        width: 100%;
+        height: calc(100vh - 70px);
+        border-radius: 0;
+    }
+
+    .notifications-button i,
+    .profile-button .user-emoji {
+        font-size: 28px; /* Tamaño más grande pero igual para ambos */
+    }
+
+    .notifications-count {
+        top: 3px;
+        right: 3px;
+        min-width: 20px;
+        height: 20px;
+        font-size: 14px;
+    }
+
+    .profile-button {
+        font-size: 1.6rem;
+    }
+
+    .profile-button .user-emoji {
+        font-size: 1.6rem;
+    }
+}
+
+/* Contenedor principal */
+main {
+    flex: 1;
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    position: relative;
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: white;
+    box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+} 

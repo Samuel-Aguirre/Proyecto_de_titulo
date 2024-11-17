@@ -15,22 +15,19 @@ class PublicacionForm(forms.ModelForm):
             'valor_alquiler'
         ]
         widgets = {
-            'titulo': forms.TextInput(attrs={'class': 'form-control'}),
-            'descripcion': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
-            'region': forms.TextInput(attrs={'class': 'form-control'}),
-            'ciudad': forms.TextInput(attrs={'class': 'form-control'}),
-            'direccion': forms.TextInput(attrs={'class': 'form-control'}),
-            'numero_contacto': forms.TextInput(attrs={'class': 'form-control'}),
-            'habitaciones_disponibles': forms.NumberInput(attrs={'class': 'form-control'}),
-            'valor_alquiler': forms.NumberInput(attrs={'class': 'form-control'})
+            'descripcion': forms.Textarea(attrs={'rows': 4}),
+            'direccion': forms.TextInput(attrs={'placeholder': 'Ingrese la dirección completa'}),
+            'numero_contacto': forms.TextInput(attrs={'placeholder': '+56 9 XXXX XXXX'}),
         }
-        labels = {
-            'titulo': 'Título',
-            'descripcion': 'Descripción',
-            'region': 'Región',
-            'ciudad': 'Ciudad',
-            'direccion': 'Dirección',
-            'numero_contacto': 'Número de Contacto',
-            'habitaciones_disponibles': 'Habitaciones Disponibles',
-            'valor_alquiler': 'Valor del Alquiler'
-        }
+
+    def clean_valor_alquiler(self):
+        valor = self.cleaned_data.get('valor_alquiler')
+        if valor and valor < 0:
+            raise forms.ValidationError('El valor del alquiler no puede ser negativo')
+        return valor
+
+    def clean_habitaciones_disponibles(self):
+        habitaciones = self.cleaned_data.get('habitaciones_disponibles')
+        if habitaciones and habitaciones < 1:
+            raise forms.ValidationError('Debe haber al menos una habitación disponible')
+        return habitaciones
