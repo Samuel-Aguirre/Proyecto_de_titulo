@@ -38,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'ArrendaU_app',
-    'ArrendaU_publicaciones_app',
+    'ArrendaU_app.apps.ArrendauAppConfig',
+    'ArrendaU_publicaciones_app.apps.PublicacionesConfig',
 ]
 
 from django.contrib.messages import constants as messages
@@ -146,3 +146,12 @@ AUTHENTICATION_BACKENDS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuración de Sesiones
+SESSION_COOKIE_AGE = 900  # 15 minutos en segundos (60 * 15)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Expirar al cerrar el navegador
+SESSION_SAVE_EVERY_REQUEST = True  # Renovar la cookie en cada request
+
+# Configuración de seguridad de cookies
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_HTTPONLY = True

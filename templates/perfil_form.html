@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    Mi Perfil - ArrendaU
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/perfil_form.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>Mi Perfil</h1>
+        <p>{% if is_arrendador %}Configura tus preferencias como arrendador{% else %}Completa tu perfil de estudiante{% endif %}</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="profile-form">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="id_descripcion">Descripción</label>
+            {{ form.descripcion }}
+            {% if form.descripcion.errors %}
+                <div class="error-message">{{ form.descripcion.errors }}</div>
+            {% endif %}
+        </div>
+
+        {% if not is_arrendador %}
+            <div class="form-group">
+                <label for="id_universidad">Universidad</label>
+                {{ form.universidad }}
+                {% if form.universidad.errors %}
+                    <div class="error-message">{{ form.universidad.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_carrera">Carrera</label>
+                {{ form.carrera }}
+                {% if form.carrera.errors %}
+                    <div class="error-message">{{ form.carrera.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="id_documento_estudiante">Documento de Estudiante</label>
+                <div class="file-upload" onclick="document.getElementById('id_documento_estudiante').click();">
+                    <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                    <p>Haz clic para subir tu documento o arrastra y suelta aquí</p>
+                    {{ form.documento_estudiante }}
+                </div>
+                <div id="documento-preview" class="current-images"></div>
+                <small class="help-text">{{ form.documento_estudiante.help_text }}</small>
+            </div>
+
+            <div class="form-section">
+                <h3>Hábitos y Preferencias</h3>
+                
+                <div class="form-group">
+                    <label for="id_bebedor">¿Bebes alcohol?</label>
+                    {{ form.bebedor }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_fumador">¿Fumas?</label>
+                    {{ form.fumador }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_mascota">¿Tienes mascotas?</label>
+                    {{ form.mascota }}
+                </div>
+
+                <div class="form-group" id="tipo_mascota_group">
+                    <label for="id_tipo_mascota">Tipo de Mascota</label>
+                    {{ form.tipo_mascota }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_nivel_ruido">Nivel de Ruido</label>
+                    {{ form.nivel_ruido }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_horario_llegada">Horario típico de llegada</label>
+                    {{ form.horario_llegada }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_presupuesto_max">Presupuesto Máximo</label>
+                    {{ form.presupuesto_max }}
+                </div>
+            </div>
+        {% else %}
+            <div class="form-section">
+                <h3>Preferencias para Inquilinos</h3>
+                
+                <div class="form-group">
+                    <label for="id_pref_no_fumador">Preferencia sobre fumadores</label>
+                    {{ form.pref_no_fumador }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_pref_no_bebedor">Preferencia sobre bebedores</label>
+                    {{ form.pref_no_bebedor }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_pref_no_mascotas">Preferencia sobre mascotas</label>
+                    {{ form.pref_no_mascotas }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_pref_estudiante_verificado">Estudiante verificado</label>
+                    {{ form.pref_estudiante_verificado }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_pref_nivel_ruido">Preferencia de nivel de ruido</label>
+                    {{ form.pref_nivel_ruido }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_horario_visitas">Horario de visitas permitido</label>
+                    {{ form.horario_visitas }}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_reglas_casa">Reglas de la casa</label>
+                    {{ form.reglas_casa }}
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'dashboard' %}'">Cancelar</button>
+            <button type="submit" class="btn-save">Guardar Cambios</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/perfil_form.js' %}"></script>
+{% endblock %} 

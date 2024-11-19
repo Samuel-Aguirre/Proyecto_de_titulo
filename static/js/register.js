@@ -8,70 +8,83 @@ function validarFormulario() {
     const confirmPassword = document.getElementById("confirm_password").value;
     const userType = document.getElementById("user_type").value;
 
-    // Expresión regular para validar el formato del correo electrónico
+    // Expresiones regulares
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    // Expresión regular para validar que el nombre y apellido contengan solo letras y espacios
-    const nameRegex = /^[a-zA-Z\s]+$/;
-     // Expresión regular para validar que la contraseña tenga al menos 5 caracteres, incluyendo una letra y un número
+    const nameRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
     const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d\W]{5,}$/;
 
-    // Validar el nombre completo
-    if (!nameRegex.test(nombre)) {
-        alert("Por favor, ingresa un nombre válido (solo letras y espacios).");
+    // Validaciones
+    if (!nameRegex.test(nombre.trim())) {
+        mostrarError("El nombre solo debe contener letras");
         return false;
     }
 
-    // Validar el apellido
-    if (!nameRegex.test(apellido)) {
-        alert("Por favor, ingresa un apellido válido (solo letras y espacios).");
+    if (!nameRegex.test(apellido.trim())) {
+        mostrarError("El apellido solo debe contener letras");
         return false;
     }
 
-    // Validar el correo electrónico
     if (!emailRegex.test(email)) {
-        alert("Por favor, ingresa un correo electrónico válido.");
+        mostrarError("Por favor, ingresa un correo electrónico válido");
         return false;
     }
 
-    // Validar la contraseña
     if (!passwordRegex.test(password)) {
-        alert("La contraseña debe tener al menos 5 caracteres, incluyendo letras y números.");
+        mostrarError("La contraseña debe tener al menos 5 caracteres, incluyendo letras y números");
         return false;
     }
 
-    // Verificar que las contraseñas coincidan
     if (password !== confirmPassword) {
-        alert("Las contraseñas no coinciden. Por favor, verifica.");
+        mostrarError("Las contraseñas no coinciden");
         return false;
     }
 
-    // Verificar que se haya seleccionado un rol de usuario
     if (!userType) {
-        alert("Por favor, selecciona tu rol.");
+        mostrarError("Por favor, selecciona tu rol");
         return false;
     }
 
-    // Si todas las validaciones son correctas, permitir el envío del formulario
     return true;
 }
 
-// Función para alternar el menú de navegación en pantallas pequeñas
-function toggleMenu() {
-    const navLinks = document.querySelector('.nav-links');
-    navLinks.classList.toggle('active');
+// Mostrar mensaje de error
+function mostrarError(mensaje) {
+    const alertaExistente = document.querySelector('.alert-error');
+    if (alertaExistente) {
+        alertaExistente.remove();
+    }
+
+    const alerta = document.createElement('div');
+    alerta.className = 'alert alert-error';
+    alerta.textContent = mensaje;
+
+    const form = document.querySelector('.register-form');
+    form.insertBefore(alerta, form.firstChild);
+
+    // Remover la alerta después de 5 segundos
+    setTimeout(() => {
+        alerta.remove();
+    }, 5000);
 }
 
-// Función para alternar la visibilidad de los campos de contraseña
+// Toggle de visibilidad de contraseña
 function togglePasswordVisibility(passwordId) {
     const passwordInput = document.getElementById(passwordId);
-    const toggleIcon = document.querySelector(".toggle-password");
-
+    const toggleButton = passwordInput.parentElement.querySelector('.toggle-password i');
+    
     if (passwordInput.type === "password") {
         passwordInput.type = "text";
-        toggleIcon.textContent = "🔓";
+        toggleButton.className = 'fas fa-eye-slash';
     } else {
         passwordInput.type = "password";
-        toggleIcon.textContent = "🔒";
+        toggleButton.className = 'fas fa-eye';
     }
 }
+
+// Prevenir envío del formulario si hay errores
+document.querySelector('.register-form').addEventListener('submit', function(event) {
+    if (!validarFormulario()) {
+        event.preventDefault();
+    }
+});
 

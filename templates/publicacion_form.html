@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if publicacion %}Editar Publicación{% else %}Crear Publicación{% endif %} - ArrendaU
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h1>{% if publicacion %}Editar{% else %}Crear{% endif %} Publicación</h1>
+        <p>{% if publicacion %}Actualiza los detalles de tu publicación{% else %}Ingresa los detalles de tu propiedad{% endif %}</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="publicacionForm">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="title">Título</label>
+            <input type="text" id="title" name="title" class="form-control" 
+                   value="{{ publicacion.titulo|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Descripción</label>
+            <textarea id="description" name="description" class="form-control" required>{{ publicacion.descripcion|default:'' }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="region">Región</label>
+            <select id="region" name="region" class="form-control" required>
+                <option value="">Selecciona una región</option>
+                {% for region in regiones %}
+                    <option value="{{ region.0 }}" {% if publicacion.region == region.0 %}selected{% endif %}>
+                        {{ region.1 }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="city">Ciudad</label>
+            <input type="text" id="city" name="city" class="form-control" 
+                   value="{{ publicacion.ciudad|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="address">Dirección</label>
+            <input type="text" id="address" name="address" class="form-control" 
+                   value="{{ publicacion.direccion|default:'' }}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="contact">Número de Contacto</label>
+            <input type="tel" id="contact" name="contact" class="form-control" 
+                   value="{{ publicacion.numero_contacto|default:'' }}" 
+                   placeholder="+56 9 XXXX XXXX" required>
+        </div>
+
+        <div class="form-group">
+            <label for="rooms">Habitaciones Disponibles</label>
+            <input type="number" id="rooms" name="rooms" class="form-control" 
+                   value="{{ publicacion.habitaciones_disponibles|default:1 }}" 
+                   min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="rental-value">Valor del Alquiler</label>
+            <input type="text" id="rental-value" name="rental-value" class="form-control" 
+                   value="{{ publicacion.valor_alquiler|default:'' }}" 
+                   required>
+        </div>
+
+        <div class="form-group">
+            {% if publicacion %}
+            <label>Imágenes Actuales</label>
+            <div class="current-images">
+                {% for foto in publicacion.fotos.all %}
+                <div class="image-container" id="foto-{{ foto.id }}">
+                    <img src="{{ foto.imagen.url }}" alt="Foto de la propiedad">
+                    <button type="button" class="delete-image" data-foto-id="{{ foto.id }}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="photos">{% if publicacion %}Agregar Nuevas Fotos{% else %}Agregar Fotos{% endif %}</label>
+            <div class="file-upload" onclick="document.getElementById('photos').click();">
+                <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                <p>Haz clic para subir imágenes o arrastra y suelta aquí</p>
+                <input type="file" id="photos" name="photos" multiple accept="image/*" style="display: none">
+            </div>
+            <div id="preview" class="current-images"></div>
+        </div>
+
+        <div class="form-section">
+            <h2>Formulario Encuesta</h2>
+            <p>Crea preguntas y sus posibles respuestas para evaluar la compatibilidad con potenciales arrendatarios</p>
+            
+            <div id="preguntas-container">
+                <div class="pregunta-template" style="display: none;">
+                    <div class="form-group pregunta-grupo">
+                        <div class="pregunta-header">
+                            <h4>Pregunta <span class="pregunta-numero"></span></h4>
+                            <button type="button" class="btn-delete-pregunta" onclick="window.eliminarPregunta(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <input type="text" class="form-control pregunta-input" 
+                               name="preguntas[]" placeholder="Escribe tu pregunta">
+                        
+                        <div class="respuestas-container">
+                            <label>Opciones de Respuesta:</label>
+                            <div class="respuestas-list">
+                                <!-- Las opciones de respuesta se agregarán aquí dinámicamente -->
+                            </div>
+                            <button type="button" class="btn-add-respuesta" onclick="window.agregarOpcionRespuesta(this)">
+                                <i class="fas fa-plus"></i> Agregar Opción de Respuesta
+                            </button>
+                        </div>
+                        
+                        <div class="respuesta-esperada">
+                            <label>Respuesta esperada:</label>
+                            <select class="form-control respuesta-esperada-select" name="respuestas_esperadas[]">
+                                <option value="">Seleccione la respuesta esperada</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if formulario_data %}
+                    {% for pregunta in formulario_data %}
+                    <div class="form-group pregunta-grupo">
+                        <div class="pregunta-header">
+                            <h4>Pregunta <span class="pregunta-numero">{{ forloop.counter }}</span></h4>
+                            <button type="button" class="btn-delete-pregunta" onclick="window.eliminarPregunta(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <input type="text" class="form-control pregunta-input" 
+                               name="preguntas[]" value="{{ pregunta.texto }}" placeholder="Escribe tu pregunta">
+                        
+                        <div class="respuestas-container">
+                            <label>Opciones de Respuesta:</label>
+                            <div class="respuestas-list">
+                                {% for opcion in pregunta.opciones %}
+                                <div class="respuesta-opcion">
+                                    <input type="text" class="form-control respuesta-input" 
+                                           value="{{ opcion }}" id="respuesta_{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                    <button type="button" class="btn-delete-respuesta" onclick="this.closest('.respuesta-opcion').remove()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn-add-respuesta" onclick="window.agregarOpcionRespuesta(this)">
+                                <i class="fas fa-plus"></i> Agregar Opción de Respuesta
+                            </button>
+                        </div>
+                        
+                        <div class="respuesta-esperada">
+                            <label>Respuesta esperada:</label>
+                            <select class="form-control respuesta-esperada-select" name="respuestas_esperadas[]">
+                                <option value="">Seleccione la respuesta esperada</option>
+                                {% for opcion in pregunta.opciones %}
+                                <option value="{{ opcion }}" {% if opcion == pregunta.respuesta_esperada %}selected{% endif %}>
+                                    {{ opcion }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <button type="button" class="btn-add-pregunta" onclick="window.agregarPregunta()">
+                <i class="fas fa-plus"></i> Agregar Pregunta
+            </button>
+        </div>
+
+        <div class="form-actions">
+            <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'dashboard' %}'; return false;">Cancelar</button>
+            <button type="submit" class="btn-save">
+                {% if publicacion %}Guardar Cambios{% else %}Crear Publicación{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/publicacion_form.js' %}"></script>
+{% endblock %} 

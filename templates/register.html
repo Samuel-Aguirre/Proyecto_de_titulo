@@ -1,96 +1,138 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Registro</title>
-        <!-- Enlace al archivo CSS personalizado -->
-        <link rel="stylesheet" href="{% static 'css/register.css' %}" />
-        
-        <!--Navbar personalizado -->
-        <nav class="navbar">
-            <img src="{% static 'img/Logo_2500x2500.png' %} " onclick=window.location.href="{% url 'home' %}"  alt="Company Logo" class="logo">
-            <!-- Menú hamburguesa -->
-            <div class="hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+
+{% block title %}Registro - ArrendaU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/register.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <!-- Panel Izquierdo - Registro -->
+    <div class="register-panel">
+        <div class="register-content">
+            <div class="register-header">
+                <h1>Crear cuenta</h1>
+                <p>Completa tus datos para comenzar</p>
             </div>
-            <div class="nav-links">
-                <a href="#">Inicio</a> 
-                <a href="#">Propiedades</a> 
-                <a href="#">Sobre Nosotros</a> 
-                <a href="#">Contacto</a> 
-            </div>
-            <div class="auth-buttons">
-                <button class="btn btn-login">Iniciar Sesión</button> 
-                <button class="btn btn-signup">Registrarse</button> 
-            </div>
-        </nav>
-    </head>
-    <body>
-        <div class="container">
-            <!-- Panel izquierdo que contiene el formulario de registro -->
-            <div class="left-panel">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert {{ message.tags }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
+
+            {% if messages or form.errors %}
+            <div class="alerts">
+                {% for message in messages %}
+                    <div class="alert {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
 
                 {% if form.errors %}
                     <div class="alert alert-error">
-                    {% for field, errors in form.errors.items %}
-                        <p><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
-                    {% endfor %}
+                        {% for field, errors in form.errors.items %}
+                            <p>{{ errors|join:", " }}</p>
+                        {% endfor %}
                     </div>
                 {% endif %}
-                <!-- Mensaje para crear cuenta -->
-                <h1>Es hora<br>de sentirse en casa,</h1>
-                <!-- Formulario de registro -->
-                <form method="post" onsubmit="return validarFormulario();">
-                    {% csrf_token %}
-                    
-                    <!-- Campo para ingresar el nombre completo -->
-                    <input type="text" id="nombre" name="nombre"placeholder="Nombre" required>
-                    <!-- Campo para ingresar el nombre completo -->
-                    <input type="text" id="apellido" name="apellido"placeholder="Apellido" required>
-                    <!-- Campo para ingresar el correo electrónico -->
-                    <input type="email" id="email" name="email" placeholder="Correo Electrónico" required>
-                   <!-- Campo para ingresar la contraseña -->
-                    <div class="password-field">
-                        <i class="toggle-password" onclick="togglePasswordVisibility('password')">🔒</i>
-                        <input type="password" id="password" name="password1" placeholder="Contraseña" required>
+            </div>
+            {% endif %}
+
+            <form method="post" onsubmit="return validarFormulario();" class="register-form">
+                {% csrf_token %}
+                
+                <!-- Información Personal -->
+                <div class="form-section">
+                    <h2>Información Personal</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="nombre">Nombre</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="nombre" name="nombre" placeholder="Tu nombre" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="apellido">Apellido</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-user"></i>
+                                <input type="text" id="apellido" name="apellido" placeholder="Tu apellido" required>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Campo para confirmar la contraseña -->
-                    <div class="password-field-confirm">
-                        <i class="toggle-password" onclick="togglePasswordVisibility('confirm_password')">🔒</i>
-                        <input type="password" id="confirm_password" name="password2" placeholder="Confirmar Contraseña" required>
+                    <div class="form-group">
+                        <label for="email">Correo electrónico</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" name="email" placeholder="ejemplo@correo.com" required>
+                        </div>
                     </div>
-                    <!-- Selección del rol de usuario -->
-                    <select name="rol" id="user_type" required>
-                        <option value="" disabled selected>Selecciona tu rol</option>
-                        <option value="Arrendador">Arrendador</option>
-                        <option value="Arrendatario">Arrendatario</option>
-                    </select>
-                    <!-- Descripción de los roles -->
-                    <div class="help-box">
-                        <p><strong>🏡 Arrendador:</strong> Persona que posee la propiedad y la arrienda.</p>
-                        <p><strong>🛋️ Arrendatario:</strong> Persona que arrienda y vive en la propiedad.</p>
+                </div>
+
+                <!-- Seguridad -->
+                <div class="form-section">
+                    <h2>Seguridad</h2>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password1" 
+                                   placeholder="Mínimo 5 caracteres" required>
+                        </div>
                     </div>
-                    <!-- Botones para enviar el formulario o ir al inicio de sesión -->
-                    <div class="buttons">
-                        <button type="submit" class="btn btn-primary">Registrarse</button>
-                        <button type="button" onclick=window.location.href="{% url 'login' %}" class="btn btn-secondary">Iniciar sesión</button>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirmar Contraseña</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="confirm_password" name="password2" 
+                                   placeholder="Repite tu contraseña" required>
+                        </div>
                     </div>
-                </form>
-            </div>
-            <!-- Panel derecho decorativo (puede usarse para imágenes o información adicional) -->
-            <div class="right-panel"></div>
+                </div>
+
+                <!-- Tipo de Usuario -->
+                <div class="form-section">
+                    <h2>Tipo de Usuario</h2>
+                    <div class="form-group">
+                        <label for="user_type">Selecciona tu rol</label>
+                        <div class="role-selector">
+                            <div class="role-option">
+                                <input type="radio" id="arrendador" name="rol" value="Arrendador" required>
+                                <label for="arrendador">
+                                    <i class="fas fa-home"></i>
+                                    <span>Arrendador</span>
+                                    <small>Poseo una propiedad para arrendar</small>
+                                </label>
+                            </div>
+                            <div class="role-option">
+                                <input type="radio" id="arrendatario" name="rol" value="Arrendatario">
+                                <label for="arrendatario">
+                                    <i class="fas fa-couch"></i>
+                                    <span>Arrendatario</span>
+                                    <small>Busco una propiedad para arrendar</small>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Crear cuenta</button>
+                    <p class="login-link">¿Ya tienes cuenta? <a href="{% url 'login' %}">Inicia sesión</a></p>
+                </div>
+            </form>
         </div>
-        <!-- Archivo JavaScript para validación -->
-        <script src="{% static 'js/register.js' %}"></script>
-    </body>
-</html>
+    </div>
+
+    <!-- Panel Derecho - Imagen/Gradiente -->
+    <div class="image-panel">
+        <div class="overlay">
+            <h2>ArrendaU</h2>
+            <p>Tu plataforma de arriendo universitario</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/register.js' %}"></script>
+{% endblock %}

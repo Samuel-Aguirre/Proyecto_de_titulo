@@ -1,147 +1,106 @@
 <!DOCTYPE html>
 {% load static %}
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ArrendaU - Create Publication</title>
-        <!-- Enlace al archivo CSS personalizado -->
-        <link rel="stylesheet" href="{% static 'css/crear_publicacion.css' %}" />
-    </head>
-    <body>
-        <nav class="navbar">
-            <img src="https://via.placeholder.com/2500x2500.png?text=ArrendaU" alt="ArrendaU Logo" class="logo">
-            <div class="nav-links">
-                <a href="#">Home</a>
-                <a href="#">Search</a>
-                <a href="#">List Your Space</a>
-                <a href="#">About Us</a>
-            </div>
-        </nav>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ArrendaU - Crear Publicación</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/editar_publicacion.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <img src="{% static 'img/Logo_2500x2500.png' %}" onclick="redirectTo('{% url 'home' %}')" alt="ArrendaU Logo" class="logo">
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'home' %}">Inicio</a> 
+            <a href="#propiedades">Propiedades</a> 
+            <a href="#nosotros">Sobre Nosotros</a> 
+            <a href="#contacto">Contacto</a> 
+        </div>
+        <div class="auth-buttons">
+            <button class="btn-login">Iniciar Sesión</button> 
+            <button class="btn-signup">Registrarse</button> 
+        </div>
+    </nav>
 
-        <div class="container">
-            <h1>Create a New Publication</h1>
-            <form id="publication-form" method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="title">Title</label>
-                    <input type="text" id="title" name="title" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea id="description" name="description" required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="region">Region</label>
-                    <select id="region" name="region" required>
-                        <option value="">Select a region</option>
-                        <option value="araucania">Araucanía</option>
-                        <option value="biobio">Bío Bío</option>
-                        <option value="los-lagos">Los Lagos</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="city">City</label>
-                    <input type="text" id="city" name="city" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="address">Address</label>
-                    <input type="text" id="address" name="address" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="contact">Contact Number</label>
-                    <input type="tel" id="contact" name="contact" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="rooms">Available Rooms</label>
-                    <input type="number" id="rooms" name="rooms" min="1" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="rental-value">Rental Value (CLP)</label>
-                    <input type="number" id="rental-value" name="rental-value" min="0" step="1000" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Photos</label>
-                    <div id="photo-upload-container" class="photo-upload">
-                        <input type="file" id="photo-upload" name="photos" accept="image/*" multiple style="display: none;">
-                        <div class="photo-upload-box" onclick="document.getElementById('photo-upload').click()">
-                            <span>+</span>
-                        </div>
-                        <div id="preview-container"></div>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn">Create Publication</button>
-            </form>
+    <div class="edit-container">
+        <div class="edit-header">
+            <h1>Crear Nueva Publicación</h1>
+            <p>Ingresa los detalles de tu propiedad</p>
         </div>
 
-        <script>
-            document.getElementById('photo-upload').addEventListener('change', function(e) {
-                const previewContainer = document.getElementById('preview-container');
-                const files = e.target.files;
+        <form method="POST" enctype="multipart/form-data" id="publicationForm">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="title">Título</label>
+                <input type="text" id="title" name="title" class="form-control" required>
+            </div>
 
-                for (let i = 0; i < files.length; i++) {
-                    const file = files[i];
-                    const preview = document.createElement('div');
-                    preview.className = 'photo-preview';
-                    
-                    const img = document.createElement('img');
-                    img.src = URL.createObjectURL(file);
-                    
-                    const deleteBtn = document.createElement('button');
-                    deleteBtn.innerHTML = 'X';
-                    deleteBtn.className = 'delete-preview';
-                    deleteBtn.onclick = function() {
-                        preview.remove();
-                    };
-                    
-                    preview.appendChild(img);
-                    preview.appendChild(deleteBtn);
-                    previewContainer.appendChild(preview);
-                }
-            });
-        </script>
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" class="form-control" required></textarea>
+            </div>
 
-        <style>
-            .photo-preview {
-                position: relative;
-                display: inline-block;
-                margin: 10px;
-            }
+            <div class="form-group">
+                <label for="region">Región</label>
+                <select id="region" name="region" class="form-control" required>
+                    <option value="">Selecciona una región</option>
+                    <option value="araucania">Araucanía</option>
+                    <option value="biobio">Bío Bío</option>
+                    <option value="los-lagos">Los Lagos</option>
+                </select>
+            </div>
 
-            .photo-preview img {
-                width: 100px;
-                height: 100px;
-                object-fit: cover;
-            }
+            <div class="form-group">
+                <label for="city">Ciudad</label>
+                <input type="text" id="city" name="city" class="form-control" required>
+            </div>
 
-            .delete-preview {
-                position: absolute;
-                top: -10px;
-                right: -10px;
-                background: red;
-                color: white;
-                border: none;
-                border-radius: 50%;
-                width: 20px;
-                height: 20px;
-                cursor: pointer;
-            }
+            <div class="form-group">
+                <label for="address">Dirección</label>
+                <input type="text" id="address" name="address" class="form-control" required>
+            </div>
 
-            #preview-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                margin-top: 10px;
-            }
-        </style>
-    </body>
+            <div class="form-group">
+                <label for="contact">Número de Contacto</label>
+                <input type="tel" id="contact" name="contact" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rooms">Habitaciones Disponibles</label>
+                <input type="number" id="rooms" name="rooms" class="form-control" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="rental-value">Valor del Alquiler</label>
+                <input type="number" id="rental-value" name="rental-value" class="form-control" min="0" step="1000" required>
+            </div>
+
+            <div class="form-group">
+                <label for="photos">Agregar Fotos</label>
+                <div class="file-upload" onclick="document.getElementById('photos').click()">
+                    <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                    <p>Haz clic para subir imágenes o arrastra y suelta aquí</p>
+                    <input type="file" id="photos" name="photos" multiple accept="image/*" style="display: none">
+                </div>
+                <div id="preview" class="current-images"></div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" onclick="redirectTo('{% url 'dashboard' %}')">Cancelar</button>
+                <button type="submit" class="btn-save">Crear Publicación</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="{% static 'js/editar_publicacion.js' %}"></script>
+</body>
 </html>

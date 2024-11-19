@@ -1,111 +1,269 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ArrendaU - Property Listings</title>
-        <!-- Enlace al archivo CSS personalizado -->
-        <link rel="stylesheet" href="{% static 'css/dashboard.css' %}" />
+{% load custom_filters %}
 
-        <!--Navbar personalizado -->
-        <nav class="navbar">
-            <img src="{% static 'img/Logo_2500x2500.png' %}" onclick=window.location.href="{% url 'home' %}" alt="Company Logo" class="logo">
-            <!-- Menú hamburguesa -->
-            <div class="hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <!-- Links de navegación, ocultos en pantallas pequeñas -->
-            <div class="nav-links">
-                <a href="#">Inicio</a> 
-                <a href="#">Propiedades</a> 
-                <a href="#">Sobre Nosotros</a> 
-                <a href="#">Contacto</a> 
-            </div>
-            <div class="auth-buttons">
-                <button class="btn btn-login" >Iniciar Sesión</button> 
-                <button class="btn btn-signup">Registrarse</button> 
-            </div>
-        </nav>
+{% block title %}Dashboard - ArrendaU{% endblock %}
 
-    </head>
-    <body>
-    
-        <div class="hero-image">
-            Encuentra tu espacio perfecto <br>
-            {{ user.nombre }} {{ user.apellido }}
+{% block extra_head %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
         </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
-        <div class="container">
+    <div class="hero-image">
+        <div class="hero-content">
+            {% if user.rol == 'Arrendador' %}
+                <h1>Gestiona tus Propiedades</h1>
+                <p>Bienvenido, {{ user.nombre }} {{ user.apellido }}. Administra tus publicaciones y postulaciones.</p>
+            {% else %}
+                <h1>Encuentra tu espacio perfecto</h1>
+                <p>Bienvenido, {{ user.nombre }} {{ user.apellido }}. Explora las mejores opciones de alojamiento.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Filtros solo para Arrendatarios -->
+        {% if not user.rol == 'Arrendador' %}
             <aside class="filters">
-                {% if user.rol == 'Arrendador' %}
-                    <a href="{% url 'crear_publicacion' %}">Crear nueva publicación</a>
-                {% endif %}
-                <h2>Filtros</h2>
+                <h2>Filtrado</h2>
+                
+                <!-- Filtros -->
                 <div class="filter-group">
                     <label for="city">Ciudad</label>
-                    <input type="text" id="city" placeholder="Ingresa la ciudad">
+                    <input type="text" id="city" placeholder="Ej: Pillanlelbún">
                 </div>
 
                 <div class="filter-group">
-                    <label>Rango de Renta</label>
+                    <label>Rango de Precio</label>
                     <div class="range-container">
                         <div class="range-slider" id="range-slider">
                             <div class="range-selected"></div>
                         </div>
                         <div class="range-input">
-                            <input type="range" class="min-price" min="0" max="400000" value="135000" step="1000">
-                            <input type="range" class="max-price" min="0" max="400000" value="200000" step="1000">
+                            <input type="range" class="min-price" min="0" max="400000" value="0" step="1000">
+                            <input type="range" class="max-price" min="0" max="400000" value="400000" step="1000">
                         </div>
                         <div class="range-price">
                             <span id="min-value">$0</span>
-                            <span id="max-value">$200.000</span>
+                            <span id="max-value">$400.000</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="filter-group">
-                    <label for="rooms">Habitaciones Disponibles</label>
+                    <label for="rooms">Habitaciones</label>
                     <select id="rooms">
-                        <option value="">Cualquier</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
+                        <option value="">Todas</option>
+                        <option value="1">1 Habitación</option>
+                        <option value="2">2 Habitaciones</option>
+                        <option value="3">3 Habitaciones</option>
+                        <option value="4">4+ Habitaciones</option>
                     </select>
                 </div>
-                <button class="btn btn-primary" style="width: 100%; padding: 0.75rem; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background-color 0.3s ease;">
-                Aplicar Filtros
+                <button class="btn-signup" id="btnFiltrar" style="width: 100%; margin-top: 1rem;">
+                    Aplicar Filtros
                 </button>
             </aside>
+        {% else %}
+            <!-- Panel para Arrendadores -->
+            <aside class="filters">
+                <a href="{% url 'ArrendaU_publicaciones_app:crear_publicacion' %}" class="btn-create">
+                    Crear publicación
+                </a>
+                <h2>Mis Publicaciones</h2>
+            </aside>
+        {% endif %}
 
-            <main class="listings">
-                {% for publicacion in publicaciones %}
-                <article class="property-card">
-                    {% if publicacion.fotos.all %}
-                        <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
-                    {% else %}
-                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+        <main class="listings">
+            {% for publicacion in publicaciones %}
+            <article class="property-card" data-publication-id="{{ publicacion.id }}" onclick="expandirPublicacion(this)">
+                <div class="property-actions">
+                    {% if user.rol == 'Arrendador' and user == publicacion.usuario %}
+                        <a href="{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}" 
+                           class="btn-action btn-edit" 
+                           title="Editar"
+                           onclick="event.stopPropagation();">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <button type="button" 
+                                class="btn-action btn-delete" 
+                                onclick="event.stopPropagation(); showDeleteModal('{{ publicacion.id }}')" 
+                                title="Eliminar"
+                                data-id="{{ publicacion.id }}">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     {% endif %}
-                    <div class="property-details">
-                        <h3 class="property-title">{{ publicacion.titulo }}</h3>
-                        <div class="property-info">
-                            <span>{{ publicacion.ciudad }}</span>
-                            <span>${{ publicacion.valor_alquiler }}/month</span>
-                            <span>{{ publicacion.habitaciones_disponibles }} rooms available</span>
-                        </div>
-                        <div>{{ publicacion.direccion }}</div>
+                </div>
+                {% if publicacion.fotos.all %}
+                    <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
+                {% else %}
+                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+                {% endif %}
+                <div class="property-details">
+                    <h3 class="property-title">{{ publicacion.titulo }}</h3>
+                    <div class="property-info">
+                        <span>📍 {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
+                        <span>💰 {{ publicacion.valor_alquiler|format_precio }}</span>
+                        <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
                     </div>
-                </article>
-                {% empty %}
-                    <p>No hay publicaciones disponibles.</p>
-                {% endfor %}
-            </main>
-            
+                    <p class="property-description">
+                        {{ publicacion.descripcion }}
+                    </p>
+                </div>
+            </article>
+            <div id="expandedView" class="property-expanded" style="display: none;">
+                <div class="expanded-content">
+                    <div class="expanded-header">
+                        <h2>{{ publicacion.titulo }}</h2>
+                        <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="expanded-grid">
+                        <div class="expanded-images">
+                            <div class="main-image">
+                                {% if publicacion.fotos.all %}
+                                    <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}">
+                                {% else %}
+                                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible">
+                                {% endif %}
+                            </div>
+                            <div class="thumbnail-grid">
+                                {% for foto in publicacion.fotos.all %}
+                                    <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }}" 
+                                         onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src)">
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="expanded-details">
+                            <div class="detail-section">
+                                <h3>Detalles de la Propiedad</h3>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="label">Ubicación</span>
+                                        <span class="value"> {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Precio</span>
+                                        <span class="value"> {{ publicacion.valor_alquiler|format_precio }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Habitaciones</span>
+                                        <span class="value"> {{ publicacion.habitaciones_disponibles }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>Descripción</h3>
+                                <p>{{ publicacion.descripcion }}</p>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>Preferencias del Arrendador</h3>
+                                <div class="preferencias-grid">
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-smoking-ban"></i>
+                                        <span>Fumador: {{ publicacion.usuario.perfilarrendador.get_pref_no_fumador_display }}</span>
+                                    </div>
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-glass-cheers"></i>
+                                        <span>Bebedor: {{ publicacion.usuario.perfilarrendador.get_pref_no_bebedor_display }}</span>
+                                    </div>
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-paw"></i>
+                                        <span>Mascotas: {{ publicacion.usuario.perfilarrendador.get_pref_no_mascotas_display }}</span>
+                                    </div>
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Nivel de Ruido: {{ publicacion.usuario.perfilarrendador.get_pref_nivel_ruido_display }}</span>
+                                    </div>
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-user-graduate"></i>
+                                        <span>Estudiante Verificado: {{ publicacion.usuario.perfilarrendador.get_pref_estudiante_verificado_display }}</span>
+                                    </div>
+                                    {% if publicacion.usuario.perfilarrendador.horario_visitas %}
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Horario de Visitas: {{ publicacion.usuario.perfilarrendador.horario_visitas }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% if publicacion.usuario.perfilarrendador.reglas_casa %}
+                                <div class="reglas-casa">
+                                    <h4>Reglas de la Casa</h4>
+                                    <p>{{ publicacion.usuario.perfilarrendador.reglas_casa }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="contact-section">
+                                <button class="btn-contact">
+                                    <i class="fas fa-envelope"></i>
+                                    Contactar Arrendador
+                                </button>
+                                <button class="btn-apply">
+                                    <i class="fas fa-file-alt"></i>
+                                    Postular
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    {% if user.rol == 'Arrendador' %}
+                        <p>No has creado ninguna publicación aún.</p>
+                        <a href="{% url 'ArrendaU_publicaciones_app:crear_publicacion' %}" class="btn-create" style="margin-top: 1rem;">
+                            Crear mi primera publicación
+                        </a>
+                    {% else %}
+                        <p>No hay publicaciones disponibles en este momento.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </main>
+    </div>
+
+    <!-- Modales -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <h2>Confirmar Eliminación</h2>
+            <p>¿Estás seguro de que deseas eliminar esta publicación?</p>
+            <form id="deleteForm">
+                {% csrf_token %}
+                <div class="modal-buttons">
+                    <button type="button" onclick="confirmDelete()" class="btn-delete">Eliminar</button>
+                    <button type="button" onclick="hideDeleteModal()" class="btn-cancel">Cancelar</button>
+                </div>
+            </form>
         </div>
-        <!-- Archivo JavaScript para validación -->
-        <script src="{% static 'js/dashboard.js' %}"></script>
-    </body>
-</html>
+    </div>
+
+    <div id="notificationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2 id="notificationTitle"></h2>
+            <p id="notificationMessage"></p>
+            <div class="modal-buttons">
+                <button onclick="hideNotificationModal()" class="btn-signup">Aceptar</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+{% endblock %}

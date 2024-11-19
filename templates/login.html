@@ -1,81 +1,109 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Iniciar Sesión</title>
-        <!-- Enlace al archivo CSS personalizado -->
-        <link rel="stylesheet" href="{% static 'css/login.css' %}" />
 
-        <!--Navbar personalizado -->
-        <nav class="navbar">
-            <img src="{% static 'img/Logo_2500x2500.png' %}" onclick=window.location.href="{% url 'home' %}" alt="Company Logo" class="logo">
-            <!-- Menú hamburguesa -->
-            <div class="hamburger" onclick="toggleMenu()">
-                <span></span>
-                <span></span>
-                <span></span>
+{% block title %}Iniciar Sesión - ArrendaU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+    <div class="login-card">
+        <!-- Frente del card - Login -->
+        <div class="card-front">
+            <div class="login-header">
+                <h1>¡Bienvenido de nuevo!</h1>
+                <p>Ingresa tus credenciales para continuar</p>
             </div>
-            <!-- Links de navegación, ocultos en pantallas pequeñas -->
-            <div class="nav-links">
-                <a href="#">Inicio</a> 
-                <a href="#">Propiedades</a> 
-                <a href="#">Sobre Nosotros</a> 
-                <a href="#">Contacto</a> 
-            </div>
-            <div class="auth-buttons">
-                <button class="btn btn-login" >Iniciar Sesión</button> 
-                <button class="btn btn-signup">Registrarse</button> 
-            </div>
-        </nav>
-    </head>
-    <body>
-        <div class="container">
-            
-            <!-- Panel izquierdo que contiene el formulario de inicio de sesión -->
-            <div class="left-panel">
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert {{ message.tags }}">{{ message }}</div>
-                    {% endfor %}
-                {% endif %}
+
+            {% if messages or form.errors %}
+            <div class="alerts">
+                {% for message in messages %}
+                    <div class="alert {{ message.tags }}">{{ message }}</div>
+                {% endfor %}
 
                 {% if form.errors %}
                     <div class="alert alert-error">
-                    {% for field, errors in form.errors.items %}
-                        <p><strong>{{ field }}:</strong> {{ errors|join:", " }}</p>
-                    {% endfor %}
+                        {% for field, errors in form.errors.items %}
+                            <p>{{ errors|join:", " }}</p>
+                        {% endfor %}
                     </div>
                 {% endif %}
-                <!-- Mensaje de bienvenida -->
-                <h1>Hola,<br>¡bienvenido!</h1>
-                <!-- Formulario de inicio de sesión -->
-                <form method="post" onsubmit="return validarFormulario();">
-                    {% csrf_token %}
-                    <!-- Campo para ingresar el correo electrónico -->
-                    <input type="email" name="email" id="email" placeholder="Correo electrónico" required>
-                    <!-- Campo para ingresar la contraseña -->
-                     <div class="password-container">
-                        <input type="password" name="password" id="password" placeholder="Contraseña" required>
-                        <i class="toggle-password" onclick="togglePasswordVisibility('password')">🔒</i>
-                    </div>
-                    <!-- Opciones de recordar sesión y recuperación de contraseña -->
-                    <div class="remember-forgot">
-                        <a href="#">¿Olvidaste tu contraseña?</a>
-                    </div>
-                    <!-- Botones para enviar el formulario y registrarse -->
-                    <div class="buttons">
-                        <button type="submit" class="btn btn-primary">Iniciar sesión</button>
-                        <button type="button" onclick=window.location.href="{% url 'register' %}" class="btn btn-secondary">Registrarse</button>
-                    </div>
-                </form>
             </div>
-            <!-- Panel derecho decorativo (puede usarse para imágenes o información adicional) -->
-            <div class="right-panel"></div>
-        </div>
-        <!-- Archivo JavaScript para interactividad -->
-        <script src="{% static 'js/login.js' %}"></script>
+            {% endif %}
 
-    </body>
-</html>
+            <form method="post" onsubmit="return validarFormulario();" class="login-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="email">Correo electrónico</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" name="email" id="email" 
+                               placeholder="ejemplo@correo.com" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" id="password" 
+                               placeholder="Ingresa tu contraseña" required>
+                    </div>
+                </div>
+
+                <div class="form-options">
+                    <a href="#" class="forgot-password" onclick="flipCard(); return false;">
+                        ¿Olvidaste tu contraseña?
+                    </a>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Iniciar sesión</button>
+                    <a href="{% url 'register' %}" class="btn btn-secondary">Crear cuenta nueva</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Reverso del card - Recuperación -->
+        <div class="card-back">
+            <div class="login-header">
+                <h1>Recuperar contraseña</h1>
+                <p>Ingresa tu correo electrónico y te enviaremos las instrucciones</p>
+            </div>
+
+            <form method="post" action="" class="recovery-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="recovery_email">Correo electrónico</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="recovery_email" name="recovery_email" 
+                               placeholder="ejemplo@correo.com" required>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Enviar instrucciones</button>
+                    <a href="#" class="btn btn-secondary" onclick="flipCard(); return false;">
+                        Volver al inicio de sesión
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Panel derecho -->
+    <div class="image-panel">
+        <div class="overlay">
+            <h2>ArrendaU</h2>
+            <p>Tu plataforma de arriendo universitario</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/login.js' %}"></script>
+{% endblock %}

@@ -1,163 +1,604 @@
-/* Estilos generales de la página que ajustan el margen y el relleno, 
-   establecen una tipografía y un color de texto estándar para mejorar la legibilidad */
-   body, html {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    line-height: 1.6;
-    color: #333;
+:root {
+    --primary-color: #2E7D32;
+    --secondary-color: #1976D2;
+    --text-primary: #2c3e50;
+    --text-secondary: #546e7a;
+    --background-light: #f8f9fa;
 }
 
-/* Barra de navegación superior con fondo blanco y sombra ligera */
-.navbar {
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 1rem 2rem;
+body, html {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 100vh;
+}
+
+/* ArrendaU Design System - Navbar Component */
+/* Usar el prefijo 'au-' para todos los componentes de ArrendaU */
+
+.au-navbar {
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    padding: 1rem 3rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilo de logotipo con zoom visual cuando el usuario coloca el cursor */
-.logo {
-    width:80px; 
-    height: auto; 
+.au-logo {
+    width: 80px;
+    height: auto;
     transform: scale(2.5);
+    transition: transform 0.3s ease;
+    margin-right: 3rem;
 }
 
-.logo:hover {
-    transform: scale(2.9); 
+.au-logo:hover {
+    transform: scale(2.9);
 }
 
-/* Menú hamburguesa, visible solo en dispositivos móviles */
-.hamburger {
+.au-hamburger {
     display: none;
     flex-direction: column;
     cursor: pointer;
     gap: 0.2rem;
 }
 
-.hamburger span {
+.au-hamburger span {
     width: 25px;
     height: 3px;
-    background-color: #4CAF50;
+    background-color: var(--primary-color);
     transition: all 0.3s;
 }
 
-/* Enlaces de navegación con color verde y animación de color al pasar el cursor */
-.nav-links {
+.au-nav-links {
     display: flex;
-    gap: 2rem;
+    gap: 2.5rem;
+    align-items: center;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 120px;
 }
-.nav-links a {
+
+.au-nav-links a {
     text-decoration: none;
-    color: #4CAF50;
-    font-weight: bold;
+    color: var(--text-primary);
+    font-weight: 500;
+    position: relative;
+    padding: 0.5rem 0;
     transition: color 0.3s ease;
 }
 
-.nav-links a:hover {
-    color: #03A9F4;
+.au-nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
 }
 
-/* Botones de autenticación (inicio de sesión y registro) dentro de la barra de navegación */
-.auth-buttons {
+.au-nav-links a:hover::after {
+    width: 100%;
+}
+
+.au-auth-buttons {
     display: flex;
     gap: 1rem;
+    margin-left: 3rem;
 }
 
-/* Botón de inicio de sesión con fondo blanco y borde azul */
-.btn-login {
-    background-color: white;
-    color: #03A9F4;
-    border: 1px solid #03A9F4;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
+.au-btn-login {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    padding: 0.7rem 1.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-.btn-login:hover {
-    background-color: #E1F5FE;
+    transition: all 0.3s ease;
 }
 
-/* Botón de registro con fondo verde */
-.btn-signup {
-    background-color: #4CAF50;
+.au-btn-login:hover {
+    background-color: rgba(46, 125, 50, 0.1);
+    transform: translateY(-1px);
+}
+
+.au-btn-signup {
+    background-color: var(--primary-color);
     color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 4px;
+    padding: 0.7rem 1.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
     cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.25);
 }
-.btn-signup:hover {
+
+.au-btn-signup:hover {
     background-color: #45a049;
-}
-/* Estilos para la sección de héroe, que utiliza un fondo con gradiente, 
-   un tamaño de fuente grande para el encabezado y centrado de texto */
-.hero {
-    background: linear-gradient(135deg, #4CAF50, #00BCD4, #03A9F4, #2196F3);
-    color: white;
-    text-align: center;
-    padding: 4rem 2rem;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.35);
 }
 
-/* Configuración de las características destacadas en la sección "features", 
-   con flexbox para una distribución equilibrada entre los elementos y fondo claro */
-.features {
-    display: flex;
-    justify-content: space-around;
-    padding: 4rem 2rem;
-    background-color: #f9f9f9;
-}
-
-/* Estilos de la sección "mission" para resaltar el contenido sobre la misión de la página, 
-   utilizando un fondo verde claro y centrado de texto */
-.mission {
-    background-color: #E8F5E9;
-    padding: 4rem 2rem;
-    text-align: center;
-}
-
-/* Diseño del pie de página con fondo oscuro y texto en blanco, 
-   con una alineación centralizada para el contenido */
-footer {
-    background-color: #333;
-    color: white;
-    text-align: center;
-    padding: 1rem;
-}
-
-/* Estilos responsivos para ajustar la visualización en dispositivos móviles, 
-   mostrando el menú hamburguesa y reorganizando los enlaces y botones en columna */
 @media (max-width: 768px) {
-    .hamburger {
-        display: flex;
+    .au-navbar {
+        padding: 0.8rem 1.5rem;
     }
 
-    .nav-links {
+    .au-logo {
+        margin-right: 0;
+    }
+
+    .au-logo:hover {
+        transform: scale(2);
+    }
+
+    .au-hamburger {
+        display: flex;
+        z-index: 100;
+    }
+
+    .au-nav-links {
         display: none;
-        flex-direction: column;
-        width: 100%;
-        background-color: white;
         position: absolute;
-        top: 60px;
+        top: 100%;
         left: 0;
-        padding: 1rem;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        padding: 1rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 0;
+        padding-left: 0;
     }
 
-    .nav-links.active {
+    .au-nav-links.active {
         display: flex;
     }
 
-    .auth-buttons {
-        margin-top: 1rem;
-        flex-direction: column;
+    .au-nav-links a {
+        padding: 0.8rem 2rem;
         width: 100%;
+        text-align: left;
     }
+
+    .au-auth-buttons {
+        display: none;
+        width: 100%;
+        padding: 1rem 2rem;
+        background: white;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        flex-direction: column;
+        gap: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-left: 0;
+    }
+
+    .au-auth-buttons.active {
+        display: flex;
+    }
+
+    .au-btn-login, .au-btn-signup {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+/* Estilos para el menú hamburguesa activo */
+.au-hamburger.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.au-hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.au-hamburger.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Estilos para el resto de la página */
+.hero {
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.95), rgba(25, 118, 210, 0.85));
+    color: white;
+    text-align: center;
+    padding: 8rem 2rem;
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../img/hero-bg.jpg') center/cover;
+    z-index: -1;
+    filter: brightness(0.3);
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero p {
+    font-size: 1.25rem;
+    max-width: 700px;
+    margin: 0 auto 2rem;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.features {
+    padding: 6rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+}
+
+.feature {
+    text-align: center;
+    padding: 2rem;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.feature h3 {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    padding-bottom: 1rem;
+}
+
+.feature h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
+.feature p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 1.1rem;
+}
+
+.mission {
+    background-color: var(--background-light);
+    padding: 6rem 2rem;
+    text-align: center;
+    position: relative;
+}
+
+.mission::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+}
+
+.mission h2 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
+    font-weight: 700;
+}
+
+.mission p {
+    max-width: 800px;
+    margin: 0 auto;
+    font-size: 1.2rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+}
+
+footer {
+    background-color: #1a1a1a;
+    color: rgba(255, 255, 255, 0.8);
+    text-align: center;
+    padding: 2rem;
+    position: relative;
+}
+
+footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+}
+
+.btn-signup {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+}
+
+.btn-signup:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(46, 125, 50, 0.3);
+}
+
+@media (max-width: 768px) {
+    .hero {
+        padding: 6rem 1rem;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .hero p {
+        font-size: 1.1rem;
+    }
+
+    .features {
+        padding: 4rem 1rem;
+    }
+
+    .feature {
+        padding: 1.5rem;
+    }
+
+    .mission {
+        padding: 4rem 1rem;
+    }
+
+    .mission h2 {
+        font-size: 2rem;
+    }
+
+    .mission p {
+        font-size: 1.1rem;
+    }
+}
+
+.hero h1, .hero p, .feature, .mission h2, .mission p {
+    animation: fadeInUp 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.hero h1 { animation-delay: 0.2s; }
+.hero p { animation-delay: 0.4s; }
+.feature:nth-child(1) { animation-delay: 0.2s; }
+.feature:nth-child(2) { animation-delay: 0.4s; }
+.feature:nth-child(3) { animation-delay: 0.6s; }
+.mission h2 { animation-delay: 0.2s; }
+.mission p { animation-delay: 0.4s; }
+
+/* Estilos mejorados para la sección de contacto */
+.contact-section {
+    padding: 6rem 2rem;
+    background: white;
+    position: relative;
+}
+
+.contact-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+}
+
+.contact-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.contact-section h2 {
+    color: var(--primary-color);
+    font-size: 2.8rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.contact-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+    margin-top: 3rem;
+}
+
+.contact-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease;
+}
+
+.contact-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.contact-icon {
+    width: 70px;
+    height: 70px;
+    background: var(--primary-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.contact-icon i {
+    font-size: 1.8rem;
+    color: white;
+}
+
+.contact-details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.contact-details h3 {
+    color: var(--text-primary);
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.contact-details p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.contact-link {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+.contact-link:hover {
+    background-color: rgba(46, 125, 50, 0.1);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 992px) {
+    .features {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .contact-info {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .features {
+        grid-template-columns: 1fr;
+    }
+    
+    .contact-info {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .contact-item {
+        padding: 1.5rem;
+    }
+}
+
+/* Estilos específicos para la página home */
+.home-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+/* Hero section */
+.home-content .hero {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.95), rgba(25, 118, 210, 0.85));
+    color: white;
+    text-align: center;
+    padding: 8rem 2rem;
+    position: relative;
+    box-sizing: border-box;
+}
+
+/* Ajuste para el contenedor de home */
+.home-container {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100vh - 130px);
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 70px;
+    width: 100%;
+}
+
+/* Si tienes un hero section o similar */
+.hero-section {
+    margin: 0;
+    padding: 0;
+    width: 100%;
 }
