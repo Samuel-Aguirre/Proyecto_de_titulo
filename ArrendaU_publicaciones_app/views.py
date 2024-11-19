@@ -5,6 +5,7 @@ from django.contrib import messages
 from .forms import PublicacionForm
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.db.models import Q
 
 @login_required
 def crear_publicacion(request):
@@ -144,5 +145,120 @@ def eliminar_foto(request, foto_id):
         
         return JsonResponse({'success': True})
         
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def filtrar_publicaciones(request):
+    try:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Obtener parámetros de filtrado
+            ciudad = request.GET.get('ciudad', '').strip()
+            habitaciones = request.GET.get('habitaciones', '')
+            min_precio = request.GET.get('min_precio', 0)
+            max_precio = request.GET.get('max_precio', 400000)
+
+            # Convertir a enteros los valores numéricos
+            try:
+                min_precio = int(min_precio)
+                max_precio = int(max_precio)
+            except ValueError:
+                min_precio = 0
+                max_precio = 400000
+
+            # Iniciar con todas las publicaciones
+            queryset = Publicacion.objects.all()
+
+            # Aplicar filtros solo si se proporcionan valores válidos
+            if ciudad:
+                queryset = queryset.filter(ciudad__icontains=ciudad)
+            
+            if habitaciones:
+                if habitaciones == '4':  # Para "4+" habitaciones
+                    queryset = queryset.filter(habitaciones_disponibles__gte=4)
+                else:
+                    try:
+                        habitaciones = int(habitaciones)
+                        queryset = queryset.filter(habitaciones_disponibles=habitaciones)
+                    except ValueError:
+                        pass
+
+            queryset = queryset.filter(
+                valor_alquiler__gte=min_precio,
+                valor_alquiler__lte=max_precio
+            )
+
+            # Preparar datos para la respuesta
+            publicaciones = []
+            for pub in queryset:
+                fotos = [{'imagen_url': foto.imagen.url} for foto in pub.fotos.all()]
+                
+                # Obtener el perfil del arrendador
+                try:
+                    perfil_arrendador = pub.usuario.perfilarrendador
+                    preferencias = {
+                        'pref_no_fumador': perfil_arrendador.get_pref_no_fumador_display(),
+                        'pref_no_bebedor': perfil_arrendador.get_pref_no_bebedor_display(),
+                        'pref_no_mascotas': perfil_arrendador.get_pref_no_mascotas_display(),
+                        'pref_estudiante_verificado': perfil_arrendador.get_pref_estudiante_verificado_display(),
+                        'pref_nivel_ruido': perfil_arrendador.get_pref_nivel_ruido_display(),
+                        'horario_visitas': perfil_arrendador.horario_visitas,
+                        'reglas_casa': perfil_arrendador.reglas_casa
+                    }
+                except:
+                    preferencias = {
+                        'pref_no_fumador': 'No especificado',
+                        'pref_no_bebedor': 'No especificado',
+                        'pref_no_mascotas': 'No especificado',
+                        'pref_estudiante_verificado': 'No especificado',
+                        'pref_nivel_ruido': 'No especificado',
+                        'horario_visitas': 'No especificado',
+                        'reglas_casa': 'No especificadas'
+                    }
+
+                publicaciones.append({
+                    'id': pub.id,
+                    'titulo': pub.titulo,
+                    'descripcion': pub.descripcion,
+                    'ciudad': pub.ciudad,
+                    'direccion': pub.direccion,
+                    'valor_alquiler': pub.valor_alquiler,
+                    'habitaciones_disponibles': pub.habitaciones_disponibles,
+                    'fotos': fotos,
+                    'preferencias_arrendador': preferencias
+                })
+
+            return JsonResponse({'publicaciones': publicaciones})
+        
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    except Exception as e:
+        print(f"Error en filtrar_publicaciones: {str(e)}")  # Para debugging
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def obtener_fotos_publicacion(request, publicacion_id):
+    try:
+        publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+        fotos = [{'imagen_url': foto.imagen.url} for foto in publicacion.fotos.all()]
+        
+        # Obtener preferencias del arrendador
+        try:
+            perfil_arrendador = publicacion.usuario.perfilarrendador
+            preferencias = {
+                'pref_no_fumador': perfil_arrendador.get_pref_no_fumador_display(),
+                'pref_no_bebedor': perfil_arrendador.get_pref_no_bebedor_display(),
+                'pref_no_mascotas': perfil_arrendador.get_pref_no_mascotas_display(),
+                'pref_estudiante_verificado': perfil_arrendador.get_pref_estudiante_verificado_display(),
+                'pref_nivel_ruido': perfil_arrendador.get_pref_nivel_ruido_display(),
+                'horario_visitas': perfil_arrendador.horario_visitas,
+                'reglas_casa': perfil_arrendador.reglas_casa
+            }
+        except:
+            preferencias = None
+
+        return JsonResponse({
+            'fotos': fotos,
+            'preferencias': preferencias
+        })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)

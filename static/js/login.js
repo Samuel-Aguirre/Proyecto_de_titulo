@@ -83,5 +83,8 @@ document.querySelector('.modal-content')?.addEventListener('click', function(eve
 
 function flipCard() {
     const card = document.querySelector('.login-card');
-    card.classList.toggle('flipped');
+    if (card) {
+        card.style.transformStyle = 'preserve-3d';
+        card.classList.toggle('flipped');
+    }
 }

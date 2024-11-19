@@ -18,128 +18,12 @@ body, html {
     box-sizing: border-box;
 }
 
-/* Mejora en la barra de navegación */
-.navbar {
-    background-color: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(10px);
-    padding: 1rem 2rem;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    box-sizing: border-box;
-}
-
-/* Estilo de logotipo con zoom visual cuando el usuario coloca el cursor */
-.logo {
-    width:80px; 
-    height: auto; 
-    transform: scale(2.5);
-}
-
-.logo:hover {
-    transform: scale(2.9); 
-}
-
-/* Menú hamburguesa, visible solo en dispositivos móviles */
-.hamburger {
-    display: none;
-    flex-direction: column;
-    cursor: pointer;
-    gap: 0.2rem;
-}
-
-.hamburger span {
-    width: 25px;
-    height: 3px;
-    background-color: #4CAF50;
-    transition: all 0.3s;
-}
-
-/* Enlaces de navegación con color verde y animación de color al pasar el cursor */
-.nav-links {
-    display: flex;
-    gap: 2rem;
-    align-items: center;
-    height: 100%;
-}
-
-.nav-links a {
-    text-decoration: none;
-    color: var(--text-primary);
-    font-weight: 500;
-    position: relative;
-    padding: 0.5rem 0;
-    transition: color 0.3s ease;
-}
-
-.nav-links a::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--primary-color);
-    transition: width 0.3s ease;
-}
-
-.nav-links a:hover::after {
-    width: 100%;
-}
-
-/* Botones de autenticación */
-.auth-buttons {
-    display: flex;
-    gap: 1rem;
-    margin-left: auto;
-}
-
-/* Botón de inicio de sesión */
-.btn-login {
-    background-color: transparent;
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
-    padding: 0.7rem 1.8rem;
-    border-radius: 6px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    text-decoration: none;
-}
-
-.btn-login:hover {
-    background-color: #E1F5FE;
-}
-
-/* Botón de registro */
-.btn-signup {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0.7rem 1.8rem;
-    border-radius: 6px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.25);
-    text-decoration: none;
-}
-
-.btn-signup:hover {
-    background-color: #45a049;
-}
-
 .hero-image {
     background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(25, 118, 210, 0.9));
     padding: 3rem 2rem;
     text-align: center;
     color: white;
-    margin-bottom: 2rem;
+    margin-bottom: 0;
 }
 
 .container {
@@ -159,39 +43,69 @@ body, html {
     border-radius: 16px;
     position: sticky;
     top: 100px;
+    height: fit-content;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
+
+.filters::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filters::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.filters::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.filters::-webkit-scrollbar-thumb:hover {
+    background: #666;
 }
 
 .filters h2 {
     color: #4CAF50;
     margin-top: 0;
+    text-align: center;
+    margin-bottom: 0.5rem;
 }
 
 .filter-group {
     margin-bottom: 1.5rem;
-    padding: 0 0.5rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.filter-group:hover {
+    background: rgba(255, 255, 255, 0.8);
 }
 
 .filter-group label {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 0.8rem;
+    font-weight: 600;
 }
 
-.filter-group input, .filter-group select {
-    width: calc(100% - 2rem);
-    padding: 0.8rem;
-    margin: 0.5rem 0;
-    border: 1.5px solid #e0e0e0;
-    border-radius: 8px;
+.filter-group input[type="text"],
+.filter-group select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    margin: 0;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
     font-size: 0.9rem;
     box-sizing: border-box;
-    color: var(--text-primary);
-    transition: border-color 0.2s ease;
+    background-color: white;
 }
 
 .filter-group input:focus, .filter-group select:focus {
@@ -200,84 +114,104 @@ body, html {
     box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.1);
 }
 
-.range-slider {
-    width: 100%;
-    margin: 1rem 0;
-}
-
 .range-container {
     position: relative;
     width: 100%;
-    padding: 1rem 0;
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
 }
 
 .range-slider {
-    height: 5px;
-    background: #ddd;
-    border-radius: 5px;
+    height: 4px;
+    background: #e0e0e0;
+    border-radius: 2px;
     position: relative;
+    margin: 1.5rem 0;
 }
 
 .range-selected {
     height: 100%;
     position: absolute;
-    background: #4CAF50;
+    background: var(--primary-color);
     border-radius: 5px;
-    left: 30%;
-    right: 50%;
+    transition: all 0.3s ease;
 }
 
 .range-input {
     position: relative;
+    height: 20px;
 }
 
 .range-input input {
     position: absolute;
     width: 100%;
-    height: 5px;
+    height: 4px;
+    top: -2px;
     background: none;
     pointer-events: none;
     appearance: none;
     outline: none;
-    top: -5px;
 }
 
 .range-input input::-webkit-slider-thumb {
-    height: 17px;
-    width: 17px;
-    border-radius: 0;
-    transform: rotate(45deg);
-    background: #4CAF50;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--primary-color);
     pointer-events: auto;
     appearance: none;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    margin-top: -6px;
+}
+
+.range-input input::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
 }
 
 .range-input input::-moz-range-thumb {
-    height: 17px;
-    width: 17px;
-    border-radius: 0;
-    transform: rotate(45deg);
-    background: #4CAF50;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    background: var(--primary-color);
     pointer-events: auto;
     appearance: none;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    border: none;
+}
+
+.range-input input::-moz-range-thumb:hover {
+    transform: scale(1.2);
 }
 
 .range-price {
-    margin-top: 40px;
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
-    
+    align-items: center;
+    padding: 0;
+    margin-top: 0.5rem;
+    margin-bottom: 0;
 }
 
+.range-price span {
+    background: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
 
 .listings {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
-    gap: 2rem;
+    gap: 1.5rem;
     padding: 1rem 0;
+    align-items: start;
+    margin: -1rem;
 }
 
 .property-card {
@@ -290,6 +224,18 @@ body, html {
     display: grid;
     grid-template-columns: 300px 1fr;
     position: relative;
+    margin: 0;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.property-card:hover {
+    transform: translateY(-2px);
+}
+
+.property-card.expanded {
+    cursor: default;
+    transform: none;
 }
 
 .property-image {
@@ -392,10 +338,6 @@ body, html {
         margin-bottom: 2rem;
     }
 
-    .navbar {
-        padding: 1rem;
-    }
-    
     .container {
         padding: 1rem;
     }
@@ -617,61 +559,6 @@ body, html {
 
 /* Ajustes para dispositivos móviles */
 @media (max-width: 768px) {
-    /* Ajustes del navbar */
-    .navbar {
-        padding: 0.8rem;
-    }
-
-    .logo {
-        transform: scale(1.8); /* Logo más pequeño en móvil */
-    }
-
-    .logo:hover {
-        transform: scale(2);
-    }
-
-    .nav-links {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background: white;
-        flex-direction: column;
-        padding: 1rem 0;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .nav-links.active {
-        display: flex;
-    }
-
-    .nav-links a {
-        padding: 0.8rem 2rem;
-        width: 100%;
-        text-align: left;
-    }
-
-    .auth-buttons {
-        display: none;
-        width: 100%;
-        padding: 1rem 2rem;
-        background: white;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .auth-buttons.active {
-        display: flex;
-    }
-
-    .hamburger {
-        display: flex;
-    }
-
     /* Ajustes del contenedor principal */
     .container {
         padding: 1rem;
@@ -791,19 +678,6 @@ body, html {
     }
 }
 
-/* Ajuste para el menú hamburguesa */
-.hamburger.active span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-}
-
-.hamburger.active span:nth-child(2) {
-    opacity: 0;
-}
-
-.hamburger.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
-}
-
 .messages {
     position: fixed;
     top: 20px;
@@ -892,4 +766,260 @@ body, html {
 .hero-content p {
     font-size: 1.2rem;
     opacity: 0.9;
+}
+
+/* Estilo para el body cuando el modal está abierto */
+body.modal-open {
+    overflow: hidden !important;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+
+/* Estilos para la sección expandida */
+.property-expanded {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 9999;
+    display: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* Mejor scroll en iOS */
+}
+
+.expanded-content {
+    background: white;
+    width: 100%;
+    max-width: 1200px;
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem auto;
+    position: relative;
+}
+
+/* Ajustar el cursor solo para arrendatarios */
+.rol-arrendatario .property-card {
+    cursor: pointer;
+}
+
+.rol-arrendatario .property-card:hover {
+    transform: translateY(-2px);
+    transition: transform 0.2s ease;
+}
+
+.expanded-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.expanded-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.expanded-images {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.main-image {
+    width: 100%;
+    height: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: var(--background-light);
+}
+
+.main-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
+}
+
+.thumbnail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.thumbnail-grid img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.thumbnail-grid img:hover {
+    transform: scale(1.05);
+}
+
+.thumbnail-grid img.selected {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.detail-section {
+    margin-bottom: 2rem;
+}
+
+.detail-section h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.detail-item {
+    background: var(--background-light);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.detail-item .label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.detail-item .value {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.preferencias-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.preferencia-item {
+    background: var(--background-light);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.preferencia-item .header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.preferencia-item i {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+}
+
+.preferencia-item .label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.preferencia-item .value {
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-left: 1.6rem; /* Para alinear con el texto superior */
+}
+
+.btn-contact {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-contact:hover {
+    background-color: #1b5e20;
+}
+
+@media (max-width: 992px) {
+    .expanded-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Estilos para la sección de contacto y postulación */
+.contact-section {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem 0;
+    padding-bottom: 0;
+    border-top: 1px solid #e0e  0e0;  /* Línea separadora */
+}
+
+.btn-contact, .btn-apply {
+    flex: 1;
+    padding: 0.75rem 1.5rem;  /* Mantenemos el padding reducido */
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.btn-contact {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-contact:hover {
+    background-color: #1b5e20;
+}
+
+.btn-apply {
+    background: var(--secondary-color);
+    color: white;
+}
+
+.btn-apply:hover {
+    background-color: #1565C0;
+}
+
+/* Ajuste responsive */
+@media (max-width: 768px) {
+    .contact-section {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
 }

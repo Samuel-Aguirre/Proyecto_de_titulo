@@ -13,17 +13,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body>
+<body class="{% if user.rol == 'Arrendatario' %}rol-arrendatario{% endif %}">
     <nav class="navbar">
         <button class="menu-toggle">
             <i class="fas fa-bars"></i>
         </button>
         
         <div class="logo-container">
-            <img src="{% static 'img/Logo_2500x2500.png' %}" 
-                 onclick="window.location.href='{% url 'home' %}'; return false;" 
-                 alt="ArrendaU Logo" 
-                 class="au-logo">
+            <a href="{% url 'home' %}" style="display: contents;">
+                <img src="{% static 'img/Logo_2500x2500.png' %}" 
+                     alt="ArrendaU Logo" 
+                     class="au-logo">
+            </a>
         </div>
         
         {% if user.is_authenticated %}

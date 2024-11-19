@@ -23,21 +23,27 @@ body {
 /* Logo */
 .au-logo {
     height: 40px;
-    width: 40px; /* Ancho fijo igual a la altura */
+    width: 40px;
     object-fit: contain;
     cursor: pointer;
-    margin-right: 2rem;
-    display: block; /* Asegura que el elemento sea un bloque */
-    flex-shrink: 0; /* Evita que el logo se encoja */
+    display: block;
     padding: 0;
+    margin: 0;
 }
 
-/* Contenedor del logo si es necesario */
+/* Contenedor del logo */
 .logo-container {
     display: flex;
     align-items: center;
     height: 40px;
     width: 40px;
+    padding: 0;
+    margin: 0;
+}
+
+.logo-container a {
+    display: contents;
+    line-height: 0;
 }
 
 /* Navbar */
@@ -53,8 +59,9 @@ body {
     z-index: 1000;
     display: flex;
     align-items: center;
-    padding: 0 3rem;
+    padding: 0 2rem;
     justify-content: space-between;
+    gap: 1rem;
 }
 
 /* Menú hamburguesa */
@@ -283,14 +290,15 @@ main {
     width: 100%;
     padding: 0;
     margin: 0;
+    margin-top: 70px; /* Altura del navbar */
     position: relative;
+    display: flex;
+    flex-direction: column;
 }
 
 /* Footer */
 .footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
+    position: relative; /* Cambiado de fixed a relative */
     width: 100%;
     height: 60px;
     background-color: white;
@@ -299,4 +307,11 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
-} 
+    margin-top: auto; /* Empuja el footer al final del contenido */
+}
+
+.footer-content {
+    color: #000000;
+    padding: 1rem;
+    text-align: center;
+}  
