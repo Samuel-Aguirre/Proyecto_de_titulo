@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+    {% csrf_token %}
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
@@ -121,7 +122,7 @@
                     </p>
                 </div>
             </article>
-            <div id="expandedView" class="property-expanded" style="display: none;">
+            <div id="expandedView" class="property-expanded" style="display: none;" data-publication-id="{{ publicacion.id }}">
                 <div class="expanded-content">
                     <div class="expanded-header">
                         <h2>{{ publicacion.titulo }}</h2>
@@ -214,7 +215,7 @@
                                     <i class="fas fa-envelope"></i>
                                     Contactar Arrendador
                                 </button>
-                                <button class="btn-apply">
+                                <button type="button" class="btn-apply" data-publication-id="{{ publicacion.id }}">
                                     <i class="fas fa-file-alt"></i>
                                     Postular
                                 </button>

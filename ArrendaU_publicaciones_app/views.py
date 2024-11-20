@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Publicacion, Foto, FormularioCompatibilidad, PreguntaFormulario, OpcionRespuesta
+from .models import Publicacion, Foto, FormularioCompatibilidad, PreguntaFormulario, OpcionRespuesta, RespuestaArrendatario, RespuestaPregunta
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import PublicacionForm
@@ -334,3 +334,72 @@ def obtener_fotos_publicacion(request, publicacion_id):
         })
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def responder_formulario(request, publicacion_id):
+    if request.method == 'POST':
+        try:
+            publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+            formulario = publicacion.formulario
+            
+            # Crear la respuesta del arrendatario
+            respuesta_arrendatario = RespuestaArrendatario.objects.create(
+                usuario=request.user,
+                formulario=formulario
+            )
+            
+            # Procesar cada respuesta del formulario
+            for pregunta in formulario.preguntas.all():
+                respuesta = request.POST.get(f'pregunta_{pregunta.id}')
+                if respuesta:
+                    RespuestaPregunta.objects.create(
+                        respuesta_arrendatario=respuesta_arrendatario,
+                        pregunta=pregunta,
+                        respuesta_seleccionada=respuesta
+                    )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Formulario enviado correctamente'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al procesar el formulario: {str(e)}'
+            }, status=400)
+            
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@login_required
+def obtener_formulario(request, publicacion_id):
+    try:
+        publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+        if not hasattr(publicacion, 'formulario'):
+            return JsonResponse({
+                'success': False,
+                'message': 'Esta publicación no tiene un formulario asociado'
+            })
+            
+        preguntas = []
+        for pregunta in publicacion.formulario.preguntas.all():
+            opciones = list(pregunta.opciones.values_list('texto_opcion', flat=True))
+            preguntas.append({
+                'id': pregunta.id,
+                'texto': pregunta.texto_pregunta,
+                'opciones': opciones
+            })
+            
+        return JsonResponse({
+            'success': True,
+            'formulario': {
+                'id': publicacion.formulario.id,
+                'preguntas': preguntas
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al obtener el formulario: {str(e)}'
+        }, status=400)

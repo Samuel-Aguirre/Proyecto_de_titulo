@@ -77,3 +77,19 @@ class Foto(models.Model):
     def __str__(self):
         return f"Foto de {self.publicacion.titulo}"
 
+class RespuestaArrendatario(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    formulario = models.ForeignKey(FormularioCompatibilidad, on_delete=models.CASCADE, related_name='respuestas_arrendatarios')
+    fecha_respuesta = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Respuesta de {self.usuario.username} para {self.formulario.publicacion.titulo}"
+
+class RespuestaPregunta(models.Model):
+    respuesta_arrendatario = models.ForeignKey(RespuestaArrendatario, on_delete=models.CASCADE, related_name='respuestas')
+    pregunta = models.ForeignKey(PreguntaFormulario, on_delete=models.CASCADE)
+    respuesta_seleccionada = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f"Respuesta a {self.pregunta.texto_pregunta}: {self.respuesta_seleccionada}"
+

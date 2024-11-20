@@ -13,4 +13,6 @@ urlpatterns = [
     path('eliminar-foto/<int:foto_id>/', views.eliminar_foto, name='eliminar_foto'),
     path('filtrar/', views.filtrar_publicaciones, name='filtrar_publicaciones'),
     path('obtener-fotos/<int:publicacion_id>/', views.obtener_fotos_publicacion, name='obtener_fotos'),
+    path('publicacion/<int:publicacion_id>/formulario/', views.obtener_formulario, name='obtener_formulario'),
+    path('publicacion/<int:publicacion_id>/responder/', views.responder_formulario, name='responder_formulario'),
 ]
