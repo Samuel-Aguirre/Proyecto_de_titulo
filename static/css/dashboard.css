@@ -267,7 +267,7 @@ body, html {
     line-height: 1.6;
     margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -477,6 +477,10 @@ body, html {
     opacity: 0;
     transition: all 0.3s ease;
     text-align: center;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
 }
 
 .modal.show .modal-content {
@@ -504,6 +508,9 @@ body, html {
     justify-content: center;
     gap: 1rem;
     margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
 }
 
 .modal-buttons button {
@@ -1027,22 +1034,36 @@ body.modal-open {
 /* Estilos para el formulario modal */
 .pregunta-grupo {
     margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: var(--background-light);
+    border-radius: 8px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pregunta-grupo:last-child {
+    margin-bottom: 0.5rem;
 }
 
 .pregunta-grupo label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
     color: var(--text-primary);
     font-weight: 500;
+    text-align: center;
 }
 
 .pregunta-grupo select {
-    width: 100%;
+    width: 90%;
+    max-width: 400px;
     padding: 0.8rem;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     font-size: 1rem;
     background-color: white;
+    margin: 0 auto;
+    display: block;
 }
 
 .pregunta-grupo select:focus {
@@ -1052,10 +1073,49 @@ body.modal-open {
 }
 
 .modal-header {
+    width: 100%;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    position: relative;
+}
+
+.modal-header h2 {
+    margin: 0;
+    text-align: center;
+}
+
+.btn-close {
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    background: white;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.btn-close:hover {
+    color: #dc3545;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-close i {
+    font-size: 1rem;
 }
 
 .btn-submit {
@@ -1188,4 +1248,31 @@ body.modal-open {
 
 .btn-bookmark i {
     font-size: 1.2rem;
+}
+
+#formularioCompatibilidad {
+    overflow-y: auto;
+    max-height: calc(90vh - 180px);
+    padding: 1rem 2rem;
+    margin: 0 auto;
+    width: 90%;
+    max-width: 500px;
+}
+
+#formularioCompatibilidad::-webkit-scrollbar {
+    width: 8px;
+}
+
+#formularioCompatibilidad::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#formularioCompatibilidad::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+#formularioCompatibilidad::-webkit-scrollbar-thumb:hover {
+    background: #1b5e20;
 }
