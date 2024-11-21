@@ -93,3 +93,15 @@ class RespuestaPregunta(models.Model):
     def __str__(self):
         return f"Respuesta a {self.pregunta.texto_pregunta}: {self.respuesta_seleccionada}"
 
+class PublicacionGuardada(models.Model):
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='publicaciones_guardadas')
+    publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='guardada_por')
+    fecha_guardado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'publicacion')  # Evita duplicados
+        ordering = ['-fecha_guardado']
+
+    def __str__(self):
+        return f"{self.usuario.username} guardó {self.publicacion.titulo}"
+

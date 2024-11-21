@@ -15,4 +15,8 @@ urlpatterns = [
     path('obtener-fotos/<int:publicacion_id>/', views.obtener_fotos_publicacion, name='obtener_fotos'),
     path('publicacion/<int:publicacion_id>/formulario/', views.obtener_formulario, name='obtener_formulario'),
     path('publicacion/<int:publicacion_id>/responder/', views.responder_formulario, name='responder_formulario'),
+    path('mis-postulaciones/', views.mis_postulaciones, name='mis_postulaciones'),
+    path('postulacion/<int:postulacion_id>/eliminar/', views.eliminar_postulacion, name='eliminar_postulacion'),
+    path('publicaciones-guardadas/', views.publicaciones_guardadas, name='publicaciones_guardadas'),
+    path('publicacion/<int:publicacion_id>/toggle-guardado/', views.toggle_guardado, name='toggle_guardado'),
 ]

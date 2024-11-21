@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Publicacion, Foto, FormularioCompatibilidad, PreguntaFormulario, OpcionRespuesta, RespuestaArrendatario, RespuestaPregunta
+from .models import Publicacion, Foto, FormularioCompatibilidad, PreguntaFormulario, OpcionRespuesta, RespuestaArrendatario, RespuestaPregunta, PublicacionGuardada
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import PublicacionForm
@@ -79,25 +79,18 @@ def crear_publicacion(request):
 @login_required
 def listar_publicaciones(request):
     if request.user.rol == 'Arrendador':
-        # Debug: Imprimir información detallada
-        print(f"\nDEBUG INFO:")
-        print(f"Usuario actual: {request.user.username} (ID: {request.user.id})")
-        
-        # Obtener todas las publicaciones y sus usuarios para debug
-        todas_publicaciones = Publicacion.objects.all()
-        print("\nTodas las publicaciones en la base de datos:")
-        for pub in todas_publicaciones:
-            print(f"- Publicación ID: {pub.id}, Título: {pub.titulo}, Usuario: {pub.usuario.username} (ID: {pub.usuario.id})")
-        
-        # Filtrar las publicaciones del usuario actual
         publicaciones = Publicacion.objects.filter(usuario_id=request.user.id)
-        print("\nPublicaciones filtradas para el usuario actual:")
-        for pub in publicaciones:
-            print(f"- Publicación ID: {pub.id}, Título: {pub.titulo}")
-        
     else:
         # Si es estudiante, muestra todas las publicaciones
-        publicaciones = Publicacion.objects.all()
+        publicaciones = Publicacion.objects.all().prefetch_related(
+            'guardada_por',  # Esto optimiza las consultas para verificar si está guardada
+            'fotos',
+            'usuario__perfilarrendador'
+        )
+        
+        # Añadir un atributo para verificar si cada publicación está guardada
+        for publicacion in publicaciones:
+            publicacion.esta_guardada = publicacion.guardada_por.filter(usuario=request.user).exists()
     
     return render(request, 'dashboard.html', {
         'publicaciones': publicaciones,
@@ -402,4 +395,82 @@ def obtener_formulario(request, publicacion_id):
         return JsonResponse({
             'success': False,
             'message': f'Error al obtener el formulario: {str(e)}'
+        }, status=400)
+
+@login_required
+def mis_postulaciones(request):
+    postulaciones = RespuestaArrendatario.objects.filter(
+        usuario=request.user
+    ).select_related(
+        'formulario__publicacion'
+    ).prefetch_related(
+        'formulario__publicacion__fotos',
+        'respuestas__pregunta'
+    ).order_by('-fecha_respuesta')
+    
+    return render(request, 'mis_postulaciones.html', {
+        'postulaciones': postulaciones
+    })
+
+@login_required
+def eliminar_postulacion(request, postulacion_id):
+    if request.method == 'POST':
+        try:
+            postulacion = RespuestaArrendatario.objects.get(
+                id=postulacion_id,
+                usuario=request.user
+            )
+            postulacion.delete()
+            return JsonResponse({'success': True})
+        except RespuestaArrendatario.DoesNotExist:
+            return JsonResponse({'error': 'Postulación no encontrada'}, status=404)
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@login_required
+def publicaciones_guardadas(request):
+    guardados = PublicacionGuardada.objects.filter(
+        usuario=request.user
+    ).select_related(
+        'publicacion'
+    ).prefetch_related(
+        'publicacion__fotos',
+        'publicacion__usuario__perfilarrendador'
+    )
+    
+    return render(request, 'publicaciones_guardadas.html', {
+        'publicaciones_guardadas': guardados
+    })
+
+@login_required
+@require_POST
+def toggle_guardado(request, publicacion_id):
+    try:
+        publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+        guardado = PublicacionGuardada.objects.filter(
+            usuario=request.user,
+            publicacion=publicacion
+        ).first()
+        
+        if guardado:
+            guardado.delete()
+            mensaje = 'Publicación eliminada de guardados'
+            estado = False
+        else:
+            PublicacionGuardada.objects.create(
+                usuario=request.user,
+                publicacion=publicacion
+            )
+            mensaje = 'Publicación guardada exitosamente'
+            estado = True
+            
+        return JsonResponse({
+            'success': True,
+            'message': mensaje,
+            'is_saved': estado
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
         }, status=400)

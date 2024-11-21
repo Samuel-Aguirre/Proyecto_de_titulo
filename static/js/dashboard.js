@@ -722,3 +722,45 @@ function handlePostularButtonClick(e) {
         handlePostularClick(e);
     }
 }
+
+function toggleGuardado(publicacionId) {
+    event.stopPropagation(); // Evitar que se abra la vista expandida
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const button = document.querySelector(`.btn-bookmark[data-id="${publicacionId}"]`);
+    
+    fetch(`/publicaciones/publicacion/${publicacionId}/toggle-guardado/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({}),
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Cambiar el estado visual del botón
+            button.classList.toggle('active');
+            
+            // Actualizar el título del botón
+            if (data.is_saved) {
+                button.title = "Quitar de guardados";
+                button.classList.add('active');
+                showNotification('Éxito', 'Publicación guardada exitosamente');
+            } else {
+                button.title = "Guardar publicación";
+                button.classList.remove('active');
+                showNotification('Éxito', 'Publicación eliminada de guardados');
+            }
+        } else {
+            showNotification('Error', data.message || 'No se pudo actualizar el estado de guardado');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error', 'Ocurrió un error al actualizar el estado de guardado');
+    });
+}

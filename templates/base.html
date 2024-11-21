@@ -37,8 +37,8 @@
                     <a href="#" class="au-btn-create">Crear Publicación</a>
                 {% else %}
                     <a href="#">Buscar Habitación</a>
-                    <a href="#">Mis Postulaciones</a>
-                    <a href="#">Guardados</a>
+                    <a href="{% url 'ArrendaU_publicaciones_app:mis_postulaciones' %}">Mis Postulaciones</a>
+                    <a href="{% url 'ArrendaU_publicaciones_app:publicaciones_guardadas' %}">Guardados</a>
                 {% endif %}
             </div>
             

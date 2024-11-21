@@ -104,6 +104,15 @@
                             <i class="fas fa-trash"></i>
                         </button>
                     {% endif %}
+                    {% if user.rol == 'Arrendatario' %}
+                        <button type="button" 
+                                class="btn-action btn-bookmark {% if publicacion.esta_guardada %}active{% endif %}" 
+                                onclick="event.stopPropagation(); toggleGuardado('{{ publicacion.id }}')" 
+                                title="{% if publicacion.esta_guardada %}Quitar de guardados{% else %}Guardar publicación{% endif %}"
+                                data-id="{{ publicacion.id }}">
+                            <i class="fas fa-bookmark"></i>
+                        </button>
+                    {% endif %}
                 </div>
                 {% if publicacion.fotos.all %}
                     <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">

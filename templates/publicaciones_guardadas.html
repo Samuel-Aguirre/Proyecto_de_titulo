@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Publicaciones Guardadas - ArrendaU{% endblock %}
+
+{% block extra_head %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+{% endblock %}
+
+{% block content %}
+    {% csrf_token %}
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="hero-image">
+        <div class="hero-content">
+            <h1>Publicaciones Guardadas</h1>
+            <p>Explora las propiedades que has guardado para revisarlas más tarde</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <main class="listings">
+            {% for guardado in publicaciones_guardadas %}
+            <article class="property-card" data-publication-id="{{ guardado.publicacion.id }}" onclick="expandirPublicacion('{{ guardado.publicacion.id }}')">
+                <div class="property-actions">
+                    <button type="button" 
+                            class="btn-action btn-bookmark active" 
+                            onclick="event.stopPropagation(); toggleGuardado('{{ guardado.publicacion.id }}')" 
+                            title="Quitar de guardados"
+                            data-id="{{ guardado.publicacion.id }}">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
+                </div>
+                {% if guardado.publicacion.fotos.all %}
+                    <img src="{{ guardado.publicacion.fotos.first.imagen.url }}" alt="{{ guardado.publicacion.titulo }}" class="property-image">
+                {% else %}
+                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+                {% endif %}
+                <div class="property-details">
+                    <h3 class="property-title">{{ guardado.publicacion.titulo }}</h3>
+                    <div class="property-info">
+                        <span>📍 {{ guardado.publicacion.ciudad }} - {{ guardado.publicacion.direccion }}</span>
+                        <span>💰 {{ guardado.publicacion.valor_alquiler|format_precio }}</span>
+                        <span>🛏️ {{ guardado.publicacion.habitaciones_disponibles }} habitaciones</span>
+                        <span>📅 Guardado el: {{ guardado.fecha_guardado|date:"d/m/Y" }}</span>
+                    </div>
+                    
+                </div>
+            </article>
+            <div id="expandedView_{{ guardado.publicacion.id }}" class="property-expanded" style="display: none;" data-publication-id="{{ guardado.publicacion.id }}">
+                <div class="expanded-content">
+                    <div class="expanded-header">
+                        <h2>{{ guardado.publicacion.titulo }}</h2>
+                        <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="expanded-grid">
+                        <div class="expanded-images">
+                            <div class="main-image">
+                                {% if guardado.publicacion.fotos.all %}
+                                    <img src="{{ guardado.publicacion.fotos.first.imagen.url }}" alt="{{ guardado.publicacion.titulo }}">
+                                {% else %}
+                                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible">
+                                {% endif %}
+                            </div>
+                            <div class="thumbnail-grid">
+                                {% for foto in guardado.publicacion.fotos.all %}
+                                    <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }}" 
+                                         onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src, '{{ guardado.publicacion.id }}')">
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="expanded-details">
+                            <div class="detail-section">
+                                <h3>Detalles de la Propiedad</h3>
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="label">Ubicación</span>
+                                        <span class="value">📍 {{ guardado.publicacion.ciudad }} - {{ guardado.publicacion.direccion }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Precio</span>
+                                        <span class="value">💰 {{ guardado.publicacion.valor_alquiler|format_precio }}</span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="label">Habitaciones</span>
+                                        <span class="value">🛏️ {{ guardado.publicacion.habitaciones_disponibles }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>Descripción</h3>
+                                <p>{{ guardado.publicacion.descripcion }}</p>
+                            </div>
+
+                            <div class="detail-section">
+                                <h3>Preferencias del Arrendador</h3>
+                                <div class="preferencias-grid">
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-smoking-ban"></i>
+                                        <span>Fumador: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_fumador_display }}</span>
+                                    </div>
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-glass-cheers"></i>
+                                        <span>Bebedor: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_bebedor_display }}</span>
+                                    </div>
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-paw"></i>
+                                        <span>Mascotas: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_mascotas_display }}</span>
+                                    </div>
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-volume-up"></i>
+                                        <span>Nivel de Ruido: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_nivel_ruido_display }}</span>
+                                    </div>
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-user-graduate"></i>
+                                        <span>Estudiante Verificado: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_estudiante_verificado_display }}</span>
+                                    </div>
+                                    {% if guardado.publicacion.usuario.perfilarrendador.horario_visitas %}
+                                    <div class="preferencia-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>Horario de Visitas: {{ guardado.publicacion.usuario.perfilarrendador.horario_visitas }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% if guardado.publicacion.usuario.perfilarrendador.reglas_casa %}
+                                <div class="reglas-casa">
+                                    <h4>Reglas de la Casa</h4>
+                                    <p>{{ guardado.publicacion.usuario.perfilarrendador.reglas_casa }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="contact-section">
+                                <button class="btn-contact">
+                                    <i class="fas fa-envelope"></i>
+                                    Contactar Arrendador
+                                </button>
+                                <button type="button" class="btn-apply" data-publication-id="{{ guardado.publicacion.id }}">
+                                    <i class="fas fa-file-alt"></i>
+                                    Postular
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+                <div class="empty-state">
+                    <i class="fas fa-bookmark fa-3x"></i>
+                    <h2>No tienes publicaciones guardadas</h2>
+                    <p>Guarda las publicaciones que te interesen para revisarlas más tarde</p>
+                    <a href="{% url 'dashboard' %}" class="btn-explore">
+                        Explorar Propiedades
+                    </a>
+                </div>
+            {% endfor %}
+        </main>
+    </div>
+
+    <!-- Modales -->
+    <div id="notificationModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2 id="notificationTitle"></h2>
+            <p id="notificationMessage"></p>
+            <div class="modal-buttons">
+                <button onclick="hideNotificationModal()" class="btn-signup">Aceptar</button>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="{% static 'js/publicaciones_guardadas.js' %}"></script>
+{% endblock %} 
