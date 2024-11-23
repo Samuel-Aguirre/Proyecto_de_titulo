@@ -63,11 +63,21 @@ def dashboard_view(request):
     # Obtener publicaciones según el rol del usuario
     if request.user.rol == 'Arrendador':
         # Si es arrendador, solo mostrar sus propias publicaciones
-        publicaciones = Publicacion.objects.filter(usuario=request.user)
+        publicaciones = Publicacion.objects.filter(usuario=request.user).prefetch_related(
+            'fotos',
+            'usuario__perfilarrendador'
+        )
     else:
         # Si es estudiante, mostrar todas las publicaciones
-        publicaciones = Publicacion.objects.all()
-        
+        publicaciones = Publicacion.objects.all().prefetch_related(
+            'guardada_por',
+            'fotos',
+            'usuario__perfilarrendador'
+        )
+        # Añadir un atributo para verificar si cada publicación está guardada
+        for publicacion in publicaciones:
+            publicacion.esta_guardada = publicacion.guardada_por.filter(usuario=request.user).exists()
+    
     return render(request, 'dashboard.html', {
         'publicaciones': publicaciones,
         'user': request.user

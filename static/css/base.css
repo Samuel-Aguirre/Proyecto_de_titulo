@@ -20,30 +20,35 @@ body {
     overflow-x: hidden;
 }
 
-/* Logo */
-.au-logo {
-    height: 40px;
-    width: 40px;
-    object-fit: contain;
-    cursor: pointer;
-    display: block;
-    padding: 0;
-    margin: 0;
-}
-
-/* Contenedor del logo */
+/* Logo y su contenedor */
 .logo-container {
     display: flex;
     align-items: center;
-    height: 40px;
-    width: 40px;
+    justify-content: center;
+    height: 70px;
+    width: 70px;
     padding: 0;
-    margin: 0;
+    margin: 0 1rem;
 }
 
 .logo-container a {
-    display: contents;
-    line-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 70px;
+    width: 70px;
+}
+
+.au-logo {
+    width:75px;
+    height: 75px;
+    object-fit: contain;
+    transform: scale(2.5);
+    transition: transform 0.3s ease-out;
+}
+
+.au-logo:hover {
+    transform: scale(2.9);
 }
 
 /* Navbar */
@@ -314,4 +319,363 @@ main {
     color: #000000;
     padding: 1rem;
     text-align: center;
+}
+
+/* ArrendaU Design System - Navbar Component */
+/* Usar el prefijo 'au-' para todos los componentes de ArrendaU */
+.au-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background-color: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.au-logo-container {
+    display: flex;
+    align-items: center;
+    height: 60px;
+    width: 60px;
+    padding: 0;
+    margin: 0;
+    margin-left: 1rem;
+    position: relative;
+}
+
+.au-logo-container a {
+    position: absolute;
+    display: block;
+    height: 40px;
+    width: 40px;
+    line-height: 0;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.au-hamburger {
+    display: none;
+    flex-direction: column;
+    cursor: pointer;
+    gap: 0.2rem;
+}
+
+.au-hamburger span {
+    width: 25px;
+    height: 3px;
+    background-color: var(--primary-color);
+    transition: all 0.3s;
+}
+
+.au-nav-links {
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+    height: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 120px;
+}
+
+.au-nav-links a {
+    text-decoration: none;
+    color: var(--text-primary);
+    font-weight: 500;
+    position: relative;
+    padding: 0.5rem 0;
+    transition: color 0.3s ease;
+}
+
+.au-nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: width 0.3s ease;
+}
+
+.au-nav-links a:hover::after {
+    width: 100%;
+}
+
+.au-auth-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-left: 3rem;
+}
+
+.au-btn-login {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    padding: 0.7rem 1.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.au-btn-login:hover {
+    background-color: rgba(46, 125, 50, 0.1);
+    transform: translateY(-1px);
+}
+
+.au-btn-signup {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.7rem 1.8rem;
+    border-radius: 6px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(46, 125, 50, 0.25);
+}
+
+.au-btn-signup:hover {
+    background-color: #45a049;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.35);
+}
+
+/* Estilos para el menú hamburguesa activo */
+.au-hamburger.active span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+}
+
+.au-hamburger.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.au-hamburger.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Media queries para el navbar */
+@media (max-width: 768px) {
+    .au-navbar {
+        padding: 0.8rem 1.5rem;
+    }
+
+    .au-logo {
+        margin-right: 0;
+    }
+
+    .au-logo:hover {
+        transform: scale(2);
+    }
+
+    .au-hamburger {
+        display: flex;
+        z-index: 100;
+    }
+
+    .au-nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        background: white;
+        flex-direction: column;
+        padding: 1rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin: 0;
+        padding-left: 0;
+    }
+
+    .au-nav-links.active {
+        display: flex;
+    }
+
+    .au-nav-links a {
+        padding: 0.8rem 2rem;
+        width: 100%;
+        text-align: left;
+    }
+
+    .au-auth-buttons {
+        display: none;
+        width: 100%;
+        padding: 1rem 2rem;
+        background: white;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        flex-direction: column;
+        gap: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-left: 0;
+    }
+
+    .au-auth-buttons.active {
+        display: flex;
+    }
+
+    .au-btn-login, .au-btn-signup {
+        width: 100%;
+        text-align: center;
+    }
+}  
+
+/* Estilos mejorados para las notificaciones */
+.notification-item {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    transition: background-color 0.2s ease;
+    min-width: 300px;
+}
+
+.notification-item:hover {
+    background-color: var(--background-light);
+}
+
+.notification-content {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    position: relative;
+    padding-right: 20px;
+}
+
+.notification-content i:first-child {
+    font-size: 1.25rem;
+    padding: 0.5rem;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.05);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.notification-text {
+    flex: 1;
+    min-width: 0; /* Para evitar desbordamiento */
+}
+
+.notification-text strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.notification-text p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.notification-text small {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.notification-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 12px;
+    height: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.notification-close:hover {
+    color: #666;
+}
+
+.notification-item:hover .notification-close {
+    opacity: 0.8;
+}
+
+/* Colores específicos para los tipos de notificación */
+.text-success {
+    color: #28a745;
+}
+
+.text-success i {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+.text-danger {
+    color: #dc3545;
+}
+
+.text-danger i {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.text-warning {
+    color: #ffc107;
+}
+
+.notification-item .text-warning {
+    color: #ffc107;
+}
+
+/* Contenedor de notificaciones en el navbar */
+.notifications-content {
+    min-width: 350px;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.notifications-list {
+    max-height: 60vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.notifications-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.notifications-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+.notifications-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.no-notifications {
+    padding: 2rem;
+    text-align: center;
+    color: var(--text-secondary);
 }  

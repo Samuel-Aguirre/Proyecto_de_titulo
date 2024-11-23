@@ -97,6 +97,92 @@
             <div id="preview" class="current-images"></div>
         </div>
 
+        <div class="form-section">
+            <h2>Formulario Encuesta</h2>
+            <p>Crea preguntas y sus posibles respuestas para evaluar la compatibilidad con potenciales arrendatarios</p>
+            
+            <div id="preguntas-container">
+                <div class="pregunta-template" style="display: none;">
+                    <div class="form-group pregunta-grupo">
+                        <div class="pregunta-header">
+                            <h4>Pregunta <span class="pregunta-numero"></span></h4>
+                            <button type="button" class="btn-delete-pregunta" onclick="window.eliminarPregunta(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <input type="text" class="form-control pregunta-input" 
+                               name="preguntas[]" placeholder="Escribe tu pregunta">
+                        
+                        <div class="respuestas-container">
+                            <label>Opciones de Respuesta:</label>
+                            <div class="respuestas-list">
+                                <!-- Las opciones de respuesta se agregarán aquí dinámicamente -->
+                            </div>
+                            <button type="button" class="btn-add-respuesta" onclick="window.agregarOpcionRespuesta(this)">
+                                <i class="fas fa-plus"></i> Agregar Opción de Respuesta
+                            </button>
+                        </div>
+                        
+                        <div class="respuesta-esperada">
+                            <label>Respuesta esperada:</label>
+                            <select class="form-control respuesta-esperada-select" name="respuestas_esperadas[]">
+                                <option value="">Seleccione la respuesta esperada</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if formulario_data %}
+                    {% for pregunta in formulario_data %}
+                    <div class="form-group pregunta-grupo">
+                        <div class="pregunta-header">
+                            <h4>Pregunta <span class="pregunta-numero">{{ forloop.counter }}</span></h4>
+                            <button type="button" class="btn-delete-pregunta" onclick="window.eliminarPregunta(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <input type="text" class="form-control pregunta-input" 
+                               name="preguntas[]" value="{{ pregunta.texto }}" placeholder="Escribe tu pregunta">
+                        
+                        <div class="respuestas-container">
+                            <label>Opciones de Respuesta:</label>
+                            <div class="respuestas-list">
+                                {% for opcion in pregunta.opciones %}
+                                <div class="respuesta-opcion">
+                                    <input type="text" class="form-control respuesta-input" 
+                                           value="{{ opcion }}" id="respuesta_{{ forloop.parentloop.counter }}_{{ forloop.counter }}">
+                                    <button type="button" class="btn-delete-respuesta" onclick="this.closest('.respuesta-opcion').remove()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn-add-respuesta" onclick="window.agregarOpcionRespuesta(this)">
+                                <i class="fas fa-plus"></i> Agregar Opción de Respuesta
+                            </button>
+                        </div>
+                        
+                        <div class="respuesta-esperada">
+                            <label>Respuesta esperada:</label>
+                            <select class="form-control respuesta-esperada-select" name="respuestas_esperadas[]">
+                                <option value="">Seleccione la respuesta esperada</option>
+                                {% for opcion in pregunta.opciones %}
+                                <option value="{{ opcion }}" {% if opcion == pregunta.respuesta_esperada %}selected{% endif %}>
+                                    {{ opcion }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+            
+            <button type="button" class="btn-add-pregunta" onclick="window.agregarPregunta()">
+                <i class="fas fa-plus"></i> Agregar Pregunta
+            </button>
+        </div>
+
         <div class="form-actions">
             <button type="button" class="btn-cancel" onclick="window.location.href='{% url 'dashboard' %}'; return false;">Cancelar</button>
             <button type="submit" class="btn-save">

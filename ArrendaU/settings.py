@@ -155,3 +155,5 @@ SESSION_SAVE_EVERY_REQUEST = True  # Renovar la cookie en cada request
 # Configuración de seguridad de cookies
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
+
+ANTHROPIC_API_KEY = ''

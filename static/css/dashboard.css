@@ -267,7 +267,7 @@ body, html {
     line-height: 1.6;
     margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -477,6 +477,10 @@ body, html {
     opacity: 0;
     transition: all 0.3s ease;
     text-align: center;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    max-width: 600px;
 }
 
 .modal.show .modal-content {
@@ -504,6 +508,9 @@ body, html {
     justify-content: center;
     gap: 1rem;
     margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e0e0e0;
+    flex-shrink: 0;
 }
 
 .modal-buttons button {
@@ -1022,4 +1029,250 @@ body.modal-open {
         flex-direction: column;
         gap: 0.75rem;
     }
+}
+
+/* Estilos para el formulario modal */
+.pregunta-grupo {
+    margin-bottom: 1.5rem;
+    padding: 1.5rem;
+    background: var(--background-light);
+    border-radius: 8px;
+    text-align: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pregunta-grupo:last-child {
+    margin-bottom: 0.5rem;
+}
+
+.pregunta-grupo label {
+    display: block;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    font-weight: 500;
+    text-align: center;
+}
+
+.pregunta-grupo select {
+    width: 90%;
+    max-width: 400px;
+    padding: 0.8rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: white;
+    margin: 0 auto;
+    display: block;
+}
+
+.pregunta-grupo select:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+}
+
+.modal-header {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    position: relative;
+}
+
+.modal-header h2 {
+    margin: 0;
+    text-align: center;
+}
+
+.btn-close {
+    position: absolute;
+    right: -10px;
+    top: -10px;
+    background: white;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.btn-close:hover {
+    color: #dc3545;
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-close i {
+    font-size: 1rem;
+}
+
+.btn-submit {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-submit:hover {
+    background-color: #1b5e20;
+    transform: translateY(-2px);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-state i {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+}
+
+.empty-state h2 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.btn-explore {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-explore:hover {
+    background-color: #1b5e20;
+    transform: translateY(-2px);
+}
+
+.respuestas-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+.respuesta-item {
+    background: var(--background-light);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.respuesta-item .pregunta {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.respuesta-item .respuesta {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.btn-delete-postulation {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    width: 100%;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.btn-delete-postulation:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+.btn-bookmark {
+    color: #ccc; /* Color por defecto (no guardado) */
+    transition: all 0.3s ease;
+    background-color: white;
+    border: none;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.btn-bookmark.active {
+    color: var(--primary-color); /* Color cuando está guardado */
+    transform: scale(1.1);
+}
+
+.btn-bookmark:hover {
+    transform: translateY(-2px) scale(1.1);
+    box-shadow: 0 4px 8px rgba(46, 125, 50, 0.2);
+}
+
+.btn-bookmark.active:hover {
+    transform: translateY(-2px) scale(1.1);
+}
+
+.btn-bookmark i {
+    font-size: 1.2rem;
+}
+
+#formularioCompatibilidad {
+    overflow-y: auto;
+    max-height: calc(90vh - 180px);
+    padding: 1rem 2rem;
+    margin: 0 auto;
+    width: 90%;
+    max-width: 500px;
+}
+
+#formularioCompatibilidad::-webkit-scrollbar {
+    width: 8px;
+}
+
+#formularioCompatibilidad::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#formularioCompatibilidad::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+#formularioCompatibilidad::-webkit-scrollbar-thumb:hover {
+    background: #1b5e20;
 }

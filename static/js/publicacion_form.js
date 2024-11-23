@@ -115,4 +115,153 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Definir las funciones en el objeto window
+    window.agregarPregunta = function() {
+        const container = document.getElementById('preguntas-container');
+        const template = container.querySelector('.pregunta-template');
+        const nuevaPregunta = template.cloneNode(true);
+        
+        nuevaPregunta.style.display = 'block';
+        nuevaPregunta.classList.remove('pregunta-template');
+        
+        // Actualizar el número de la pregunta (corregido)
+        const numPreguntas = container.querySelectorAll('.pregunta-grupo:not(.pregunta-template)').length;
+        nuevaPregunta.querySelector('.pregunta-numero').textContent = numPreguntas + 1;
+        
+        // Limpiar las opciones de respuesta existentes
+        const respuestasList = nuevaPregunta.querySelector('.respuestas-list');
+        respuestasList.innerHTML = '';
+        
+        // Limpiar el select de respuesta esperada
+        const respuestaEsperadaSelect = nuevaPregunta.querySelector('.respuesta-esperada-select');
+        respuestaEsperadaSelect.innerHTML = '<option value="">Seleccione la respuesta esperada</option>';
+        
+        container.appendChild(nuevaPregunta);
+    };
+
+    window.agregarOpcionRespuesta = function(button) {
+        const preguntaGrupo = button.closest('.pregunta-grupo');
+        const respuestasList = preguntaGrupo.querySelector('.respuestas-list');
+        const respuestaEsperadaSelect = preguntaGrupo.querySelector('.respuesta-esperada-select');
+        
+        const respuestaDiv = document.createElement('div');
+        respuestaDiv.className = 'respuesta-opcion';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control respuesta-input';
+        input.placeholder = 'Escribe una opción de respuesta';
+        // Generar un ID único para el input
+        input.id = 'respuesta_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'btn-delete-respuesta';
+        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+        deleteBtn.onclick = function() {
+            const valor = input.value;
+            respuestaDiv.remove();
+            // Eliminar la opción del select de respuesta esperada
+            const option = respuestaEsperadaSelect.querySelector(`option[data-input-id="${input.id}"]`);
+            if (option) option.remove();
+        };
+        
+        // Actualizar el select de respuesta esperada cuando se modifique el input
+        input.addEventListener('input', function() {
+            const valor = this.value;
+            if (valor.trim() === '') return; // No agregar opciones vacías
+            
+            let optionExistente = respuestaEsperadaSelect.querySelector(`option[data-input-id="${this.id}"]`);
+            
+            if (optionExistente) {
+                optionExistente.textContent = valor;
+                optionExistente.value = valor;
+            } else {
+                const option = document.createElement('option');
+                option.value = valor;
+                option.textContent = valor;
+                option.dataset.inputId = this.id;
+                respuestaEsperadaSelect.appendChild(option);
+            }
+        });
+        
+        respuestaDiv.appendChild(input);
+        respuestaDiv.appendChild(deleteBtn);
+        respuestasList.appendChild(respuestaDiv);
+    };
+
+    window.eliminarPregunta = function(button) {
+        const preguntaGrupo = button.closest('.pregunta-grupo');
+        preguntaGrupo.remove();
+        
+        // Actualizar números de preguntas
+        const container = document.getElementById('preguntas-container');
+        const preguntas = container.querySelectorAll('.pregunta-grupo:not(.pregunta-template)');
+        preguntas.forEach((pregunta, index) => {
+            pregunta.querySelector('.pregunta-numero').textContent = index + 1;
+        });
+    };
+
+    // Inicializar los eventos de las respuestas existentes
+    document.querySelectorAll('.respuesta-input').forEach(input => {
+        const preguntaGrupo = input.closest('.pregunta-grupo');
+        const respuestaEsperadaSelect = preguntaGrupo.querySelector('.respuesta-esperada-select');
+        
+        input.addEventListener('input', function() {
+            const valor = this.value;
+            if (valor.trim() === '') return;
+            
+            let optionExistente = respuestaEsperadaSelect.querySelector(`option[data-input-id="${this.id}"]`);
+            
+            if (optionExistente) {
+                optionExistente.textContent = valor;
+                optionExistente.value = valor;
+            } else {
+                const option = document.createElement('option');
+                option.value = valor;
+                option.textContent = valor;
+                option.dataset.inputId = this.id;
+                respuestaEsperadaSelect.appendChild(option);
+            }
+        });
+    });
+
+    // Agregar primera pregunta solo si no hay preguntas existentes
+    const container = document.getElementById('preguntas-container');
+    if (container && !container.querySelector('.pregunta-grupo:not(.pregunta-template)')) {
+        window.agregarPregunta();
+    }
+
+    // Modificar el evento submit del formulario
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const preguntas = [];
+            const respuestasOpciones = [];
+            const respuestasEsperadas = [];
+            
+            this.querySelectorAll('.pregunta-grupo:not(.pregunta-template)').forEach(grupo => {
+                const pregunta = grupo.querySelector('.pregunta-input').value;
+                const opciones = Array.from(grupo.querySelectorAll('.respuesta-input')).map(input => input.value);
+                const respuestaEsperada = grupo.querySelector('.respuesta-esperada-select').value;
+                
+                if (pregunta.trim() && opciones.length > 0) {
+                    preguntas.push(pregunta);
+                    respuestasOpciones.push(opciones);
+                    respuestasEsperadas.push(respuestaEsperada);
+                }
+            });
+            
+            const preguntasInput = document.createElement('input');
+            preguntasInput.type = 'hidden';
+            preguntasInput.name = 'preguntas_compatibilidad';
+            preguntasInput.value = JSON.stringify({
+                preguntas: preguntas,
+                opciones: respuestasOpciones,
+                respuestas_esperadas: respuestasEsperadas
+            });
+            
+            this.appendChild(preguntasInput);
+        });
+    }
 }); 

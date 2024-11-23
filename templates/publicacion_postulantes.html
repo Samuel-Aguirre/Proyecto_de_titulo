@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Postulantes - {{ publicacion.titulo }} - ArrendaU{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="container-postulantes">
+    <div class="header-section">
+        <div class="header-main">
+            <h1>{{ publicacion.titulo }}</h1>
+            <div class="header-status">
+                <span class="status-badge">
+                    <i class="fas fa-bed"></i>
+                    {{ publicacion.habitaciones_disponibles }} cupos disponibles
+                </span>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}" class="btn-header">
+                <i class="fas fa-edit"></i>
+                Editar publicación
+            </a>
+        </div>
+    </div>
+
+    <div class="property-overview">
+        <div class="overview-grid">
+            <div class="overview-item">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="overview-content">
+                    <span class="label">Ubicación</span>
+                    <span class="value">{{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
+                </div>
+            </div>
+            <div class="overview-item">
+                <i class="fas fa-dollar-sign"></i>
+                <div class="overview-content">
+                    <span class="label">Precio mensual</span>
+                    <span class="value">{{ publicacion.valor_alquiler|format_precio }}</span>
+                </div>
+            </div>
+            <div class="overview-item">
+                <i class="fas fa-bed"></i>
+                <div class="overview-content">
+                    <span class="label">Habitaciones</span>
+                    <span class="value">{{ publicacion.habitaciones_disponibles }}</span>
+                </div>
+            </div>
+            <div class="overview-item">
+                <i class="fas fa-phone"></i>
+                <div class="overview-content">
+                    <span class="label">Contacto</span>
+                    <span class="value">{{ publicacion.numero_contacto }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="overview-description">
+            <p>{{ publicacion.descripcion }}</p>
+        </div>
+    </div>
+
+    <div class="postulantes-section">
+        <div class="section-header">
+            <h2>Gestión de Postulantes</h2>
+            <span class="total-postulantes">{{ postulantes|length }} postulantes</span>
+        </div>
+
+        {% if postulantes %}
+            <div class="postulantes-table">
+                <div class="table-header">
+                    <div class="col-postulante">Información del Postulante</div>
+                    <div class="col-fecha">Fecha de Postulación</div>
+                    <div class="col-compatibilidad">Índice de Compatibilidad</div>
+                    <div class="col-razon">Razón</div>
+                    <div class="col-estado">Estado</div>
+                    <div class="col-acciones">Acciones</div>
+                </div>
+                {% for postulante in postulantes %}
+                <div class="table-row">
+                    <div class="col-postulante">
+                        <div class="postulante-info">
+                            <div>
+                                <h3>{{ postulante.usuario.nombre }} {{ postulante.usuario.apellido }}</h3>
+                            </div>
+                            <div class="postulante-actions">
+                                <button class="btn-view-info" onclick="toggleRespuestas('{{ postulante.id }}')"
+                                        title="Ver información">
+                                    <i class="fas fa-info-circle"></i>
+                                    <span>Ver detalles</span>
+                                </button>
+                                <button class="btn-view-profile" onclick="verPerfilPostulante('{{ postulante.usuario.id }}')"
+                                        title="Ver perfil">
+                                    <i class="fas fa-user"></i>
+                                    <span>Ver perfil</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-fecha">
+                        <span class="fecha-postulacion">{{ postulante.fecha_respuesta|date:"d/m/Y" }}</span>
+                    </div>
+                    <div class="col-compatibilidad">
+                        <div class="compatibility-score">
+                            <div class="score-display">
+                                <span class="score">{{ postulante.porcentaje_compatibilidad }}%</span>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: {{ postulante.porcentaje_compatibilidad }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-razon">
+                        {% if postulante.descripcion %}
+                            <div class="razon-text">
+                                <i class="fas fa-info-circle"></i>
+                                {{ postulante.descripcion }}
+                            </div>
+                        {% else %}
+                            <span class="no-razon">Sin análisis disponible</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-estado">
+                        <span class="estado-badge {{ postulante.estado|lower }}">
+                            {{ postulante.get_estado_display }}
+                        </span>
+                    </div>
+                    <div class="col-acciones">
+                        {% if postulante.estado == 'PENDIENTE' %}
+                            <button class="btn-action accept" 
+                                    onclick="gestionarPostulacion('{{ postulante.id }}', 'aceptar')"
+                                    {% if publicacion.habitaciones_disponibles == 0 %}disabled{% endif %}
+                                    title="Aceptar postulación">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn-action reject" 
+                                    onclick="gestionarPostulacion('{{ postulante.id }}', 'rechazar')"
+                                    title="Rechazar postulación">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        {% else %}
+                            <button class="btn-action cancel" 
+                                    onclick="cancelarGestion('{{ postulante.id }}')"
+                                    title="Cancelar gestión">
+                                <i class="fas fa-undo"></i>
+                            </button>
+                        {% endif %}
+                    </div>
+                </div>
+                <div id="respuestas-{{ postulante.id }}" class="respuestas-container" style="display: none;">
+                    <div class="respuestas-grid">
+                        {% for respuesta in postulante.respuestas.all %}
+                        <div class="respuesta-box">
+                            <span class="pregunta">{{ respuesta.pregunta.texto_pregunta }}</span>
+                            <span class="respuesta">{{ respuesta.respuesta_seleccionada }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-users-slash"></i>
+                <p>Aún no hay postulantes para esta publicación</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/postulantes.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/postulantes.js' %}"></script>
+{% endblock %} 

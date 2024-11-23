@@ -321,4 +321,55 @@ input[type="file"] {
     margin-top: 0.5rem;
     font-size: 0.85rem;
     color: var(--text-secondary);
+}
+
+/* Añade esto al final del archivo */
+.error-message {
+    color: #dc3545;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(220, 53, 69, 0.1);
+    border-radius: 4px;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Añadir animación de aparición suave */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.form-group input.error,
+.form-group select.error,
+.form-group textarea.error {
+    border-color: #dc3545;
+}
+
+.form-group select.error {
+    border-color: #dc3545;
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Añadir animación de shake para los campos con error */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* Mejorar la apariencia del select */
+.form-group select {
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
 } 

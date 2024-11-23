@@ -54,4 +54,21 @@ class PerfilArrendadorForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         for field in ['pref_no_fumador', 'pref_no_bebedor', 'pref_no_mascotas', 
                      'pref_estudiante_verificado', 'pref_nivel_ruido']:
-            self.fields[field].help_text = 'Indica qué tan importante es esta preferencia para ti' 
+            self.fields[field].help_text = 'Indica qué tan importante es esta preferencia para ti'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        campos_preferencias = [
+            'pref_no_fumador', 
+            'pref_no_bebedor', 
+            'pref_no_mascotas', 
+            'pref_estudiante_verificado', 
+            'pref_nivel_ruido'
+        ]
+        
+        for campo in campos_preferencias:
+            valor = cleaned_data.get(campo)
+            if valor == 0:
+                self.add_error(campo, 'Por favor, seleccione una opción válida')
+        
+        return cleaned_data 

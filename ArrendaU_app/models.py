@@ -18,21 +18,24 @@ class Usuario(AbstractUser):
 
 class PerfilArrendatario(models.Model):
     OPCIONES_BEBEDOR = [
-        ('no', 'No'),
-        ('casual', 'Casual'),
-        ('si', 'Sí')
+        ('', 'Seleccione una opción'),
+        ('si', 'Sí'),
+        ('casual', 'Casual'), 
+        ('no', 'No')
     ]
     
     OPCIONES_FUMADOR = [
-        ('no', 'No'),
+        ('', 'Seleccione una opción'),
+        ('si', 'Sí'),
         ('ocasional', 'Ocasional'),
-        ('si', 'Sí')
+        ('no', 'No')
     ]
     
     OPCIONES_MASCOTA = [
-        ('no', 'No'),
+        ('', 'Seleccione una opción'),
         ('tengo', 'Ya tengo'),
-        ('planeo', 'Planeo tener')
+        ('planeo', 'Planeo tener'),
+        ('no', 'No')
     ]
 
     usuario = models.OneToOneField('Usuario', on_delete=models.CASCADE)
@@ -49,8 +52,13 @@ class PerfilArrendatario(models.Model):
     mascota = models.CharField(max_length=10, choices=OPCIONES_MASCOTA)
     tipo_mascota = models.CharField(max_length=50, blank=True)
     nivel_ruido = models.IntegerField(
-        choices=[(1, 'Muy silencioso'), (2, 'Normal'), (3, 'Ruidoso')],
-        default=2
+        choices=[
+            (0, 'Seleccione una opción'),
+            (1, 'Muy silencioso'),
+            (2, 'Normal'),
+            (3, 'Ruidoso')
+        ],
+        default=0
     )
     horario_llegada = models.TimeField(null=True, blank=True)
     presupuesto_max = models.IntegerField(null=True, blank=True)
@@ -62,9 +70,24 @@ class PerfilArrendatario(models.Model):
 
 class PerfilArrendador(models.Model):
     PREFERENCIAS_CHOICES = [
-        (1, 'No importante'),
-        (2, 'Preferible'),
-        (3, 'Muy importante')
+        (0, 'Seleccione una opción'),
+        (3, 'No permitido'),
+        (2, 'Prefiero que no'),
+        (1, 'Me es indiferente')
+    ]
+
+    VERIFICACION_CHOICES = [
+        (0, 'Seleccione una opción'),
+        (3, 'Es obligatorio'),
+        (2, 'Es preferible'),
+        (1, 'No es necesario')
+    ]
+
+    RUIDO_CHOICES = [
+        (0, 'Seleccione una opción'),
+        (3, 'Debe ser muy silencioso'),
+        (2, 'Ruido moderado aceptable'),
+        (1, 'Sin restricciones de ruido')
     ]
 
     usuario = models.OneToOneField('Usuario', on_delete=models.CASCADE)
@@ -72,8 +95,8 @@ class PerfilArrendador(models.Model):
     pref_no_fumador = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
     pref_no_bebedor = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
     pref_no_mascotas = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
-    pref_estudiante_verificado = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
-    pref_nivel_ruido = models.IntegerField(choices=PREFERENCIAS_CHOICES, default=1)
+    pref_estudiante_verificado = models.IntegerField(choices=VERIFICACION_CHOICES, default=1)
+    pref_nivel_ruido = models.IntegerField(choices=RUIDO_CHOICES, default=1)
     horario_visitas = models.CharField(max_length=200, blank=True)
     reglas_casa = models.TextField(blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
@@ -87,6 +110,7 @@ class Compatibilidad(models.Model):
     arrendador = models.ForeignKey(PerfilArrendador, on_delete=models.CASCADE)
     publicacion = models.ForeignKey('ArrendaU_publicaciones_app.Publicacion', on_delete=models.CASCADE)
     porcentaje = models.FloatField()
+    descripcion = models.TextField(blank=True, null=True)
     fecha_calculo = models.DateTimeField(auto_now=True)
     
     class Meta:

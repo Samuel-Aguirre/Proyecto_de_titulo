@@ -41,20 +41,24 @@ document.addEventListener('DOMContentLoaded', function() {
         // Inicializar valores
         actualizarRangoPrecios();
     }
+
+    initPostularButtons();
 });
 
 let publicacionIdToDelete = null;
 
 function showDeleteModal(publicacionId) {
-    console.log('Mostrando modal para publicación:', publicacionId);
-    publicacionIdToDelete = publicacionId;
     const modal = document.getElementById('deleteModal');
     if (!modal) {
         console.error('No se encontró el modal de eliminación');
         return;
     }
+    
+    // Guardar el ID de la publicación en el modal
+    modal.dataset.publicacionId = publicacionId;
+    
+    // Mostrar el modal con animación
     modal.style.display = 'flex';
-    modal.style.opacity = '1';
     setTimeout(() => {
         modal.classList.add('show');
     }, 10);
@@ -65,7 +69,6 @@ function hideDeleteModal() {
     modal.classList.remove('show');
     setTimeout(() => {
         modal.style.display = 'none';
-        publicacionIdToDelete = null;
     }, 300);
 }
 
@@ -75,17 +78,24 @@ function showNotification(title, message) {
     const messageElement = document.getElementById('notificationMessage');
     
     if (!modal || !titleElement || !messageElement) {
-        console.error('No se encontraron elementos de notificación');
+        console.error('No se encontraron los elementos del modal de notificación');
         return;
     }
     
+    // Actualizar contenido
     titleElement.textContent = title;
     messageElement.textContent = message;
+    
+    // Mostrar el modal con animación
     modal.style.display = 'flex';
-    modal.style.opacity = '1';
     setTimeout(() => {
         modal.classList.add('show');
     }, 10);
+    
+    // Ocultar automáticamente después de 3 segundos
+    setTimeout(() => {
+        hideNotificationModal();
+    }, 3000);
 }
 
 function hideNotificationModal() {
@@ -96,15 +106,13 @@ function hideNotificationModal() {
     }, 300);
 }
 
+// Modificar la función confirmDelete para usar el nuevo sistema de notificaciones
 function confirmDelete() {
-    if (!publicacionIdToDelete) {
-        console.log('No hay ID para eliminar');
-        return;
-    }
-
-    const csrfToken = document.querySelector('#deleteForm [name=csrfmiddlewaretoken]').value;
+    const modal = document.getElementById('deleteModal');
+    const publicacionId = modal.dataset.publicacionId;
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     
-    fetch(`/publicaciones/publicacion/${publicacionIdToDelete}/eliminar/`, {
+    fetch(`/publicaciones/publicacion/${publicacionId}/eliminar/`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': csrfToken,
@@ -112,40 +120,47 @@ function confirmDelete() {
         },
         credentials: 'same-origin'
     })
-    .then(response => {
-        console.log('Status de la respuesta:', response.status);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        const card = document.querySelector(`[data-publication-id="${publicacionIdToDelete}"]`);
-        if (card) {
-            card.remove();
-        }
         hideDeleteModal();
-        showNotification('Éxito', 'Publicación eliminada correctamente');
+        
+        if (data.success) {
+            // Mostrar notificación de éxito
+            showNotification('Éxito', 'Publicación eliminada correctamente');
+            
+            // Esperar a que se muestre la notificación y luego recargar
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500); // Esperar 1.5 segundos para que se vea la notificación
+        } else {
+            showNotification('Error', 'No se pudo eliminar la publicación');
+        }
     })
     .catch(error => {
-        console.error('Error completo:', error);
+        console.error('Error:', error);
         hideDeleteModal();
-        showNotification('Error', 'No se pudo eliminar la publicación');
+        showNotification('Error', 'Error al eliminar la publicación');
     });
 }
 
-// Cerrar el modal si se hace clic fuera de él
-window.onclick = function(event) {
-    const deleteModal = document.getElementById('deleteModal');
-    const notificationModal = document.getElementById('notificationModal');
-    
-    if (event.target === deleteModal) {
-        hideDeleteModal();
-    }
-    if (event.target === notificationModal) {
-        hideNotificationModal();
-    }
-}
+// Asegurarse de que los eventos se detengan correctamente
+document.addEventListener('DOMContentLoaded', function() {
+    // Prevenir la propagación del clic en el botón de eliminar
+    document.querySelectorAll('.btn-action.btn-delete').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showDeleteModal(this.dataset.id);
+        });
+    });
+
+    // Cerrar el modal al hacer clic fuera del contenido
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideDeleteModal();
+        }
+    });
+});
 
 // Agregar logs para debugging cuando el script se carga
 console.log('Script de dashboard cargado correctamente');
@@ -353,6 +368,8 @@ function actualizarListadoPublicaciones(publicaciones) {
         style.textContent = cssAdicional;
         document.head.appendChild(style);
     }
+
+    initPostularButtons();
 }
 
 // Función auxiliar para formatear el precio
@@ -374,10 +391,11 @@ function expandirPublicacion(card) {
     const expandedView = document.getElementById('expandedView');
     if (!expandedView) return;
 
-    // Obtener el ID de la publicación
     const publicacionId = card.dataset.publicationId;
     
-    // Realizar una petición AJAX para obtener todas las imágenes de la publicación
+    // Asignar el ID al expandedView
+    expandedView.dataset.publicationId = publicacionId;
+    
     fetch(`/publicaciones/obtener-fotos/${publicacionId}/`, {
         method: 'GET',
         headers: {
@@ -495,12 +513,21 @@ function expandirPublicacion(card) {
             </div>
         `;
 
+        // Asegurarse que el botón de postular tenga el ID
+        const btnApply = expandedView.querySelector('.btn-apply');
+        if (btnApply) {
+            btnApply.dataset.publicationId = publicacionId;
+        }
+
+        // Después de actualizar el contenido, inicializar los botones
+        initPostularButtons();
+        
         // Mostrar el modal
         document.body.classList.add('modal-open');
         expandedView.style.display = 'block';
     })
     .catch(error => {
-        console.error('Error al obtener las fotos:', error);
+        console.error('Error:', error);
     });
 }
 
@@ -538,3 +565,215 @@ document.addEventListener('click', function(event) {
         document.body.classList.remove('modal-open');
     }
 });
+
+function mostrarFormularioPostulacion(publicacionId) {
+    console.log('Intentando mostrar formulario para publicación:', publicacionId); // Debug
+    
+    // Cerrar la ventana de descripción
+    const expandedView = document.getElementById('expandedView');
+    if (expandedView) {
+        expandedView.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+    
+    fetch(`/publicaciones/publicacion/${publicacionId}/formulario/`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        console.log('Respuesta recibida:', response.status); // Debug
+        return response.json();
+    })
+    .then(data => {
+        console.log('Datos recibidos:', data); // Debug
+        if (data.success) {
+            // Crear el modal del formulario
+            const modalHTML = `
+                <div id="formularioModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>Formulario de Compatibilidad</h2>
+                            <button class="btn-close" onclick="cerrarFormularioModal()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form id="formularioCompatibilidad" onsubmit="enviarFormulario(event, ${publicacionId})">
+                            ${data.formulario.preguntas.map(pregunta => `
+                                <div class="pregunta-grupo">
+                                    <label>${pregunta.texto}</label>
+                                    <select name="pregunta_${pregunta.id}" required>
+                                        <option value="">Selecciona una opción</option>
+                                        ${pregunta.opciones.map(opcion => 
+                                            `<option value="${opcion}">${opcion}</option>`
+                                        ).join('')}
+                                    </select>
+                                </div>
+                            `).join('')}
+                            <div class="modal-buttons">
+                                <button type="submit" class="btn-submit">Enviar Respuestas</button>
+                                <button type="button" class="btn-cancel" onclick="cerrarFormularioModal()">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            // Agregar el modal al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+            
+            // Mostrar el modal
+            const modal = document.getElementById('formularioModal');
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('show'), 10);
+            
+        } else {
+            console.error('Error en la respuesta:', data.message); // Debug
+            showNotification('Error', data.message || 'No se pudo cargar el formulario');
+        }
+    })
+    .catch(error => {
+        console.error('Error al cargar el formulario:', error);
+        showNotification('Error', 'Ocurrió un error al cargar el formulario');
+    });
+}
+
+function cerrarFormularioModal() {
+    const modal = document.getElementById('formularioModal');
+    modal.classList.remove('show');
+    setTimeout(() => {
+        modal.remove();
+    }, 300);
+}
+
+function enviarFormulario(event, publicacionId) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/publicaciones/publicacion/${publicacionId}/responder/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            cerrarFormularioModal();
+            showNotification('Éxito', 'Formulario enviado correctamente');
+        } else {
+            showNotification('Error', data.message || 'Error al enviar el formulario');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error', 'Ocurrió un error al enviar el formulario');
+    });
+}
+
+// Modificar la forma en que manejamos el click en el botón postular
+function initPostularButtons() {
+    // Remover listeners anteriores si existen
+    document.querySelectorAll('.btn-apply').forEach(btn => {
+        btn.removeEventListener('click', handlePostularClick);
+    });
+
+    // Agregar nuevos listeners
+    document.querySelectorAll('.btn-apply').forEach(btn => {
+        btn.addEventListener('click', handlePostularClick);
+    });
+}
+
+function handlePostularClick(e) {
+    e.stopPropagation();
+    console.log('Click en botón postular');  // Debug
+    
+    // Intentar obtener el ID de diferentes maneras
+    let publicacionId = e.target.dataset.publicationId;
+    
+    if (!publicacionId) {
+        const button = e.target.closest('.btn-apply');
+        if (button) {
+            publicacionId = button.dataset.publicationId;
+        }
+    }
+    
+    if (!publicacionId) {
+        const expandedView = e.target.closest('.property-expanded');
+        if (expandedView) {
+            publicacionId = expandedView.dataset.publicationId;
+        }
+    }
+
+    if (publicacionId) {
+        console.log('ID de publicación encontrado:', publicacionId);  // Debug
+        mostrarFormularioPostulacion(publicacionId);
+    } else {
+        console.error('No se encontró el ID de la publicación');
+        showNotification('Error', 'No se pudo identificar la publicación');
+    }
+}
+
+// Modificar initPostularButtons para usar event delegation
+function initPostularButtons() {
+    // Remover el listener anterior si existe
+    document.removeEventListener('click', handlePostularButtonClick);
+    
+    // Agregar el nuevo listener usando event delegation
+    document.addEventListener('click', handlePostularButtonClick);
+}
+
+function handlePostularButtonClick(e) {
+    const postularButton = e.target.closest('.btn-apply');
+    if (postularButton) {
+        handlePostularClick(e);
+    }
+}
+
+function toggleGuardado(publicacionId) {
+    event.stopPropagation(); // Evitar que se abra la vista expandida
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const button = document.querySelector(`.btn-bookmark[data-id="${publicacionId}"]`);
+    
+    fetch(`/publicaciones/publicacion/${publicacionId}/toggle-guardado/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({}),
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Cambiar el estado visual del botón
+            button.classList.toggle('active');
+            
+            // Actualizar el título del botón
+            if (data.is_saved) {
+                button.title = "Quitar de guardados";
+                button.classList.add('active');
+                showNotification('Éxito', 'Publicación guardada exitosamente');
+            } else {
+                button.title = "Guardar publicación";
+                button.classList.remove('active');
+                showNotification('Éxito', 'Publicación eliminada de guardados');
+            }
+        } else {
+            showNotification('Error', data.message || 'No se pudo actualizar el estado de guardado');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Error', 'Ocurrió un error al actualizar el estado de guardado');
+    });
+}

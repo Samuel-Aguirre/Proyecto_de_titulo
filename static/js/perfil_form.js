@@ -114,6 +114,40 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+
+    // Añadir validación del formulario
+    const profileForm = document.querySelector('.profile-form');
+    if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+            const preferenciaSelects = document.querySelectorAll('select[name^="pref_"]');
+            let hasError = false;
+
+            // Remover mensajes de error anteriores
+            document.querySelectorAll('.error-message').forEach(el => el.remove());
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+
+            preferenciaSelects.forEach(select => {
+                if (select.value === '0') {
+                    e.preventDefault();
+                    hasError = true;
+                    
+                    // Añadir clase de error al select
+                    select.classList.add('error');
+                    
+                    // Crear y mostrar mensaje de error
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = 'Por favor, seleccione una opción';
+                    select.parentNode.appendChild(errorDiv);
+                    
+                    // Hacer scroll al primer error
+                    if (hasError) {
+                        select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                }
+            });
+        });
+    }
 });
 
 function preventDefaults(e) {

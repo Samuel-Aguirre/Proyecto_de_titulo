@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block content %}
+    {% csrf_token %}
     {% if messages %}
     <div class="messages">
         {% for message in messages %}
@@ -40,7 +41,7 @@
                 <!-- Filtros -->
                 <div class="filter-group">
                     <label for="city">Ciudad</label>
-                    <input type="text" id="city" placeholder="Ej: Medellín">
+                    <input type="text" id="city" placeholder="Ej: Pillanlelbún">
                 </div>
 
                 <div class="filter-group">
@@ -86,6 +87,45 @@
 
         <main class="listings">
             {% for publicacion in publicaciones %}
+            {% if user.rol == 'Arrendador' %}
+            <article class="property-card" onclick="window.location.href='{% url 'ArrendaU_publicaciones_app:detalle_publicacion' publicacion.id %}';" style="cursor: pointer;">
+                <div class="property-actions">
+                    <a href="{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}" 
+                       class="btn-action btn-edit" 
+                       title="Editar"
+                       onclick="event.stopPropagation();">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button type="button" 
+                            class="btn-action btn-delete" 
+                            data-id="{{ publicacion.id }}"
+                            title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                {% if publicacion.fotos.all %}
+                    <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
+                {% else %}
+                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+                {% endif %}
+                <div class="property-details">
+                    <h3 class="property-title">{{ publicacion.titulo }}</h3>
+                    <div class="property-info">
+                        <span>📍 {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
+                        <span>💰 {{ publicacion.valor_alquiler|format_precio }}</span>
+                        <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
+                    </div>
+                    <p class="property-description">
+                        {{ publicacion.descripcion }}
+                    </p>
+                </div>
+                {% if publicacion.postulaciones_pendientes > 0 %}
+                    <div class="postulaciones-badge">
+                        {{ publicacion.postulaciones_pendientes }} nuevas postulaciones
+                    </div>
+                {% endif %}
+            </article>
+            {% else %}
             <article class="property-card" data-publication-id="{{ publicacion.id }}" onclick="expandirPublicacion(this)">
                 <div class="property-actions">
                     {% if user.rol == 'Arrendador' and user == publicacion.usuario %}
@@ -97,10 +137,18 @@
                         </a>
                         <button type="button" 
                                 class="btn-action btn-delete" 
-                                onclick="event.stopPropagation(); showDeleteModal('{{ publicacion.id }}')" 
-                                title="Eliminar"
-                                data-id="{{ publicacion.id }}">
+                                data-id="{{ publicacion.id }}"
+                                title="Eliminar">
                             <i class="fas fa-trash"></i>
+                        </button>
+                    {% endif %}
+                    {% if user.rol == 'Arrendatario' %}
+                        <button type="button" 
+                                class="btn-action btn-bookmark {% if publicacion.esta_guardada %}active{% endif %}" 
+                                onclick="event.stopPropagation(); toggleGuardado('{{ publicacion.id }}')" 
+                                title="{% if publicacion.esta_guardada %}Quitar de guardados{% else %}Guardar publicación{% endif %}"
+                                data-id="{{ publicacion.id }}">
+                            <i class="fas fa-bookmark"></i>
                         </button>
                     {% endif %}
                 </div>
@@ -121,7 +169,8 @@
                     </p>
                 </div>
             </article>
-            <div id="expandedView" class="property-expanded" style="display: none;">
+            {% endif %}
+            <div id="expandedView" class="property-expanded" style="display: none;" data-publication-id="{{ publicacion.id }}">
                 <div class="expanded-content">
                     <div class="expanded-header">
                         <h2>{{ publicacion.titulo }}</h2>
@@ -214,7 +263,7 @@
                                     <i class="fas fa-envelope"></i>
                                     Contactar Arrendador
                                 </button>
-                                <button class="btn-apply">
+                                <button type="button" class="btn-apply" data-publication-id="{{ publicacion.id }}">
                                     <i class="fas fa-file-alt"></i>
                                     Postular
                                 </button>
@@ -253,7 +302,7 @@
         </div>
     </div>
 
-    <div id="notificationModal" class="modal" style="display: none;">
+    <div id="notificationModal" class="modal">
         <div class="modal-content">
             <h2 id="notificationTitle"></h2>
             <p id="notificationMessage"></p>
