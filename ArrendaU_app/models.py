@@ -61,12 +61,39 @@ class PerfilArrendatario(models.Model):
         default=0
     )
     horario_llegada = models.TimeField(null=True, blank=True)
-    presupuesto_max = models.IntegerField(null=True, blank=True)
+    presupuesto_max = models.CharField(
+        max_length=20, 
+        null=True, 
+        blank=True,
+        help_text='Presupuesto máximo con formato (ej: 250.000)'
+    )
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
+    telefono = models.CharField(max_length=20, help_text='Número de teléfono de contacto')
 
     def __str__(self):
         return f"Perfil de {self.usuario.nombre}"
+
+    def clean_telefono(self):
+        """Limpia y formatea el número de teléfono antes de guardarlo"""
+        if self.telefono:
+            # Eliminar todos los caracteres excepto números y +
+            numero = ''.join(c for c in self.telefono if c.isdigit() or c == '+')
+            
+            # Asegurarse que comience con +56
+            if not numero.startswith('+'):
+                if numero.startswith('56'):
+                    numero = '+' + numero
+                else:
+                    numero = '+56' + numero
+            
+            # Formatear como: +56 9 XXXX XXXX
+            if len(numero) >= 12:
+                self.telefono = f"{numero[:3]} {numero[3:4]} {numero[4:8]} {numero[8:12]}"
+    
+    def save(self, *args, **kwargs):
+        self.clean_telefono()
+        super().save(*args, **kwargs)
 
 class PerfilArrendador(models.Model):
     PREFERENCIAS_CHOICES = [
@@ -107,10 +134,9 @@ class PerfilArrendador(models.Model):
 
 class Compatibilidad(models.Model):
     arrendatario = models.ForeignKey(PerfilArrendatario, on_delete=models.CASCADE)
-    arrendador = models.ForeignKey(PerfilArrendador, on_delete=models.CASCADE)
     publicacion = models.ForeignKey('ArrendaU_publicaciones_app.Publicacion', on_delete=models.CASCADE)
-    porcentaje = models.FloatField()
-    descripcion = models.TextField(blank=True, null=True)
+    porcentaje = models.DecimalField(max_digits=5, decimal_places=2)
+    descripcion = models.CharField(max_length=200)
     fecha_calculo = models.DateTimeField(auto_now=True)
     
     class Meta:

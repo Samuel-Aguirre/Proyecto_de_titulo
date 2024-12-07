@@ -1,206 +1,124 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Manejo del input de archivo
-    const documentoInput = document.getElementById('id_documento_estudiante');
-    const documentoContainer = document.getElementById('documento-container');
-    const documentoUpload = documentoContainer?.querySelector('.documento-upload');
-    const documentoPreview = document.getElementById('documento-preview');
-
-    if (documentoInput && documentoUpload) {
-        // Ocultar input original
-        documentoInput.style.display = 'none';
-
-        // Manejar clic en el área de upload
-        documentoUpload.addEventListener('click', () => documentoInput.click());
-
-        // Manejar cambio de archivo
-        documentoInput.addEventListener('change', function(e) {
+    // Manejo de documentos
+    const docInput = document.getElementById('documento');
+    if (docInput) {
+        docInput.addEventListener('change', function(e) {
+            const preview = document.getElementById('document-preview');
             const file = this.files[0];
-            if (file) {
-                mostrarPreviewDocumento(file);
+            
+            // Validar el tamaño y tipo de archivo
+            const validTypes = [
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            ];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if (!validTypes.includes(file.type)) {
+                alert('El archivo debe ser PDF o Word');
+                this.value = '';
+                return;
             }
-        });
-
-        // Manejar drag and drop
-        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            documentoUpload.addEventListener(eventName, preventDefaults, false);
-        });
-
-        ['dragenter', 'dragover'].forEach(eventName => {
-            documentoUpload.addEventListener(eventName, () => {
-                documentoUpload.classList.add('drag-over');
-            });
-        });
-
-        ['dragleave', 'drop'].forEach(eventName => {
-            documentoUpload.addEventListener(eventName, () => {
-                documentoUpload.classList.remove('drag-over');
-            });
-        });
-
-        documentoUpload.addEventListener('drop', (e) => {
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                documentoInput.files = e.dataTransfer.files;
-                mostrarPreviewDocumento(file);
+            
+            if (file.size > maxSize) {
+                alert('El archivo es demasiado grande. El tamaño máximo es 5MB');
+                this.value = '';
+                return;
             }
-        });
-    }
 
-    function mostrarPreviewDocumento(file) {
-        if (!documentoPreview) return;
-
-        documentoPreview.innerHTML = `
-            <div class="file-info">
-                <i class="fas fa-file-alt"></i>
-                <span class="file-name">${file.name}</span>
-                <button type="button" class="remove-file">
+            // Mostrar preview del documento
+            preview.innerHTML = '';
+            const div = document.createElement('div');
+            div.className = 'document-container';
+            div.innerHTML = `
+                <div class="document-info">
+                    <i class="fas ${file.type.includes('pdf') ? 'fa-file-pdf' : 'fa-file-word'}"></i>
+                    <span>${file.name}</span>
+                </div>
+                <button type="button" class="delete-document" onclick="removeDocument(this)">
                     <i class="fas fa-times"></i>
                 </button>
-            </div>
-        `;
-
-        // Manejar eliminación del documento
-        const removeButton = documentoPreview.querySelector('.remove-file');
-        if (removeButton) {
-            removeButton.addEventListener('click', function() {
-                documentoInput.value = '';
-                documentoPreview.innerHTML = '';
-            });
-        }
-    }
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    // Mostrar/ocultar campo de tipo de mascota según la selección
-    const mascotaSelect = document.getElementById('id_mascota');
-    const tipoMascotaGroup = document.getElementById('tipo_mascota_group');
-
-    if (mascotaSelect && tipoMascotaGroup) {
-        function toggleTipoMascota() {
-            tipoMascotaGroup.style.display = 
-                ['tengo', 'planeo'].includes(mascotaSelect.value) ? 'block' : 'none';
-        }
-
-        mascotaSelect.addEventListener('change', toggleTipoMascota);
-        toggleTipoMascota(); // Estado inicial
-    }
-
-    const previewContainer = document.getElementById('documento-preview');
-
-    if (documentoInput) {
-        documentoInput.addEventListener('change', function() {
-            previewContainer.innerHTML = ''; // Limpiar previsualizaciones anteriores
-            
-            Array.from(this.files).forEach(file => {
-                const div = document.createElement('div');
-                div.className = 'image-container';
-                
-                // Para documentos, mostrar un ícono en lugar de una imagen
-                const icon = document.createElement('i');
-                icon.className = 'fas fa-file-alt fa-3x';
-                icon.style.color = '#4CAF50';
-                
-                const fileName = document.createElement('p');
-                fileName.textContent = file.name;
-                fileName.style.marginTop = '0.5rem';
-                fileName.style.fontSize = '0.9rem';
-                
-                div.appendChild(icon);
-                div.appendChild(fileName);
-                previewContainer.appendChild(div);
-            });
+            `;
+            preview.appendChild(div);
         });
     }
 
-    // Añadir validación del formulario
-    const profileForm = document.querySelector('.profile-form');
-    if (profileForm) {
-        profileForm.addEventListener('submit', function(e) {
-            const preferenciaSelects = document.querySelectorAll('select[name^="pref_"]');
-            let hasError = false;
+    // Función global para eliminar documento
+    window.removeDocument = function(button) {
+        const container = button.closest('.document-container');
+        container.remove();
+        
+        // Limpiar el input de archivo
+        const input = document.getElementById('documento');
+        input.value = '';
+    };
 
-            // Remover mensajes de error anteriores
-            document.querySelectorAll('.error-message').forEach(el => el.remove());
-            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
-
-            preferenciaSelects.forEach(select => {
-                if (select.value === '0') {
-                    e.preventDefault();
-                    hasError = true;
-                    
-                    // Añadir clase de error al select
-                    select.classList.add('error');
-                    
-                    // Crear y mostrar mensaje de error
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'error-message';
-                    errorDiv.textContent = 'Por favor, seleccione una opción';
-                    select.parentNode.appendChild(errorDiv);
-                    
-                    // Hacer scroll al primer error
-                    if (hasError) {
-                        select.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Eliminar documento existente
+    const deleteDocButton = document.querySelector('.delete-document[data-doc-id]');
+    if (deleteDocButton) {
+        deleteDocButton.addEventListener('click', function() {
+            const docId = this.dataset.docId;
+            if (confirm('¿Estás seguro de que deseas eliminar este documento?')) {
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                fetch(`/perfil/eliminar-documento/${docId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const docContainer = document.getElementById('doc-container');
+                        if (docContainer) {
+                            docContainer.remove();
+                            // Limpiar el input de archivo
+                            const input = document.getElementById('documento');
+                            input.value = '';
+                        }
+                    } else {
+                        throw new Error(data.error || 'Error al eliminar el documento');
                     }
-                }
-            });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert(error.message || 'Error al eliminar el documento');
+                });
+            }
         });
     }
-});
 
-function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-}
+    // Drag and drop para documentos
+    const dropZone = document.querySelector('.file-upload');
+    if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--primary-color)';
+            dropZone.style.backgroundColor = 'rgba(46, 125, 50, 0.05)';
+        });
 
-function highlight(e) {
-    this.classList.add('drag-over');
-}
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#e0e0e0';
+            dropZone.style.backgroundColor = 'transparent';
+        });
 
-function unhighlight(e) {
-    this.classList.remove('drag-over');
-}
-
-function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    handleFileSelect(files);
-}
-
-function handleFileSelect(files) {
-    const documentoInput = document.getElementById('id_documento_estudiante');
-    const previewContainer = document.getElementById('documento-preview');
-    
-    if (files.length > 0) {
-        const file = files[0];
-        documentoInput.files = files;
-        
-        // Mostrar nombre del archivo
-        const fileInfo = document.createElement('div');
-        fileInfo.className = 'file-info';
-        fileInfo.innerHTML = `
-            <i class="fas fa-file-alt"></i>
-            <span>${file.name}</span>
-            <button type="button" class="remove-file">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        
-        // Limpiar preview anterior
-        if (previewContainer) {
-            previewContainer.innerHTML = '';
-            previewContainer.appendChild(fileInfo);
-        }
-
-        // Agregar funcionalidad para remover archivo
-        const removeButton = fileInfo.querySelector('.remove-file');
-        if (removeButton) {
-            removeButton.addEventListener('click', function() {
-                documentoInput.value = '';
-                previewContainer.innerHTML = '';
-            });
-        }
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#e0e0e0';
+            dropZone.style.backgroundColor = 'transparent';
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const input = document.getElementById('documento');
+                input.files = files;
+                const event = new Event('change');
+                input.dispatchEvent(event);
+            }
+        });
     }
-} 
+}); 

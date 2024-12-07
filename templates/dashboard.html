@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load custom_filters %}
+{% load publication_filters %}
 
 {% block title %}Dashboard - ArrendaU{% endblock %}
 
@@ -41,7 +41,16 @@
                 <!-- Filtros -->
                 <div class="filter-group">
                     <label for="city">Ciudad</label>
-                    <input type="text" id="city" placeholder="Ej: Pillanlelbún">
+                    <select id="city" class="city-select">
+                        <option value="">Todas las Ciudades</option>
+                        {% for region, ciudades in ciudades_por_region.items %}
+                            <optgroup label="{{ region }}">
+                                {% for ciudad in ciudades %}
+                                    <option value="{{ ciudad|lower }}">{{ ciudad }}</option>
+                                {% endfor %}
+                            </optgroup>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="filter-group">
@@ -78,7 +87,7 @@
         {% else %}
             <!-- Panel para Arrendadores -->
             <aside class="filters">
-                <a href="{% url 'ArrendaU_publicaciones_app:crear_publicacion' %}" class="btn-create">
+                <a href="#" class="btn-create" onclick="verificarPerfilArrendador(); return false;">
                     Crear publicación
                 </a>
                 <h2>Mis Publicaciones</h2>
@@ -87,196 +96,234 @@
 
         <main class="listings">
             {% for publicacion in publicaciones %}
-            {% if user.rol == 'Arrendador' %}
-            <article class="property-card" onclick="window.location.href='{% url 'ArrendaU_publicaciones_app:detalle_publicacion' publicacion.id %}';" style="cursor: pointer;">
-                <div class="property-actions">
-                    <a href="{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}" 
-                       class="btn-action btn-edit" 
-                       title="Editar"
-                       onclick="event.stopPropagation();">
-                        <i class="fas fa-edit"></i>
-                    </a>
-                    <button type="button" 
-                            class="btn-action btn-delete" 
-                            data-id="{{ publicacion.id }}"
-                            title="Eliminar">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                {% if publicacion.fotos.all %}
-                    <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
-                {% else %}
-                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
-                {% endif %}
-                <div class="property-details">
-                    <h3 class="property-title">{{ publicacion.titulo }}</h3>
-                    <div class="property-info">
-                        <span>📍 {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
-                        <span>💰 {{ publicacion.valor_alquiler|format_precio }}</span>
-                        <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
-                    </div>
-                    <p class="property-description">
-                        {{ publicacion.descripcion }}
-                    </p>
-                </div>
-                {% if publicacion.postulaciones_pendientes > 0 %}
-                    <div class="postulaciones-badge">
-                        {{ publicacion.postulaciones_pendientes }} nuevas postulaciones
-                    </div>
-                {% endif %}
-            </article>
-            {% else %}
-            <article class="property-card" data-publication-id="{{ publicacion.id }}" onclick="expandirPublicacion(this)">
-                <div class="property-actions">
-                    {% if user.rol == 'Arrendador' and user == publicacion.usuario %}
-                        <a href="{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}" 
-                           class="btn-action btn-edit" 
-                           title="Editar"
-                           onclick="event.stopPropagation();">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        <button type="button" 
-                                class="btn-action btn-delete" 
-                                data-id="{{ publicacion.id }}"
-                                title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    {% endif %}
-                    {% if user.rol == 'Arrendatario' %}
-                        <button type="button" 
-                                class="btn-action btn-bookmark {% if publicacion.esta_guardada %}active{% endif %}" 
-                                onclick="event.stopPropagation(); toggleGuardado('{{ publicacion.id }}')" 
-                                title="{% if publicacion.esta_guardada %}Quitar de guardados{% else %}Guardar publicación{% endif %}"
-                                data-id="{{ publicacion.id }}">
-                            <i class="fas fa-bookmark"></i>
-                        </button>
-                    {% endif %}
-                </div>
-                {% if publicacion.fotos.all %}
-                    <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
-                {% else %}
-                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
-                {% endif %}
-                <div class="property-details">
-                    <h3 class="property-title">{{ publicacion.titulo }}</h3>
-                    <div class="property-info">
-                        <span>📍 {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
-                        <span>💰 {{ publicacion.valor_alquiler|format_precio }}</span>
-                        <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
-                    </div>
-                    <p class="property-description">
-                        {{ publicacion.descripcion }}
-                    </p>
-                </div>
-            </article>
-            {% endif %}
-            <div id="expandedView" class="property-expanded" style="display: none;" data-publication-id="{{ publicacion.id }}">
-                <div class="expanded-content">
-                    <div class="expanded-header">
-                        <h2>{{ publicacion.titulo }}</h2>
-                        <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="expanded-grid">
-                        <div class="expanded-images">
-                            <div class="main-image">
-                                {% if publicacion.fotos.all %}
-                                    <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}">
-                                {% else %}
-                                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible">
-                                {% endif %}
-                            </div>
-                            <div class="thumbnail-grid">
-                                {% for foto in publicacion.fotos.all %}
-                                    <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }}" 
-                                         onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src)">
-                                {% endfor %}
-                            </div>
+                {% if user.rol == 'Arrendador' %}
+                    <!-- Vista para arrendadores -->
+                    <article class="property-card {% if publicacion.estado == 'BORRADOR' %}draft{% endif %}"
+                             onclick="window.location.href='{% url 'ArrendaU_publicaciones_app:detalle_publicacion' publicacion.id %}';"
+                             style="cursor: pointer;">
+                        <div class="property-actions">
+                            <a href="{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}" 
+                               class="btn-action btn-edit" 
+                               title="Editar"
+                               onclick="event.stopPropagation();">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            {% if publicacion.estado != 'BORRADOR' %}
+                            <button type="button" 
+                                    class="btn-action btn-delete" 
+                                    data-id="{{ publicacion.id }}"
+                                    title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
                         </div>
-
-                        <div class="expanded-details">
-                            <div class="detail-section">
-                                <h3>Detalles de la Propiedad</h3>
-                                <div class="detail-grid">
-                                    <div class="detail-item">
-                                        <span class="label">Ubicación</span>
-                                        <span class="value"> {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="label">Precio</span>
-                                        <span class="value"> {{ publicacion.valor_alquiler|format_precio }}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="label">Habitaciones</span>
-                                        <span class="value"> {{ publicacion.habitaciones_disponibles }}</span>
+                        {% if publicacion.fotos.all %}
+                            <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
+                        {% else %}
+                            <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+                        {% endif %}
+                        <div class="property-details">
+                            <h3 class="property-title">{{ publicacion.titulo }}</h3>
+                            <div class="property-info">
+                                <span>📍 {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
+                                <span>💰 {{ publicacion.valor_alquiler|format_precio }}</span>
+                                <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
+                            </div>
+                            <p class="property-description">
+                                {{ publicacion.descripcion }}
+                            </p>
+                        </div>
+                        {% if publicacion.estado == 'BORRADOR' or publicacion.estado == 'PENDIENTE_PAGO' %}
+                            <div class="status-banner {% if publicacion.estado == 'BORRADOR' %}draft{% else %}pending{% endif %}">
+                                <div class="status-content">
+                                    <span class="status-text">
+                                        {% if publicacion.estado == 'BORRADOR' %}
+                                            {% if pago and pago.estado == 'RECHAZADO' %}
+                                                El pago fue rechazado
+                                            {% else %}
+                                                Publicación en borrador
+                                            {% endif %}
+                                        {% else %}
+                                            Pago en proceso
+                                        {% endif %}
+                                    </span>
+                                    <div class="status-actions">
+                                        <button onclick="procesarPago('{{ publicacion.id }}')" class="btn-payment">
+                                            {% if pago and pago.estado == 'RECHAZADO' %}
+                                                Reintentar pago
+                                            {% else %}
+                                                Proceder al pago
+                                            {% endif %}
+                                        </button>
+                                        {% if publicacion.estado == 'BORRADOR' %}
+                                            <button onclick="event.stopPropagation(); eliminarBorrador('{{ publicacion.id }}')" class="btn-delete">
+                                                Eliminar
+                                            </button>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="detail-section">
-                                <h3>Descripción</h3>
-                                <p>{{ publicacion.descripcion }}</p>
+                        {% endif %}
+                    </article>
+                {% else %}
+                    <!-- Vista para arrendatarios - solo mostrar publicaciones activas -->
+                    {% if publicacion.estado != 'BORRADOR' and publicacion.estado != 'PENDIENTE_PAGO' %}
+                        <article class="property-card" 
+                                 onclick="expandirPublicacion(this)" 
+                                 data-publication-id="{{ publicacion.id }}">
+                            <div class="property-actions">
+                                {% if user.rol == 'Arrendador' and user == publicacion.usuario %}
+                                    <a href="{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}" 
+                                       class="btn-action btn-edit" 
+                                       title="Editar"
+                                       onclick="event.stopPropagation();">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn-action btn-delete" 
+                                            data-id="{{ publicacion.id }}"
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% endif %}
+                                {% if user.rol == 'Arrendatario' %}
+                                    <button type="button" 
+                                            class="btn-action btn-bookmark {% if publicacion.esta_guardada %}active{% endif %}" 
+                                            onclick="event.stopPropagation(); toggleGuardado('{{ publicacion.id }}')" 
+                                            title="{% if publicacion.esta_guardada %}Quitar de guardados{% else %}Guardar publicación{% endif %}"
+                                            data-id="{{ publicacion.id }}">
+                                        <i class="fas fa-bookmark"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                            {% if publicacion.fotos.all %}
+                                <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}" class="property-image">
+                            {% else %}
+                                <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
+                            {% endif %}
+                            <div class="property-details">
+                                <h3 class="property-title">{{ publicacion.titulo }}</h3>
+                                <div class="property-info">
+                                    <span>📍 {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
+                                    <span>💰 {{ publicacion.valor_alquiler|format_precio }}</span>
+                                    <span>🛏️ {{ publicacion.habitaciones_disponibles }} habitaciones</span>
+                                </div>
+                                <p class="property-description">
+                                    {{ publicacion.descripcion }}
+                                </p>
+                            </div>
+                        </article>
+                    {% endif %}
+                {% endif %}
+                <div id="expandedView" class="property-expanded" style="display: none;" data-publication-id="{{ publicacion.id }}">
+                    <div class="expanded-content">
+                        <div class="expanded-header">
+                            <h2>{{ publicacion.titulo }}</h2>
+                            <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="expanded-grid">
+                            <div class="expanded-images">
+                                <div class="main-image">
+                                    {% if publicacion.fotos.all %}
+                                        <img src="{{ publicacion.fotos.first.imagen.url }}" alt="{{ publicacion.titulo }}">
+                                    {% else %}
+                                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible">
+                                    {% endif %}
+                                </div>
+                                <div class="thumbnail-grid">
+                                    {% for foto in publicacion.fotos.all %}
+                                        <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }}" 
+                                             onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src)">
+                                    {% endfor %}
+                                </div>
                             </div>
 
-                            <div class="detail-section">
-                                <h3>Preferencias del Arrendador</h3>
-                                <div class="preferencias-grid">
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-smoking-ban"></i>
-                                        <span>Fumador: {{ publicacion.usuario.perfilarrendador.get_pref_no_fumador_display }}</span>
+                            <div class="expanded-details">
+                                <div class="detail-section">
+                                    <h3>Detalles de la Propiedad</h3>
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="label">Ubicación</span>
+                                            <span class="value"> {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label">Precio</span>
+                                            <span class="value"> {{ publicacion.valor_alquiler|format_precio }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label">Habitaciones</span>
+                                            <span class="value"> {{ publicacion.habitaciones_disponibles }}</span>
+                                        </div>
                                     </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-glass-cheers"></i>
-                                        <span>Bebedor: {{ publicacion.usuario.perfilarrendador.get_pref_no_bebedor_display }}</span>
+                                </div>
+
+                                <div class="detail-section">
+                                    <h3>Descripción</h3>
+                                    <p>{{ publicacion.descripcion }}</p>
+                                </div>
+
+                                <div class="detail-section">
+                                    <h3>Preferencias del Arrendador</h3>
+                                    <div class="preferencias-grid">
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-smoking-ban"></i>
+                                            <span>Fumador: {{ publicacion.usuario.perfilarrendador.get_pref_no_fumador_display }}</span>
+                                        </div>
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-glass-cheers"></i>
+                                            <span>Bebedor: {{ publicacion.usuario.perfilarrendador.get_pref_no_bebedor_display }}</span>
+                                        </div>
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-paw"></i>
+                                            <span>Mascotas: {{ publicacion.usuario.perfilarrendador.get_pref_no_mascotas_display }}</span>
+                                        </div>
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-volume-up"></i>
+                                            <span>Nivel de Ruido: {{ publicacion.usuario.perfilarrendador.get_pref_nivel_ruido_display }}</span>
+                                        </div>
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-user-graduate"></i>
+                                            <span>Estudiante Verificado: {{ publicacion.usuario.perfilarrendador.get_pref_estudiante_verificado_display }}</span>
+                                        </div>
+                                        {% if publicacion.usuario.perfilarrendador.horario_visitas %}
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span>Horario de Visitas: {{ publicacion.usuario.perfilarrendador.horario_visitas }}</span>
+                                        </div>
+                                        {% endif %}
                                     </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-paw"></i>
-                                        <span>Mascotas: {{ publicacion.usuario.perfilarrendador.get_pref_no_mascotas_display }}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-volume-up"></i>
-                                        <span>Nivel de Ruido: {{ publicacion.usuario.perfilarrendador.get_pref_nivel_ruido_display }}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-user-graduate"></i>
-                                        <span>Estudiante Verificado: {{ publicacion.usuario.perfilarrendador.get_pref_estudiante_verificado_display }}</span>
-                                    </div>
-                                    {% if publicacion.usuario.perfilarrendador.horario_visitas %}
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-clock"></i>
-                                        <span>Horario de Visitas: {{ publicacion.usuario.perfilarrendador.horario_visitas }}</span>
+                                    {% if publicacion.usuario.perfilarrendador.reglas_casa %}
+                                    <div class="reglas-casa">
+                                        <h4>Reglas de la Casa</h4>
+                                        <p>{{ publicacion.usuario.perfilarrendador.reglas_casa }}</p>
                                     </div>
                                     {% endif %}
                                 </div>
-                                {% if publicacion.usuario.perfilarrendador.reglas_casa %}
-                                <div class="reglas-casa">
-                                    <h4>Reglas de la Casa</h4>
-                                    <p>{{ publicacion.usuario.perfilarrendador.reglas_casa }}</p>
-                                </div>
-                                {% endif %}
-                            </div>
 
-                            <div class="contact-section">
-                                <button class="btn-contact">
-                                    <i class="fas fa-envelope"></i>
-                                    Contactar Arrendador
-                                </button>
-                                <button type="button" class="btn-apply" data-publication-id="{{ publicacion.id }}">
-                                    <i class="fas fa-file-alt"></i>
-                                    Postular
-                                </button>
+                                <div class="contact-section">
+                                    <button class="btn-contact">
+                                        <i class="fas fa-envelope"></i>
+                                        Contactar Arrendador
+                                    </button>
+                                    <button type="button" class="btn-apply" 
+                                            onclick="verificarPerfilArrendatario('{{ publicacion.id }}', event)"
+                                            data-publication-id="{{ publicacion.id }}">
+                                        <i class="fas fa-file-alt"></i>
+                                        Postular
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
             {% empty %}
                 <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
                     {% if user.rol == 'Arrendador' %}
                         <p>No has creado ninguna publicación aún.</p>
-                        <a href="{% url 'ArrendaU_publicaciones_app:crear_publicacion' %}" class="btn-create" style="margin-top: 1rem;">
+                        <a href="#" class="btn-create" style="margin-top: 1rem;" onclick="verificarPerfilArrendador(); return false;">
                             Crear mi primera publicación
                         </a>
                     {% else %}
@@ -314,5 +361,6 @@
 {% endblock %}
 
 {% block extra_js %}
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

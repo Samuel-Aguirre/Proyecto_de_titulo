@@ -26,4 +26,10 @@ urlpatterns = [
     path('notificacion/<int:notificacion_id>/marcar-leida/', views.marcar_notificacion_leida, name='marcar_notificacion_leida'),
     path('postulacion/<int:postulacion_id>/cancelar/', views.cancelar_gestion_postulacion, name='cancelar_gestion_postulacion'),
     path('perfil/<int:user_id>/info/', views.obtener_info_perfil, name='obtener_info_perfil'),
+    path('publicacion/<int:publicacion_id>/vista/', views.registrar_vista, name='registrar_vista'),
+    path('postulacion/<int:postulacion_id>/respuestas/', views.obtener_respuestas_postulacion, name='obtener_respuestas_postulacion'),
+    path('actualizar-perfil/', views.actualizar_perfil, name='actualizar_perfil'),
+    path('publicacion/<int:publicacion_id>/postular-directo/', views.postular_directo, name='postular_directo'),
+    path('pagos/historial/', views.historial_pagos, name='historial_pagos'),
+    path('borrador/<int:pk>/eliminar/', views.eliminar_borrador, name='eliminar_borrador'),
 ]

@@ -133,7 +133,7 @@ window.onclick = function(event) {
 }
 
 function mostrarFormularioPostulacion(publicacionId) {
-    console.log('Intentando mostrar formulario para publicación:', publicacionId); // Debug
+    console.log('Intentando mostrar formulario para publicación:', publicacionId);
     
     // Cerrar la ventana de descripción
     const expandedView = document.getElementById(`expandedView_${publicacionId}`);
@@ -149,20 +149,15 @@ function mostrarFormularioPostulacion(publicacionId) {
             'Accept': 'application/json'
         }
     })
-    .then(response => {
-        console.log('Respuesta recibida:', response.status); // Debug
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        console.log('Datos recibidos:', data); // Debug
         if (data.success) {
-            // Crear el modal del formulario
             const modalHTML = `
                 <div id="formularioModal" class="modal">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h2>Formulario de Compatibilidad</h2>
-                            <button class="btn-close" onclick="cerrarFormularioModal()">
+                            <button type="button" class="btn-close" onclick="cerrarFormularioModal()">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -194,9 +189,7 @@ function mostrarFormularioPostulacion(publicacionId) {
             const modal = document.getElementById('formularioModal');
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
-            
         } else {
-            console.error('Error en la respuesta:', data.message); // Debug
             showNotification('Error', data.message || 'No se pudo cargar el formulario');
         }
     })
@@ -205,6 +198,81 @@ function mostrarFormularioPostulacion(publicacionId) {
         showNotification('Error', 'Ocurrió un error al cargar el formulario');
     });
 }
+
+function cerrarFormularioModal() {
+    const modal = document.getElementById('formularioModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
+function enviarFormulario(event, publicacionId) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/publicaciones/publicacion/${publicacionId}/responder/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Primero cerrar el modal
+            cerrarFormularioModal();
+            
+            // Luego mostrar la notificación de éxito con botón de aceptar
+            Swal.fire({
+                title: 'Éxito',
+                text: 'Formulario enviado correctamente',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#2E7D32'
+            });
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: data.message || 'Error al enviar el formulario',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#2E7D32'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Ocurrió un error al enviar el formulario',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#2E7D32'
+        });
+    });
+}
+
+// Asegurarse de que el botón de cerrar y cancelar funcionen
+document.addEventListener('click', function(e) {
+    if (e.target.matches('.btn-close') || e.target.matches('.btn-cancel')) {
+        cerrarFormularioModal();
+    }
+});
+
+// Cerrar modal al hacer clic fuera
+document.addEventListener('click', function(e) {
+    const modal = document.getElementById('formularioModal');
+    if (modal && e.target === modal) {
+        cerrarFormularioModal();
+    }
+});
 
 function handlePostularClick(e) {
     e.stopPropagation();

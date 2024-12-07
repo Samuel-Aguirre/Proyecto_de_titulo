@@ -318,9 +318,20 @@ input[type="file"] {
 /* Texto de ayuda */
 .help-text {
     display: block;
-    margin-top: 0.5rem;
-    font-size: 0.85rem;
     color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin: -0.5rem 0 0.8rem 0;
+    font-style: italic;
+}
+
+/* Ajustar el margen del label cuando hay help-text */
+.form-group label + .help-text {
+    margin-top: 0.2rem;
+}
+
+/* Asegurar que el help-text no interfiera con otros elementos */
+.form-group .help-text + .file-upload {
+    margin-top: 0.8rem;
 }
 
 /* Añade esto al final del archivo */
@@ -372,4 +383,172 @@ input[type="file"] {
 .form-group select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+}
+
+/* Contenedor de carga de documentos */
+.documento-upload-container {
+    border: 2px dashed #4CAF50;
+    border-radius: 12px;
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+/* Área de carga */
+.upload-area {
+    background-color: #f8f9fa;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    margin: 10px;
+    text-align: center;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    padding: 2rem;
+}
+
+.upload-icon {
+    font-size: 4rem;
+    color: #4CAF50;
+    margin-bottom: 1.5rem;
+}
+
+.upload-area p {
+    color: #333;
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+}
+
+.upload-hint {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Preview del documento */
+.documento-preview {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin: 10px;
+    display: none;
+}
+
+.documento-actual {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+}
+
+.documento-actual i {
+    font-size: 1.5rem;
+    color: #4CAF50;
+}
+
+.documento-nombre {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.btn-remove {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.btn-remove:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* Estados de arrastrar y soltar */
+.drag-over {
+    border-color: #4CAF50;
+    background-color: rgba(76, 175, 80, 0.05);
+}
+
+/* Ocultar input file nativo */
+input[type="file"] {
+    display: none;
+}
+
+/* Tipo mascota */
+#tipo_mascota_group {
+    transition: all 0.3s ease;
+}
+
+#tipo_mascota_group.hidden {
+    display: none !important;
+}
+
+.document-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: var(--background-light);
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.document-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.document-info i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.delete-document {
+    background-color: rgba(220, 53, 69, 0.9);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s;
+}
+
+.delete-document:hover {
+    background-color: rgb(220, 53, 69);
+}
+
+.current-document {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background-color: var(--background-light);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.document-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.document-name::before {
+    content: '\f1c1';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    color: var(--primary-color);
 } 

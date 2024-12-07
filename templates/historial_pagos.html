@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}Historial de Pagos - ArrendaU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/historial_pagos.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="hero-banner">
+    <h1>Historial de Pagos</h1>
+    <p>Gestiona tus transacciones y facturas de publicaciones</p>
+</div>
+
+<main class="main-content">
+    {% if pagos %}
+        <div class="table-responsive">
+            <table class="payments-table">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Publicación</th>
+                        <th>Transacción</th>
+                        <th>Método</th>
+                        <th>Estado</th>
+                        <th>Monto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pago in pagos %}
+                    <tr>
+                        <td class="fecha-column">
+                            {{ pago.fecha_creacion|date:"d M Y" }}
+                        </td>
+                        <td class="publicacion-column">
+                            {% with pub_info=pago.get_publicacion_info %}
+                                {{ pub_info.titulo }}
+                            {% endwith %}
+                        </td>
+                        <td class="transaccion-column">
+                            <div class="transaccion-wrapper">
+                                <span class="payment-id">ID: {{ pago.payment_id }}</span>
+                                {% if pago.merchant_order_id %}
+                                <span class="order-id">Orden: {{ pago.merchant_order_id }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="metodo-column">
+                            {% if pago.detalles_transaccion %}
+                            <div class="metodo-wrapper">
+                                <span class="metodo">
+                                    {% if 'credit_card' in pago.get_metodo_pago_display %}
+                                        <i class="fas fa-credit-card"></i>
+                                    {% elif 'debit_card' in pago.get_metodo_pago_display %}
+                                        <i class="fas fa-credit-card"></i>
+                                    {% else %}
+                                        <i class="fas fa-wallet"></i>
+                                    {% endif %}
+                                    {{ pago.get_metodo_pago_display }}
+                                </span>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td class="estado-column">
+                            <span class="pago-estado {{ pago.estado|lower }}">
+                                {% if pago.estado == 'APROBADO' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif pago.estado == 'PENDIENTE' %}
+                                    <i class="fas fa-clock"></i>
+                                {% elif pago.estado == 'RECHAZADO' %}
+                                    <i class="fas fa-times-circle"></i>
+                                {% endif %}
+                                {{ pago.get_estado_display }}
+                            </span>
+                        </td>
+                        <td class="monto-column">${{ pago.monto|floatformat:0|intcomma }}</td>
+                        <td class="acciones-column">
+                            <div class="acciones-wrapper">
+                                <button class="btn-action" onclick="verDetalles('{{ pago.id }}')" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if pago.estado == 'APROBADO' %}
+                                <button class="btn-action" onclick="descargarComprobante('{{ pago.id }}')" title="Descargar comprobante">
+                                    <i class="fas fa-file-download"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-receipt"></i>
+            <h2>No hay pagos registrados</h2>
+            <p>Cuando realices pagos por tus publicaciones, aparecerán aquí.</p>
+        </div>
+    {% endif %}
+</main>
+
+<!-- Modal para detalles de transacción -->
+<div id="detallesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Detalles de la Transacción</h2>
+            <button class="close-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <!-- El contenido se llenará dinámicamente -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/historial_pagos.js' %}"></script>
+{% endblock %} 

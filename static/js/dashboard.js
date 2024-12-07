@@ -43,25 +43,89 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     initPostularButtons();
+
+    // Agregar manejador para el botón de crear publicación
+    const btnCrearPublicacion = document.querySelector('.btn-crear-publicacion');
+    if (btnCrearPublicacion) {
+        btnCrearPublicacion.addEventListener('click', function(e) {
+            e.preventDefault();
+            verificarPerfilArrendador();
+        });
+    }
 });
 
 let publicacionIdToDelete = null;
 
+// Para publicaciones activas - requiere confirmación
 function showDeleteModal(publicacionId) {
     const modal = document.getElementById('deleteModal');
-    if (!modal) {
-        console.error('No se encontró el modal de eliminación');
-        return;
-    }
-    
-    // Guardar el ID de la publicación en el modal
     modal.dataset.publicacionId = publicacionId;
-    
-    // Mostrar el modal con animación
     modal.style.display = 'flex';
     setTimeout(() => {
         modal.classList.add('show');
     }, 10);
+}
+
+// Para borradores - eliminación directa
+function eliminarBorrador(publicacionId) {
+    event.preventDefault();
+    event.stopPropagation();  // Esto es crucial para evitar la redirección
+    
+    // Mostrar confirmación directa usando SweetAlert2
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "¿Deseas eliminar este borrador?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            fetch(`/publicaciones/borrador/${publicacionId}/eliminar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    Swal.fire(
+                        'Eliminado',
+                        'El borrador ha sido eliminado.',
+                        'success'
+                    ).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire(
+                        'Error',
+                        data.error || 'No se pudo eliminar el borrador',
+                        'error'
+                    );
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire(
+                    'Error',
+                    'Error al eliminar el borrador',
+                    'error'
+                );
+            });
+        }
+    });
 }
 
 function hideDeleteModal() {
@@ -146,7 +210,7 @@ function confirmDelete() {
 // Asegurarse de que los eventos se detengan correctamente
 document.addEventListener('DOMContentLoaded', function() {
     // Prevenir la propagación del clic en el botón de eliminar
-    document.querySelectorAll('.btn-action.btn-delete').forEach(btn => {
+    document.querySelectorAll('.property-actions .btn-action.btn-delete').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -211,6 +275,7 @@ function aplicarFiltros() {
 // Función para actualizar el listado de publicaciones en el DOM
 function actualizarListadoPublicaciones(publicaciones) {
     const listingsContainer = document.querySelector('.listings');
+    const isArrendador = document.body.classList.contains('user-arrendador');
     
     if (!publicaciones || publicaciones.length === 0) {
         listingsContainer.innerHTML = `
@@ -337,6 +402,30 @@ function actualizarListadoPublicaciones(publicaciones) {
                     </div>
                 </div>
             </div>
+            
+            ${isArrendador ? `
+                <div class="publicacion-estado">
+                    ${pub.estado === 'BORRADOR' ? `
+                        <div class="draft-banner">
+                            <p>Publicación en borrador</p>
+                            <button onclick="procesarPago('${pub.id}')" class="btn-payment">
+                                Proceder al pago
+                            </button>
+                            <button onclick="eliminarBorrador('${pub.id}')" class="btn-delete">
+                                Eliminar
+                            </button>
+                        </div>
+                    ` : ''}
+                    ${pub.estado === 'PENDIENTE_PAGO' ? `
+                        <div class="payment-pending-banner">
+                            <p>Pago en proceso</p>
+                            <button onclick="procesarPago('${pub.id}')" class="btn-payment">
+                                Continuar con el pago
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
         </article>
     `).join('');
 
@@ -383,152 +472,60 @@ function formatearPrecio(valor) {
 }
 
 // Función para expandir la publicación
-function expandirPublicacion(card) {
-    if (!document.body.classList.contains('rol-arrendatario')) {
+function expandirPublicacion(element) {
+    console.log('Expandiendo publicación...'); // Debug
+    
+    // Verificar si el usuario está autenticado
+    const isAuthenticated = document.body.classList.contains('user-authenticated');
+    console.log('¿Usuario autenticado?:', isAuthenticated); // Debug
+    
+    if (!isAuthenticated) {
+        console.log('Usuario no autenticado, mostrando modal de registro'); // Debug
+        
+        // Verificar que SweetAlert2 esté disponible
+        if (typeof Swal === 'undefined') {
+            console.error('SweetAlert2 no está cargado');
+            alert('Para ver los detalles y postular, necesitas crear una cuenta.');
+            return;
+        }
+
+        Swal.fire({
+            title: '¡Únete a ArrendaU!',
+            text: "Para ver los detalles y postular, necesitas crear una cuenta.",
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#2E7D32',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Registrarme',
+            cancelButtonText: 'Más tarde'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/register/';
+            }
+        });
         return;
     }
 
-    const expandedView = document.getElementById('expandedView');
-    if (!expandedView) return;
+    // Si está autenticado, incrementar vistas y mostrar detalles
+    if (isAuthenticated) {
+        const publicationId = element.dataset.publicationId;
+        
+        // Incrementar vistas
+        fetch(`/publicaciones/publicacion/${publicationId}/vista/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        });
 
-    const publicacionId = card.dataset.publicationId;
-    
-    // Asignar el ID al expandedView
-    expandedView.dataset.publicationId = publicacionId;
-    
-    fetch(`/publicaciones/obtener-fotos/${publicacionId}/`, {
-        method: 'GET',
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest',
-            'Accept': 'application/json'
+        // Mostrar detalles
+        const expandedView = document.querySelector(`#expandedView[data-publication-id="${publicationId}"]`);
+        if (expandedView) {
+            expandedView.style.display = 'block';
+            document.body.classList.add('modal-open');
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Actualizar el contenido del modal
-        expandedView.querySelector('h2').textContent = card.querySelector('.property-title').textContent;
-        
-        // Actualizar la imagen principal
-        const modalMainImage = expandedView.querySelector('.main-image img');
-        modalMainImage.src = data.fotos[0].imagen_url;
-        
-        // Actualizar la grid de miniaturas
-        const thumbnailGrid = expandedView.querySelector('.thumbnail-grid');
-        thumbnailGrid.innerHTML = data.fotos.map(foto => `
-            <img src="${foto.imagen_url}" alt="Foto de la propiedad" 
-                 onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src)">
-        `).join('');
-
-        // Limpiar y actualizar los detalles
-        const expandedDetails = expandedView.querySelector('.expanded-details');
-        expandedDetails.innerHTML = `
-            <div class="detail-section">
-                <h3>Detalles de la Propiedad</h3>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <span class="label">Ubicación</span>
-                        <span class="value">📍 ${card.querySelector('.property-info span:nth-child(1)').textContent.replace('📍', '').trim()}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Precio</span>
-                        <span class="value">💰 ${card.querySelector('.property-info span:nth-child(2)').textContent.replace('💰', '').trim()}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="label">Habitaciones</span>
-                        <span class="value">🛏️ ${card.querySelector('.property-info span:nth-child(3)').textContent.replace('🛏️', '').trim()}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h3>Descripción</h3>
-                <p>${card.querySelector('.property-description').textContent}</p>
-            </div>
-
-            <div class="detail-section">
-                <h3>Preferencias del Arrendador</h3>
-                <div class="preferencias-grid">
-                    <div class="preferencia-item">
-                        <div class="header">
-                            <i class="fas fa-smoking-ban"></i>
-                            <span class="label">Fumador</span>
-                        </div>
-                        <span class="value">${data.preferencias?.pref_no_fumador || 'No especificado'}</span>
-                    </div>
-                    <div class="preferencia-item">
-                        <div class="header">
-                            <i class="fas fa-glass-cheers"></i>
-                            <span class="label">Bebedor</span>
-                        </div>
-                        <span class="value">${data.preferencias?.pref_no_bebedor || 'No especificado'}</span>
-                    </div>
-                    <div class="preferencia-item">
-                        <div class="header">
-                            <i class="fas fa-paw"></i>
-                            <span class="label">Mascotas</span>
-                        </div>
-                        <span class="value">${data.preferencias?.pref_no_mascotas || 'No especificado'}</span>
-                    </div>
-                    <div class="preferencia-item">
-                        <div class="header">
-                            <i class="fas fa-volume-up"></i>
-                            <span class="label">Nivel de Ruido</span>
-                        </div>
-                        <span class="value">${data.preferencias?.pref_nivel_ruido || 'No especificado'}</span>
-                    </div>
-                    <div class="preferencia-item">
-                        <div class="header">
-                            <i class="fas fa-user-graduate"></i>
-                            <span class="label">Estudiante Verificado</span>
-                        </div>
-                        <span class="value">${data.preferencias?.pref_estudiante_verificado || 'No especificado'}</span>
-                    </div>
-                    ${data.preferencias?.horario_visitas ? `
-                        <div class="preferencia-item">
-                            <div class="header">
-                                <i class="fas fa-clock"></i>
-                                <span class="label">Horario de Visitas</span>
-                            </div>
-                            <span class="value">${data.preferencias.horario_visitas}</span>
-                        </div>
-                    ` : ''}
-                </div>
-                ${data.preferencias?.reglas_casa ? `
-                    <div class="reglas-casa">
-                        <h4>Reglas de la Casa</h4>
-                        <p>${data.preferencias.reglas_casa}</p>
-                    </div>
-                ` : ''}
-            </div>
-
-            <div class="contact-section">
-                <button class="btn-contact">
-                    <i class="fas fa-envelope"></i>
-                    Contactar Arrendador
-                </button>
-                <button class="btn-apply">
-                    <i class="fas fa-file-alt"></i>
-                    Postular
-                </button>
-            </div>
-        `;
-
-        // Asegurarse que el botón de postular tenga el ID
-        const btnApply = expandedView.querySelector('.btn-apply');
-        if (btnApply) {
-            btnApply.dataset.publicationId = publicacionId;
-        }
-
-        // Después de actualizar el contenido, inicializar los botones
-        initPostularButtons();
-        
-        // Mostrar el modal
-        document.body.classList.add('modal-open');
-        expandedView.style.display = 'block';
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    }
 }
 
 // Función para contraer la publicación
@@ -566,11 +563,12 @@ document.addEventListener('click', function(event) {
     }
 });
 
+// Modificar la función mostrarFormularioPostulacion
 function mostrarFormularioPostulacion(publicacionId) {
     console.log('Intentando mostrar formulario para publicación:', publicacionId); // Debug
     
     // Cerrar la ventana de descripción
-    const expandedView = document.getElementById('expandedView');
+    const expandedView = document.querySelector(`#expandedView[data-publication-id="${publicacionId}"]`);
     if (expandedView) {
         expandedView.style.display = 'none';
         document.body.classList.remove('modal-open');
@@ -588,19 +586,40 @@ function mostrarFormularioPostulacion(publicacionId) {
         return response.json();
     })
     .then(data => {
-        console.log('Datos recibidos:', data); // Debug
+        console.log('Datos del formulario:', data); // Debug
         if (data.success) {
-            // Crear el modal del formulario
+            // Verificar si hay preguntas en el formulario
+            if (!data.formulario.preguntas || data.formulario.preguntas.length === 0) {
+                // Si no hay preguntas, mostrar un mensaje y proceder directamente con la postulación
+                Swal.fire({
+                    title: 'Postulación Directa',
+                    text: 'Esta publicación no requiere un formulario de compatibilidad. ¿Deseas postular directamente?',
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, postular',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#2E7D32',
+                    cancelButtonColor: '#d33'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Enviar postulación directa sin respuestas
+                        enviarPostulacionDirecta(publicacionId);
+                    }
+                });
+                return;
+            }
+
+            // Si hay preguntas, mostrar el formulario normal
             const modalHTML = `
-                <div id="formularioModal" class="modal">
+                <div id="formularioModal_${publicacionId}" class="modal">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h2>Formulario de Compatibilidad</h2>
-                            <button class="btn-close" onclick="cerrarFormularioModal()">
+                            <button class="btn-close" onclick="cerrarFormularioModal('${publicacionId}')">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
-                        <form id="formularioCompatibilidad" onsubmit="enviarFormulario(event, ${publicacionId})">
+                        <form id="formularioCompatibilidad_${publicacionId}" onsubmit="enviarFormulario(event, ${publicacionId})">
                             ${data.formulario.preguntas.map(pregunta => `
                                 <div class="pregunta-grupo">
                                     <label>${pregunta.texto}</label>
@@ -614,18 +633,16 @@ function mostrarFormularioPostulacion(publicacionId) {
                             `).join('')}
                             <div class="modal-buttons">
                                 <button type="submit" class="btn-submit">Enviar Respuestas</button>
-                                <button type="button" class="btn-cancel" onclick="cerrarFormularioModal()">Cancelar</button>
+                                <button type="button" class="btn-cancel" onclick="cerrarFormularioModal('${publicacionId}')">Cancelar</button>
                             </div>
                         </form>
                     </div>
                 </div>
             `;
             
-            // Agregar el modal al DOM
             document.body.insertAdjacentHTML('beforeend', modalHTML);
             
-            // Mostrar el modal
-            const modal = document.getElementById('formularioModal');
+            const modal = document.getElementById(`formularioModal_${publicacionId}`);
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
             
@@ -640,12 +657,62 @@ function mostrarFormularioPostulacion(publicacionId) {
     });
 }
 
-function cerrarFormularioModal() {
-    const modal = document.getElementById('formularioModal');
-    modal.classList.remove('show');
-    setTimeout(() => {
-        modal.remove();
-    }, 300);
+// Agregar la nueva función para enviar postulación directa
+function enviarPostulacionDirecta(publicacionId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/publicaciones/publicacion/${publicacionId}/postular-directo/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Error en la postulación');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Éxito',
+                text: data.message || 'Tu postulación ha sido enviada correctamente',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#2E7D32'
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            throw new Error(data.message || 'Error al enviar la postulación');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: error.message || 'Ocurrió un error al enviar tu postulación',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#2E7D32'
+        });
+    });
+}
+
+function cerrarFormularioModal(publicacionId) {
+    const modal = document.getElementById(`formularioModal_${publicacionId}`);
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
 }
 
 function enviarFormulario(event, publicacionId) {
@@ -665,15 +732,36 @@ function enviarFormulario(event, publicacionId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Primero cerrar el modal
             cerrarFormularioModal();
-            showNotification('Éxito', 'Formulario enviado correctamente');
+            
+            // Luego mostrar la notificación de éxito con botón de aceptar
+            Swal.fire({
+                title: 'Éxito',
+                text: 'Formulario enviado correctamente',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#2E7D32'  // Color verde que coincide con el tema
+            });
         } else {
-            showNotification('Error', data.message || 'Error al enviar el formulario');
+            Swal.fire({
+                title: 'Error',
+                text: data.message || 'Error al enviar el formulario',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#2E7D32'
+            });
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        showNotification('Error', 'Ocurrió un error al enviar el formulario');
+        Swal.fire({
+            title: 'Error',
+            text: 'Ocurrió un error al enviar el formulario',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#2E7D32'
+        });
     });
 }
 
@@ -775,5 +863,229 @@ function toggleGuardado(publicacionId) {
     .catch(error => {
         console.error('Error:', error);
         showNotification('Error', 'Ocurrió un error al actualizar el estado de guardado');
+    });
+}
+
+// Función para actualizar el perfil
+function actualizarPerfil(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    
+    fetch('/publicaciones/actualizar-perfil/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Mostrar mensaje de éxito
+            Swal.fire({
+                icon: 'success',
+                title: 'Éxito',
+                text: data.message
+            });
+            // Actualizar la información mostrada en el perfil
+            actualizarInfoPerfil();
+        } else {
+            throw new Error(data.message);
+        }
+    })
+    .catch(error => {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    });
+}
+
+// Función auxiliar para obtener el token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Asegúrate de que el formulario tenga un event listener
+document.addEventListener('DOMContentLoaded', function() {
+    const formPerfil = document.getElementById('form-perfil');
+    if (formPerfil) {
+        formPerfil.addEventListener('submit', actualizarPerfil);
+    }
+});
+
+// Función para verificar el perfil del arrendador
+function verificarPerfilArrendador() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/perfil/verificar/', {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data.perfil_completo) {
+            Swal.fire({
+                title: 'Perfil Incompleto',
+                html: `
+                    <p>Para crear una publicación, primero debes completar tu perfil de arrendador.</p>
+                    <p>Esto es necesario para el sistema de compatibilidad con los arrendatarios.</p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ir a completar perfil',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/perfil/editar/';
+                }
+            });
+        } else {
+            window.location.href = '/publicaciones/publicacion/nueva/';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Hubo un error al verificar tu perfil. Por favor, intenta de nuevo.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+        });
+    });
+}
+
+function verificarPerfilArrendatario(publicacionId, event) {
+    // Prevenir cualquier comportamiento por defecto
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    // Contraer la publicación antes de mostrar cualquier notificación
+    const expandedView = document.querySelector('.property-expanded[style*="display: block"]');
+    if (expandedView) {
+        expandedView.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch('/perfil/verificar/', {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (!data.perfil_completo) {
+            Swal.fire({
+                title: 'Perfil Incompleto',
+                html: `
+                    <p>Para postular a una propiedad, primero debes completar tu perfil de arrendatario.</p>
+                    <p>Esto es necesario para el sistema de compatibilidad con los arrendadores.</p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ir a completar perfil',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/perfil/editar/';
+                }
+            });
+            return false;
+        } else {
+            // Solo mostrar el formulario si el perfil está completo
+            mostrarFormularioPostulacion(publicacionId);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Hubo un error al verificar tu perfil. Por favor, intenta de nuevo.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+        });
+    });
+}
+
+function procesarPago(publicacionId) {
+    // Prevenir la propagación del evento si existe
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    // Hacer la petición AJAX para iniciar el pago
+    fetch(`/pagos/iniciar/${publicacionId}/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Redirigir al usuario a la página de pago de MercadoPago
+            window.location.href = data.init_point;
+        } else {
+            // Mostrar mensaje de error
+            Swal.fire({
+                title: 'Error',
+                text: data.error || 'Hubo un error al procesar el pago',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#2E7D32'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Hubo un error al procesar la solicitud',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#2E7D32'
+        });
     });
 }

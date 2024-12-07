@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load custom_filters %}
+{% load publication_filters %}
 
 {% block title %}Publicaciones Guardadas - ArrendaU{% endblock %}
 
@@ -184,6 +184,6 @@
 {% endblock %}
 
 {% block extra_js %}
-    <script src="{% static 'js/dashboard.js' %}"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="{% static 'js/publicaciones_guardadas.js' %}"></script>
 {% endblock %} 
