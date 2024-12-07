@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Publicacion, Foto, FormularioCompatibilidad, PreguntaFormulario, OpcionRespuesta, RespuestaArrendatario, RespuestaPregunta, PublicacionGuardada, Notificacion
+from ArrendaU_pagos.models import Pago  # Importar Pago desde la app correcta
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import PublicacionForm
@@ -9,6 +10,9 @@ from django.db.models import Q
 import json
 from ArrendaU_app.models import Usuario, Compatibilidad  # Importamos Compatibilidad desde ArrendaU_app.models
 from ArrendaU_app.aplicacion_ia import analizar_compatibilidad
+from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
+import mercadopago
 
 @login_required
 def crear_publicacion(request):
@@ -17,7 +21,7 @@ def crear_publicacion(request):
 
     if request.method == 'POST':
         try:
-            # Crear la publicación
+            # Crear la publicación en estado BORRADOR
             publicacion = Publicacion.objects.create(
                 usuario_id=request.user.id,
                 titulo=request.POST.get('title'),
@@ -27,7 +31,8 @@ def crear_publicacion(request):
                 direccion=request.POST.get('address'),
                 numero_contacto=request.POST.get('contact'),
                 habitaciones_disponibles=int(request.POST.get('rooms')),
-                valor_alquiler=int(request.POST.get('rental-value'))
+                valor_alquiler=int(request.POST.get('rental-value')),
+                estado='BORRADOR'
             )
 
             # Manejar las fotos
@@ -57,7 +62,6 @@ def crear_publicacion(request):
                         orden=i
                     )
 
-                    # Crear las opciones de respuesta para esta pregunta
                     for j, opcion_texto in enumerate(datos_formulario['opciones'][i]):
                         OpcionRespuesta.objects.create(
                             pregunta=pregunta,
@@ -65,13 +69,18 @@ def crear_publicacion(request):
                             orden=j
                         )
 
-            return redirect('dashboard')
-        except Exception as e:
-            messages.error(request, f'Error al crear la publicación: {str(e)}')
-            return render(request, 'publicacion_form.html', {
-                'publicacion': None,
-                'regiones': Publicacion.REGIONES_CHOICES
+            # Cambiar estado a PENDIENTE_PAGO
+            publicacion.estado = 'PENDIENTE_PAGO'
+            publicacion.save()
+
+            return JsonResponse({
+                'success': True,
+                'publicacion_id': publicacion.id,
+                'redirect_url': f'/pagos/iniciar/{publicacion.id}/'
             })
+
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
 
     return render(request, 'publicacion_form.html', {
         'publicacion': None,
@@ -81,10 +90,15 @@ def crear_publicacion(request):
 @login_required
 def listar_publicaciones(request):
     if request.user.rol == 'Arrendador':
+        # Para arrendadores, mostrar todas sus publicaciones
         publicaciones = Publicacion.objects.filter(usuario=request.user)
     else:
-        # Si es arrendatario, mostrar solo publicaciones activas
-        publicaciones = Publicacion.objects.filter(activa=True)
+        # Para arrendatarios, mostrar solo publicaciones activas y pagadas
+        publicaciones = Publicacion.objects.filter(
+            activa=True,
+            estado__in=['PUBLICADA', 'ACTIVA'],  # Excluir BORRADOR y PENDIENTE_PAGO
+            pago__estado='APROBADO'
+        )
     
     return render(request, 'dashboard.html', {
         'publicaciones': publicaciones
@@ -95,12 +109,28 @@ def editar_publicacion(request, publicacion_id):
     publicacion = get_object_or_404(Publicacion, id=publicacion_id)
     
     if request.user != publicacion.usuario:
-        messages.error(request, 'No tienes permiso para editar esta publicación')
-        return redirect('dashboard')
+        return JsonResponse({
+            'success': False,
+            'error': 'No tienes permiso para editar esta publicación'
+        }, status=403)
     
     if request.method == 'POST':
         try:
-            # Actualizar datos básicos de la publicación
+            # Procesar fotos marcadas para eliminación
+            fotos_eliminar = request.POST.getlist('fotos_eliminar')
+            if fotos_eliminar:
+                for foto_id in fotos_eliminar:
+                    try:
+                        foto = Foto.objects.get(id=foto_id, publicacion=publicacion)
+                        # Eliminar el archivo físico
+                        if foto.imagen:
+                            foto.imagen.delete(save=False)
+                        # Eliminar el registro de la base de datos
+                        foto.delete()
+                    except Foto.DoesNotExist:
+                        continue
+
+            # Resto del código existente sin modificar...
             publicacion.titulo = request.POST.get('title')
             publicacion.descripcion = request.POST.get('description')
             publicacion.region = request.POST.get('region')
@@ -150,11 +180,16 @@ def editar_publicacion(request, publicacion_id):
                             orden=j
                         )
             
-            messages.success(request, 'Publicación actualizada exitosamente')
-            return redirect(request.GET.get('next', 'dashboard'))
+            return JsonResponse({
+                'success': True,
+                'message': 'Publicación actualizada exitosamente'
+            })
             
         except Exception as e:
-            messages.error(request, f'Error al actualizar la publicación: {str(e)}')
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
     
     # Preparar datos del formulario existente para el template
     formulario_data = None
@@ -209,7 +244,17 @@ def eliminar_foto(request, foto_id):
 def filtrar_publicaciones(request):
     try:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            # Obtener parámetros de filtrado
+            # Iniciar con el queryset base según el rol del usuario
+            if request.user.rol == 'Arrendador':
+                queryset = Publicacion.objects.filter(usuario=request.user)
+            else:
+                queryset = Publicacion.objects.filter(
+                    activa=True,
+                    estado__in=['PUBLICADA', 'ACTIVA'],
+                    pago__estado='APROBADO'
+                )
+
+            # Aplicar filtros adicionales
             ciudad = request.GET.get('ciudad', '').strip()
             habitaciones = request.GET.get('habitaciones', '')
             min_precio = request.GET.get('min_precio', 0)
@@ -222,9 +267,6 @@ def filtrar_publicaciones(request):
             except ValueError:
                 min_precio = 0
                 max_precio = 400000
-
-            # Iniciar con todas las publicaciones
-            queryset = Publicacion.objects.all()
 
             # Aplicar filtros solo si se proporcionan valores válidos
             if ciudad:
@@ -290,7 +332,7 @@ def filtrar_publicaciones(request):
         return JsonResponse({'error': 'Invalid request'}, status=400)
     
     except Exception as e:
-        print(f"Error en filtrar_publicaciones: {str(e)}")  # Para debugging
+        print(f"Error en filtrar_publicaciones: {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
 
 @login_required
@@ -481,13 +523,17 @@ def toggle_guardado(request, publicacion_id):
 
 @login_required
 def detalle_publicacion(request, publicacion_id):
-    # Verificar que el usuario sea el dueño de la publicación
     publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+    
+    # Verificar que el usuario sea el dueño de la publicación
     if request.user != publicacion.usuario:
         messages.error(request, 'No tienes permiso para ver esta publicación')
         return redirect('dashboard')
     
-    # Obtener todos los postulantes para esta publicación
+    # Obtener estadísticas
+    estadisticas = publicacion.obtener_estadisticas()
+    
+    # Obtener postulantes
     postulantes = RespuestaArrendatario.objects.filter(
         formulario__publicacion=publicacion
     ).select_related(
@@ -498,7 +544,7 @@ def detalle_publicacion(request, publicacion_id):
         'usuario__perfilarrendatario'
     ).order_by('-fecha_respuesta')
     
-    # Obtener el porcentaje de compatibilidad de la tabla Compatibilidad
+    # Obtener compatibilidad para cada postulante
     for postulante in postulantes:
         try:
             compatibilidad = Compatibilidad.objects.get(
@@ -508,7 +554,6 @@ def detalle_publicacion(request, publicacion_id):
             postulante.porcentaje_compatibilidad = int(compatibilidad.porcentaje)
             postulante.descripcion = compatibilidad.descripcion
         except Compatibilidad.DoesNotExist:
-            # Si no existe, calcular y guardar
             porcentaje, descripcion = analizar_compatibilidad(
                 postulante.usuario.perfilarrendatario.id,
                 publicacion.id
@@ -518,7 +563,8 @@ def detalle_publicacion(request, publicacion_id):
     
     return render(request, 'publicacion_postulantes.html', {
         'publicacion': publicacion,
-        'postulantes': postulantes
+        'postulantes': postulantes,
+        'estadisticas': estadisticas
     })
 
 @login_required
@@ -691,33 +737,32 @@ def cancelar_gestion_postulacion(request, postulacion_id):
 @login_required
 def obtener_info_perfil(request, user_id):
     try:
-        usuario = get_object_or_404(Usuario, id=user_id)  # Cambiado de User a Usuario
+        usuario = get_object_or_404(Usuario, id=user_id)
         perfil = usuario.perfilarrendatario if hasattr(usuario, 'perfilarrendatario') else None
         
         data = {
             'nombre': usuario.nombre,
             'apellido': usuario.apellido,
             'email': usuario.email,
+            'telefono': perfil.telefono if perfil and perfil.telefono else 'No especificado',
             'universidad': perfil.universidad if perfil else None,
             'carrera': perfil.carrera if perfil else None,
             'perfil': {
-                # Usar get_field_display() para campos con choices
                 'bebedor': perfil.get_bebedor_display() if perfil else None,
                 'fumador': perfil.get_fumador_display() if perfil else None,
                 'mascota': perfil.get_mascota_display() if perfil else None,
-                'tipo_mascota': perfil.tipo_mascota if perfil and perfil.tipo_mascota else None,
                 'nivel_ruido': dict(perfil._meta.get_field('nivel_ruido').choices).get(perfil.nivel_ruido) if perfil else None,
                 'horario_llegada': perfil.horario_llegada.strftime('%H:%M') if perfil and perfil.horario_llegada else None,
                 'presupuesto_max': perfil.presupuesto_max if perfil else None,
-                'descripcion': perfil.descripcion if perfil else None
+                'descripcion': perfil.descripcion if perfil else None,
+                'documento_estudiante': str(perfil.documento_estudiante) if perfil and perfil.documento_estudiante else None,
+                'documento_nombre': perfil.documento_estudiante.name.split('/')[-1] if perfil and perfil.documento_estudiante else None
             } if perfil else None
         }
         
-        print(f"Data enviada: {data}")  # Debug log
         return JsonResponse(data)
         
     except Exception as e:
-        print(f"Error al obtener perfil: {str(e)}")  # Debug log
         return JsonResponse({
             'error': str(e),
             'detail': 'Error al obtener información del perfil'
@@ -742,3 +787,246 @@ def postular(request, publicacion_id):
         
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+@require_POST
+def registrar_vista(request, publicacion_id):
+    try:
+        publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+        publicacion.incrementar_vistas()
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@login_required
+def obtener_respuestas_postulacion(request, postulacion_id):
+    try:
+        postulacion = get_object_or_404(RespuestaArrendatario, id=postulacion_id)
+        
+        # Verificar que el usuario sea el dueño de la publicación
+        if request.user != postulacion.formulario.publicacion.usuario:
+            return JsonResponse({'error': 'No autorizado'}, status=403)
+        
+        respuestas = []
+        for respuesta in postulacion.respuestas.all():
+            respuestas.append({
+                'pregunta': respuesta.pregunta.texto_pregunta,
+                'respuesta_seleccionada': respuesta.respuesta_seleccionada,
+                'respuesta_esperada': respuesta.pregunta.respuesta_esperada
+            })
+        
+        return JsonResponse({
+            'success': True,
+            'respuestas': respuestas
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+@login_required
+@require_POST
+def actualizar_perfil(request):
+    try:
+        # Obtener el perfil del arrendatario
+        perfil = request.user.perfilarrendatario
+        
+        # Actualizar el teléfono y otros campos del perfil
+        telefono = request.POST.get('telefono')
+        if telefono:
+            perfil.telefono = telefono
+            
+        # Actualizar otros campos si es necesario
+        universidad = request.POST.get('universidad')
+        if universidad:
+            perfil.universidad = universidad
+            
+        carrera = request.POST.get('carrera')
+        if carrera:
+            perfil.carrera = carrera
+            
+        # Guardar los cambios
+        perfil.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Perfil actualizado correctamente'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al actualizar el perfil: {str(e)}'
+        }, status=400)
+
+@login_required
+def postular_directo(request, publicacion_id):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Método no permitido'}, status=405)
+    
+    try:
+        publicacion = Publicacion.objects.get(id=publicacion_id)
+        
+        # Verificar si ya existe una postulación
+        postulacion_existente = RespuestaArrendatario.objects.filter(
+            formulario__publicacion=publicacion,
+            usuario=request.user
+        ).exists()
+        
+        if postulacion_existente:
+            return JsonResponse({
+                'success': False,
+                'message': 'Ya has postulado a esta publicación'
+            })
+        
+        # Crear el formulario si no existe
+        formulario, created = FormularioCompatibilidad.objects.get_or_create(
+            publicacion=publicacion
+        )
+        
+        # Crear nueva postulación sin respuestas
+        postulacion = RespuestaArrendatario.objects.create(
+            formulario=formulario,
+            usuario=request.user,
+            estado='PENDIENTE'
+        )
+        
+        # Crear notificación para el arrendador
+        Notificacion.objects.create(
+            usuario=publicacion.usuario,
+            publicacion=publicacion,
+            tipo='PENDIENTE',
+            mensaje=f'Nueva postulación para "{publicacion.titulo}"'
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Postulación enviada correctamente'
+        })
+        
+    except Publicacion.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'La publicación no existe'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error al procesar la postulación: {str(e)}'
+        }, status=500)
+
+@login_required
+def historial_pagos(request):
+    if request.user.rol != 'Arrendador':
+        messages.error(request, 'No tienes permiso para ver esta página')
+        return redirect('dashboard')
+    
+    pagos = Pago.objects.filter(
+        publicacion__usuario=request.user
+    ).select_related(
+        'publicacion'
+    ).order_by('-fecha_creacion')
+    
+    return render(request, 'historial_pagos.html', {
+        'pagos': pagos
+    })
+
+@login_required
+def pago_fallido(request):
+    external_reference = request.GET.get('external_reference')
+    
+    try:
+        publicacion = get_object_or_404(Publicacion, id=external_reference)
+        pago = get_object_or_404(Pago, publicacion=publicacion)
+        
+        # Marcar el pago como rechazado
+        pago.estado = 'RECHAZADO'
+        pago.save()
+        
+        # Volver la publicación a estado borrador
+        publicacion.estado = 'BORRADOR'
+        publicacion.activa = False
+        publicacion.save()
+        
+        messages.error(request, 'El pago fue rechazado. Puedes intentar pagar nuevamente desde tu dashboard.')
+        
+    except Exception as e:
+        messages.error(request, f'Error al procesar el pago: {str(e)}')
+    
+    return redirect('dashboard')
+
+@csrf_exempt
+def webhook(request):
+    try:
+        data = json.loads(request.body)
+        
+        if data["type"] == "payment":
+            payment_id = data["data"]["id"]
+            
+            sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+            payment_info = sdk.payment().get(payment_id)
+            
+            if payment_info["status"] == 200:
+                payment = payment_info["response"]
+                external_reference = payment["external_reference"]
+                status = payment["status"]
+                
+                try:
+                    publicacion = Publicacion.objects.get(id=external_reference)
+                    pago = Pago.objects.get(publicacion=publicacion)
+                    
+                    if status == "approved":
+                        # Lógica existente para pagos aprobados...
+                        pass
+                    elif status in ["rejected", "cancelled"]:
+                        pago.estado = "RECHAZADO"
+                        pago.payment_id = payment_id
+                        pago.detalles_transaccion = {
+                            'status': status,
+                            'status_detail': payment.get('status_detail'),
+                            'payment_method_id': payment.get('payment_method_id'),
+                            'payment_type_id': payment.get('payment_type_id'),
+                            'error_message': payment.get('error_message')
+                        }
+                        pago.save()
+                        
+                        # Volver la publicación a estado borrador
+                        publicacion.estado = 'BORRADOR'
+                        publicacion.activa = False
+                        publicacion.save()
+                        
+                        print(f"Pago {payment_id} rechazado - Publicación vuelta a borrador")
+                
+                except Exception as e:
+                    print(f"Error procesando pago {payment_id}: {str(e)}")
+                    return JsonResponse({"error": str(e)}, status=400)
+        
+        return JsonResponse({"status": "ok"})
+        
+    except Exception as e:
+        print(f"Error en webhook: {str(e)}")
+        return JsonResponse({"error": str(e)}, status=400)
+
+@login_required
+@require_POST
+def eliminar_borrador(request, pk):
+    try:
+        publicacion = get_object_or_404(
+            Publicacion, 
+            pk=pk, 
+            usuario=request.user,
+            estado='BORRADOR'
+        )
+        publicacion.delete()
+        return JsonResponse({'success': True})
+    except Publicacion.DoesNotExist:
+        return JsonResponse({
+            'success': False, 
+            'error': 'Borrador no encontrado'
+        }, status=404)
+    except Exception as e:
+        return JsonResponse({
+            'success': False, 
+            'error': str(e)
+        }, status=400)

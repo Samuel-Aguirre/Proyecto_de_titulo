@@ -679,3 +679,106 @@ main {
     text-align: center;
     color: var(--text-secondary);
 }  
+
+.toast-container {
+    position: fixed;
+    top: 80px;  /* Aumentamos un poco la distancia desde el navbar */
+    right: 20px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;  /* Aumentamos un poco el espacio entre notificaciones */
+    padding-top: 10px;  /* Añadimos padding superior para más separación */
+}
+
+.toast {
+    display: flex;
+    align-items: flex-start;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 16px;
+    min-width: 320px;
+    max-width: 380px;
+    animation: slideLeft 0.3s ease-out;
+    position: relative;
+    margin-bottom: 2px;  /* Pequeño margen inferior para evitar que se toquen */
+}
+
+/* Estilos para los diferentes tipos de notificaciones */
+.toast.success {
+    border-left: 4px solid #28a745;
+}
+
+.toast.error {
+    border-left: 4px solid #dc3545;
+}
+
+.toast.warning {
+    border-left: 4px solid #ffc107;
+}
+
+.toast.info {
+    border-left: 4px solid #0dcaf0;
+}
+
+/* Iconos para cada tipo de notificación */
+.toast-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+
+.toast.success .toast-icon {
+    background-color: #28a745;
+    color: white;
+}
+
+.toast.error .toast-icon {
+    background-color: #dc3545;
+    color: white;
+}
+
+.toast.warning .toast-icon {
+    background-color: #ffc107;
+    color: white;
+}
+
+.toast.info .toast-icon {
+    background-color: #0dcaf0;
+    color: white;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.toast-message {
+    color: #4a4a4a;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+@keyframes slideLeft {
+    from {
+        transform: translate(100%, -10px);
+        opacity: 0;
+    }
+    to {
+        transform: translate(0, 0);
+        opacity: 1;
+    }
+}  

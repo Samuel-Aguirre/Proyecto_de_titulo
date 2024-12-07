@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-@*c7yqmu0h(eudm=lvdaz)x6yz81p(^e+4o=cl*3q6ikv9f-2o
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'd724-169-150-218-138.ngrok-free.app',]
 
 
 # Application definition
@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'ArrendaU_app.apps.ArrendauAppConfig',
     'ArrendaU_publicaciones_app.apps.PublicacionesConfig',
+    'ArrendaU_pagos.apps.ArrendauPagosConfig',
+    'django.contrib.humanize',
 ]
 
 from django.contrib.messages import constants as messages
@@ -128,9 +130,13 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
@@ -156,4 +162,15 @@ SESSION_SAVE_EVERY_REQUEST = True  # Renovar la cookie en cada request
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
 
-ANTHROPIC_API_KEY = ''
+ANTHROPIC_API_KEY = '' #Llave de Antrhopic 
+
+MERCADOPAGO_ACCESS_TOKEN = ''  # Token del usuario de prueba vendedor
+MERCADOPAGO_PUBLIC_KEY = ''   # Public key del usuario de prueba vendedor
+
+# Configuración de pruebas
+MERCADOPAGO_TEST_MODE = True  # Para indicar que estamos usando usuarios de prueba
+PRECIO_PUBLICACION = 5000  # Precio en pesos chilenos
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+
+MERCADOPAGO_WEBHOOK_ENABLED = False

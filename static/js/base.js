@@ -171,4 +171,76 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Verificar notificaciones al cargar la página
     checkNotifications();
+
+    function showToast(title, message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        // Crear el icono según el tipo
+        const icon = document.createElement('div');
+        icon.className = 'toast-icon';
+        let iconContent = '';
+        switch(type) {
+            case 'success':
+                iconContent = '<i class="fas fa-check"></i>';
+                break;
+            case 'error':
+                iconContent = '<i class="fas fa-times"></i>';
+                break;
+            case 'warning':
+                iconContent = '<i class="fas fa-exclamation"></i>';
+                break;
+            case 'info':
+                iconContent = '<i class="fas fa-info"></i>';
+                break;
+        }
+        icon.innerHTML = iconContent;
+        
+        const content = document.createElement('div');
+        content.className = 'toast-content';
+        
+        const titleElement = document.createElement('div');
+        titleElement.className = 'toast-title';
+        titleElement.textContent = title;
+        
+        const messageElement = document.createElement('div');
+        messageElement.className = 'toast-message';
+        messageElement.textContent = message;
+        
+        content.appendChild(titleElement);
+        if (message) content.appendChild(messageElement);
+        
+        toast.appendChild(icon);
+        toast.appendChild(content);
+        
+        container.appendChild(toast);
+        
+        // Reducimos el tiempo de visualización a 3 segundos (3000ms)
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            // Reducimos el tiempo de la animación de salida a 200ms
+            setTimeout(() => {
+                container.removeChild(toast);
+            }, 200);
+        }, 3000);  // Cambiado de 5000 a 3000
+    }
+
+    // Modificar cómo se procesan los mensajes de Django
+    const messages = document.querySelectorAll('.messages .alert');
+    messages.forEach(message => {
+        const type = message.classList.contains('alert-success') ? 'success' :
+                    message.classList.contains('alert-error') ? 'error' :
+                    message.classList.contains('alert-warning') ? 'warning' : 'info';
+        
+        // Extraer título y mensaje si existe un separador
+        const content = message.textContent.split(':');
+        const title = content[0].trim();
+        const msg = content.length > 1 ? content[1].trim() : '';
+        
+        showToast(title, msg, type);
+        message.remove();
+    });
 }); 

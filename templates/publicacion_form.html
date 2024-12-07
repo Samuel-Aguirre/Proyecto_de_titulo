@@ -12,7 +12,12 @@
         <p>{% if publicacion %}Actualiza los detalles de tu publicación{% else %}Ingresa los detalles de tu propiedad{% endif %}</p>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" id="publicacionForm">
+    <form id="publicacionForm" 
+          method="POST" 
+          enctype="multipart/form-data"
+          action="{% if publicacion %}{% url 'ArrendaU_publicaciones_app:editar_publicacion' publicacion.id %}{% else %}{% url 'ArrendaU_publicaciones_app:crear_publicacion' %}{% endif %}"
+          data-editing="{% if publicacion %}true{% else %}false{% endif %}"
+          data-redirect-url="{% if publicacion %}{% url 'dashboard' %}{% endif %}">
         {% csrf_token %}
         
         <div class="form-group">
@@ -73,23 +78,23 @@
 
         <div class="form-group">
             {% if publicacion %}
-            <label>Imágenes Actuales</label>
-            <div class="current-images">
-                {% for foto in publicacion.fotos.all %}
-                <div class="image-container" id="foto-{{ foto.id }}">
-                    <img src="{{ foto.imagen.url }}" alt="Foto de la propiedad">
-                    <button type="button" class="delete-image" data-foto-id="{{ foto.id }}">
-                        <i class="fas fa-times"></i>
-                    </button>
+                <label>Imágenes Actuales</label>
+                <div class="current-images">
+                    {% for foto in publicacion.fotos.all %}
+                    <div class="image-container" id="foto-{{ foto.id }}">
+                        <img src="{{ foto.imagen.url }}" alt="Foto de la propiedad">
+                        <button type="button" class="delete-image" data-foto-id="{{ foto.id }}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
             {% endif %}
         </div>
 
         <div class="form-group">
             <label for="photos">{% if publicacion %}Agregar Nuevas Fotos{% else %}Agregar Fotos{% endif %}</label>
-            <div class="file-upload" onclick="document.getElementById('photos').click();">
+            <div class="file-upload" onclick="document.getElementById('photos').click()">
                 <i class="fas fa-cloud-upload-alt fa-2x"></i>
                 <p>Haz clic para subir imágenes o arrastra y suelta aquí</p>
                 <input type="file" id="photos" name="photos" multiple accept="image/*" style="display: none">
@@ -195,4 +200,5 @@
 
 {% block extra_js %}
 <script src="{% static 'js/publicacion_form.js' %}"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 {% endblock %} 

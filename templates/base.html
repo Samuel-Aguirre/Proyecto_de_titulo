@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body class="{% if user.rol == 'Arrendatario' %}rol-arrendatario{% endif %}">
+<body class="{% if user.is_authenticated %}user-authenticated {% if user.rol == 'Arrendador' %}user-arrendador{% endif %}{% endif %}">
     <nav class="navbar">
         <button class="menu-toggle">
             <i class="fas fa-bars"></i>
@@ -32,9 +32,8 @@
                 <a href="{% url 'dashboard' %}">Inicio</a>
                 
                 {% if user.rol == 'Arrendador' %}
-                    <a href="#">Mis Publicaciones</a>
-                    <a href="#">Postulaciones</a>
-                    <a href="#" class="au-btn-create">Crear Publicación</a>
+                    <a href="{% url 'ArrendaU_publicaciones_app:historial_pagos' %}">Historial de Pagos</a>
+                    <a href="#">Reseñas</a>
                 {% else %}
                     <a href="#">Buscar Habitación</a>
                     <a href="{% url 'ArrendaU_publicaciones_app:mis_postulaciones' %}">Mis Postulaciones</a>
@@ -98,6 +97,8 @@
             </div>
         {% endif %}
     </nav>
+
+    <div id="toast-container" class="toast-container"></div>
 
     <main>
         {% block content %}{% endblock %}

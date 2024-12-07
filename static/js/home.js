@@ -10,20 +10,7 @@ function toggleMenu() {
 }
 
 function recomendarRegistro() {
-    Swal.fire({
-        title: '¡Únete a ArrendaU!',
-        text: "Para acceder a todas las funcionalidades, necesitas crear una cuenta.",
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonColor: '#2E7D32',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Registrarme',
-        cancelButtonText: 'Más tarde'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = '/register/';
-        }
-    });
+    window.location.href = '/dashboard/';
 }
 
 // Cerrar el menú al hacer clic fuera de él

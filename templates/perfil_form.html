@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
 {% block title %}
     Mi Perfil - ArrendaU
@@ -45,14 +46,26 @@
             </div>
 
             <div class="form-group">
-                <label for="id_documento_estudiante">Documento de Estudiante</label>
-                <div class="file-upload" onclick="document.getElementById('id_documento_estudiante').click();">
-                    <i class="fas fa-cloud-upload-alt fa-2x"></i>
-                    <p>Haz clic para subir tu documento o arrastra y suelta aquí</p>
-                    {{ form.documento_estudiante }}
+                {% if perfil.documento_estudiante %}
+                <div class="current-document" id="doc-container">
+                    <span class="document-name">{{ perfil.documento_estudiante.name|slice:"20:" }}</span>
+                    <button type="button" class="delete-document" data-doc-id="{{ perfil.id }}">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
-                <div id="documento-preview" class="current-images"></div>
-                <small class="help-text">{{ form.documento_estudiante.help_text }}</small>
+                {% endif %}
+                
+                <label for="documento">Documento de Estudiante</label>
+                {% if form.documento_estudiante.help_text %}
+                <span class="help-text">{{ form.documento_estudiante.help_text }}</span>
+                {% endif %}
+                <div class="file-upload" onclick="document.getElementById('documento').click()">
+                    <i class="fas fa-cloud-upload-alt fa-2x"></i>
+                    <p>Haz clic para subir documento o arrastra y suelta aquí</p>
+                    <input type="file" id="documento" name="documento_estudiante" 
+                           accept=".pdf,.doc,.docx" style="display: none">
+                </div>
+                <div id="document-preview" class="document-preview"></div>
             </div>
 
             <div class="form-section">
@@ -86,6 +99,13 @@
                 <div class="form-group">
                     <label for="id_horario_llegada">Horario típico de llegada</label>
                     {{ form.horario_llegada }}
+                </div>
+
+                <div class="form-group">
+                    <label for="telefono">Número de Contacto</label>
+                    <input type="tel" id="telefono" name="telefono" class="form-control" 
+                           value="{{ user.perfilarrendatario.telefono|default:'' }}" 
+                           placeholder="+56 9 XXXX XXXX">
                 </div>
 
                 <div class="form-group">
@@ -143,5 +163,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/perfil_form.js' %}"></script>
 {% endblock %} 

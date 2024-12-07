@@ -29,8 +29,10 @@ urlpatterns = [
     path('cerrar_sesion/', views.logout_view, name='cerrar_sesion'),
     path('perfil/editar/', views.editar_perfil, name='editar_perfil'),  # Nueva URL para editar perfil
     path('perfil/<int:user_id>/', views.ver_perfil, name='ver_perfil'),  # Nueva URL para ver perfil
+    path('perfil/verificar/', views.verificar_perfil, name='verificar_perfil'),
     path('publicaciones/', include('ArrendaU_publicaciones_app.urls')),
     path('cambiar-rol/', views.cambiar_rol, name='cambiar_rol'),
+    path('pagos/', include('ArrendaU_pagos.urls')),
 ]
 
 # Añade esta línea para configurar la URL de los archivos media

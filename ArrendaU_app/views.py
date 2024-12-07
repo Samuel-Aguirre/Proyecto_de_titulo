@@ -8,6 +8,8 @@ from ArrendaU_publicaciones_app.models import Publicacion
 from django.utils import timezone
 from .models import PerfilArrendatario, PerfilArrendador
 from .forms import PerfilArrendatarioForm, PerfilArrendadorForm
+import os
+from django.http import JsonResponse
 
 def login_view(request):
     if request.method == 'POST':
@@ -58,28 +60,39 @@ def home(request):
     # Si no está logueado, mostrar la página de inicio
     return render(request, 'home.html')
 
-@login_required
 def dashboard_view(request):
-    # Obtener publicaciones según el rol del usuario
-    if request.user.rol == 'Arrendador':
-        # Si es arrendador, solo mostrar sus propias publicaciones
-        publicaciones = Publicacion.objects.filter(usuario=request.user).prefetch_related(
-            'fotos',
-            'usuario__perfilarrendador'
-        )
-    else:
-        # Si es estudiante, mostrar todas las publicaciones
-        publicaciones = Publicacion.objects.all().prefetch_related(
-            'guardada_por',
-            'fotos',
-            'usuario__perfilarrendador'
-        )
-        # Añadir un atributo para verificar si cada publicación está guardada
-        for publicacion in publicaciones:
-            publicacion.esta_guardada = publicacion.guardada_por.filter(usuario=request.user).exists()
+    # Obtener todas las publicaciones
+    publicaciones = Publicacion.objects.all().prefetch_related(
+        'fotos',
+        'usuario__perfilarrendador'
+    )
+    
+    # Obtener ciudades únicas agrupadas por región
+    ciudades_por_region = {}
+    for publicacion in publicaciones:
+        region = publicacion.get_region_display()  # Obtiene el nombre legible de la región
+        ciudad = publicacion.ciudad
+        if region not in ciudades_por_region:
+            ciudades_por_region[region] = set()
+        ciudades_por_region[region].add(ciudad)
+    
+    # Ordenar las regiones y ciudades
+    ciudades_por_region = {
+        region: sorted(list(ciudades))
+        for region, ciudades in sorted(ciudades_por_region.items())
+    }
+    
+    # Si el usuario está autenticado, agregar información adicional
+    if request.user.is_authenticated:
+        if request.user.rol == 'Arrendador':
+            publicaciones = publicaciones.filter(usuario=request.user)
+        else:
+            for publicacion in publicaciones:
+                publicacion.esta_guardada = publicacion.guardada_por.filter(usuario=request.user).exists()
     
     return render(request, 'dashboard.html', {
         'publicaciones': publicaciones,
+        'ciudades_por_region': ciudades_por_region,
         'user': request.user
     })
 
@@ -102,7 +115,25 @@ def editar_perfil(request):
     if request.method == 'POST':
         form = form_class(request.POST, request.FILES, instance=perfil)
         if form.is_valid():
-            form.save()
+            perfil = form.save(commit=False)
+            
+            # Manejar la eliminación del documento solo para arrendatarios
+            if request.user.rol == 'Arrendatario':
+                if request.POST.get('documento_eliminado') == 'true':
+                    if perfil.documento_estudiante:
+                        try:
+                            ruta_archivo = perfil.documento_estudiante.path
+                            perfil.documento_estudiante = None
+                            if os.path.exists(ruta_archivo):
+                                os.remove(ruta_archivo)
+                        except Exception as e:
+                            print(f"Error al eliminar el documento: {e}")
+
+                # Manejar el campo de mascota solo para arrendatarios
+                if perfil.mascota == 'no':
+                    perfil.tipo_mascota = ''
+            
+            perfil.save()
             messages.success(request, 'Perfil actualizado exitosamente')
             return redirect('dashboard')
     else:
@@ -136,9 +167,53 @@ def ver_perfil(request, user_id=None):
 def cambiar_rol(request):
     if request.user.rol == 'Arrendador':
         request.user.rol = 'Arrendatario'
+        messages.success(request, 'Tu rol ha sido cambiado a Arrendatario')
     else:
         request.user.rol = 'Arrendador'
-    
+        messages.success(request, 'Tu rol ha sido cambiado a Arrendador')
     request.user.save()
-    messages.success(request, f'Tu rol ha sido cambiado a {request.user.rol}')
     return redirect('dashboard')
+
+@login_required
+def verificar_perfil(request):
+    try:
+        if request.user.rol == 'Arrendador':
+            perfil = request.user.perfilarrendador
+            campos_requeridos = [
+                perfil.pref_no_fumador,
+                perfil.pref_no_bebedor,
+                perfil.pref_no_mascotas,
+                perfil.pref_estudiante_verificado,
+                perfil.pref_nivel_ruido,
+                perfil.horario_visitas,
+                perfil.reglas_casa,
+                perfil.descripcion
+            ]
+        else:  # Arrendatario
+            perfil = request.user.perfilarrendatario
+            campos_requeridos = [
+                perfil.universidad,
+                perfil.carrera,
+                perfil.bebedor,
+                perfil.fumador,
+                perfil.mascota,
+                perfil.nivel_ruido,
+                perfil.horario_llegada,
+                perfil.presupuesto_max,
+                perfil.descripcion
+            ]
+        
+        perfil_completo = all(campo for campo in campos_requeridos)
+        
+        return JsonResponse({
+            'success': True,
+            'perfil_completo': perfil_completo,
+            'mensaje': 'Perfil verificado correctamente'
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'perfil_completo': False,
+            'mensaje': f'Error al verificar el perfil: {str(e)}'
+        })

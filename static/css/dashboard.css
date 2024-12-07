@@ -988,7 +988,7 @@ body.modal-open {
     gap: 1rem;
     padding: 1.5rem 0;
     padding-bottom: 0;
-    border-top: 1px solid #e0e  0e0;  /* Línea separadora */
+    border-top: 1px solid #e0e0e0;
 }
 
 .btn-contact, .btn-apply {
@@ -1275,4 +1275,177 @@ body.modal-open {
 
 #formularioCompatibilidad::-webkit-scrollbar-thumb:hover {
     background: #1b5e20;
+}
+
+.payment-pending-banner {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.btn-payment {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s ease;
+}
+
+.btn-payment:hover {
+    background-color: #1b5e20;
+}
+
+.draft-banner {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Estilos para publicaciones en borrador */
+.property-card.draft {
+    border: 2px dashed #ccc;  /* Solo mantenemos el borde punteado */
+}
+
+/* Estilos para los banners de estado */
+.draft-banner {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.payment-pending-banner {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+    color: #856404;
+    padding: 1rem;
+    margin-top: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+/* Estilos para los botones de acción */
+.btn-payment {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s ease;
+}
+
+.btn-payment:hover {
+    background-color: #1b5e20;
+}
+
+.draft-banner .btn-delete {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s ease;
+    transform: none;
+}
+
+.draft-banner .btn-delete:hover {
+    background-color: #c82333;
+}
+
+.status-banner {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0.75rem;
+    z-index: 2;
+    backdrop-filter: blur(8px);
+    border-radius: 0 0 12px 12px;
+}
+
+.status-banner.draft {
+    background-color: rgba(233, 236, 239, 0.95);
+    border-top: 1px solid #dee2e6;
+}
+
+.status-banner.pending {
+    background-color: rgba(255, 243, 205, 0.95);
+    border-top: 1px solid #ffeeba;
+}
+
+.status-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.status-text {
+    font-weight: 500;
+    flex-grow: 1;
+}
+
+.status-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.status-actions button {
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 129px;  /* Ancho mínimo fijo para ambos botones */
+    height: 28px;      /* Altura fija para ambos botones */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Eliminar cualquier padding o margin que pueda afectar las dimensiones */
+.status-actions .btn-delete,
+.status-actions .btn-payment {
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.btn-payment {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-payment:hover {
+    background-color: #1b5e20;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
 }

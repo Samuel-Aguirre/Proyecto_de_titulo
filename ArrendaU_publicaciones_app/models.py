@@ -1,24 +1,26 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils.text import capfirst
+from unidecode import unidecode
 
 User = get_user_model()
 
 class Publicacion(models.Model):
     REGIONES_CHOICES = [
-        ('araucania', 'Araucanía'),
-        ('biobio', 'Bío Bío'),
-        ('los_lagos', 'Los Lagos'),
-        ('metropolitana', 'Metropolitana'),
-        ('valparaiso', 'Valparaíso'),
-        ('ohiggins', "O'Higgins"),
-        ('maule', 'Maule'),
-        ('nuble', 'Ñuble'),
-        ('los_rios', 'Los Ríos'),
         ('arica', 'Arica y Parinacota'),
         ('tarapaca', 'Tarapacá'),
         ('antofagasta', 'Antofagasta'),
         ('atacama', 'Atacama'),
         ('coquimbo', 'Coquimbo'),
+        ('valparaiso', 'Valparaíso'),
+        ('metropolitana', 'Metropolitana'),
+        ('ohiggins', "O'Higgins"),
+        ('maule', 'Maule'),
+        ('nuble', 'Ñuble'),
+        ('biobio', 'Bío Bío'),
+        ('araucania', 'Araucanía'),
+        ('los_rios', 'Los Ríos'),
+        ('los_lagos', 'Los Lagos'),
         ('aysen', 'Aysén'),
         ('magallanes', 'Magallanes'),
     ]
@@ -35,9 +37,86 @@ class Publicacion(models.Model):
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_actualizacion = models.DateTimeField(auto_now=True)
     activa = models.BooleanField(default=True)
+    vistas = models.IntegerField(default=0)
+    ESTADO_CHOICES = [
+        ('BORRADOR', 'Borrador'),
+        ('PENDIENTE_PAGO', 'Pendiente de Pago'),
+        ('PUBLICADA', 'Publicada'),
+        ('INACTIVA', 'Inactiva')
+    ]
+    estado = models.CharField(
+        max_length=20,
+        choices=ESTADO_CHOICES,
+        default='BORRADOR'
+    )
+
+    @property
+    def estado_publicacion(self):
+        """Retorna el estado actual de la publicación basado en el último pago activo"""
+        try:
+            # Buscar el último pago que esté APROBADO o PENDIENTE
+            ultimo_pago = self.pagos.filter(
+                estado__in=['APROBADO', 'PENDIENTE']
+            ).order_by('-fecha_creacion').first()
+            
+            if ultimo_pago:
+                if ultimo_pago.estado == 'APROBADO':
+                    return 'Publicada' if self.estado == 'PUBLICADA' else 'Inactiva'
+                return f'Pago {ultimo_pago.get_estado_display()}'
+            
+            return 'Pendiente de Pago'
+            
+        except Exception as e:
+            print(f"Error al obtener estado de publicación: {e}")
+            return 'Pendiente de Pago'
 
     def __str__(self):
-        return self.titulo
+        return f"{self.titulo} ({self.estado_publicacion})"
+
+    def incrementar_vistas(self):
+        self.vistas += 1
+        self.save()
+
+    def obtener_estadisticas(self):
+        total_postulaciones = RespuestaArrendatario.objects.filter(
+            formulario__publicacion=self
+        ).count()
+        
+        tasa_conversion = 0
+        if self.vistas > 0:
+            tasa_conversion = (total_postulaciones / self.vistas) * 100
+
+        return {
+            'vistas': self.vistas,
+            'postulaciones': total_postulaciones,
+            'tasa_conversion': round(tasa_conversion, 1)
+        }
+
+    def clean(self):
+        super().clean()
+        if self.ciudad:
+            # Eliminar acentos y convertir a minúsculas
+            ciudad_limpia = unidecode(self.ciudad.lower())
+            # Capitalizar primera letra
+            self.ciudad = capfirst(ciudad_limpia)
+
+    def save(self, *args, **kwargs):
+        # Formatear ciudad antes de guardar
+        if self.ciudad:
+            # Eliminar acentos y convertir a minúsculas
+            ciudad_limpia = unidecode(self.ciudad.lower())
+            # Capitalizar primera letra
+            self.ciudad = capfirst(ciudad_limpia)
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        # Asegurarse de que cualquier pago asociado se elimine primero
+        try:
+            if hasattr(self, 'pago'):
+                self.pago.delete()
+        except Exception as e:
+            print(f"Error al eliminar pago asociado: {e}")
+        super().delete(*args, **kwargs)
 
 class FormularioCompatibilidad(models.Model):
     publicacion = models.OneToOneField(Publicacion, on_delete=models.CASCADE, related_name='formulario')
@@ -115,6 +194,7 @@ class PublicacionGuardada(models.Model):
 
 class Notificacion(models.Model):
     TIPOS = (
+        ('PENDIENTE', 'Nueva Postulación'),
         ('ACEPTADO', 'Postulación Aceptada'),
         ('RECHAZADO', 'Postulación Rechazada'),
     )

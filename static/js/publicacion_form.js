@@ -46,13 +46,129 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Al enviar el formulario, quitar los puntos
+    // Al enviar el formulario
     const form = document.getElementById('publicacionForm');
     if (form) {
         form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Limpiar el valor del alquiler antes de enviar
             if (rentalInput) {
                 const value = rentalInput.value.replace(/\./g, '');
                 rentalInput.value = value;
+            }
+
+            // Verificar si estamos editando o creando
+            const isEditing = form.getAttribute('data-editing') === 'true';
+
+            if (!isEditing) {
+                // Solo mostrar modal de pago si es una nueva publicación
+                Swal.fire({
+                    title: 'Publicación con Costo',
+                    html: `
+                        <p>Para publicar tu anuncio, es necesario realizar un pago de $5.000 CLP.</p>
+                        <p>Este pago es único por publicación y te permite:</p>
+                        <ul style="text-align: left;">
+                            <li>Mantener tu publicación activa</li>
+                            <li>Recibir postulaciones de arrendatarios</li>
+                            <li>Acceder a estadísticas de tu publicación</li>
+                        </ul>
+                    `,
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'Proceder al pago',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true,
+                    customClass: {
+                        confirmButton: 'swal-confirm-button',
+                        cancelButton: 'swal-cancel-button'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        enviarFormulario(form, true);
+                    } else {
+                        // Restaurar formato con puntos
+                        if (rentalInput) {
+                            rentalInput.value = formatNumber(value);
+                        }
+                    }
+                });
+            } else {
+                // Si es edición, enviar directamente
+                enviarFormulario(form, false);
+            }
+        });
+    }
+
+    // Función para enviar el formulario
+    function enviarFormulario(form, esNueva) {
+        // Limpiar el valor del alquiler
+        if (rentalInput) {
+            const value = rentalInput.value.replace(/\./g, '');
+            rentalInput.value = value;
+        }
+
+        // Preparar el formulario de compatibilidad
+        prepararFormularioCompatibilidad(form);
+        
+        // Preparar los datos del formulario
+        const formData = new FormData(form);
+        
+        // Enviar el formulario mediante AJAX
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json().catch(() => {
+                throw new Error('Error al procesar la respuesta JSON');
+            });
+        })
+        .then(data => {
+            if (data.success) {
+                if (esNueva) {
+                    // Iniciar el proceso de pago solo si es nueva publicación
+                    procesarPago(data.publicacion_id);
+                } else {
+                    // Si es edición, mostrar mensaje de éxito y redireccionar
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: 'Publicación actualizada correctamente',
+                        icon: 'success',
+                        confirmButtonText: 'Aceptar',
+                        customClass: {
+                            confirmButton: 'swal-confirm-button'
+                        },
+                        buttonsStyling: false
+                    }).then(() => {
+                        window.location.href = form.getAttribute('data-redirect-url') || '/dashboard/';
+                    });
+                }
+            } else {
+                throw new Error(data.error || 'Error al procesar la publicación');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: error.message || 'Hubo un error al procesar tu solicitud',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                customClass: {
+                    confirmButton: 'swal-confirm-button'
+                },
+                buttonsStyling: false
+            });
+            // Restaurar el formato con puntos
+            if (rentalInput) {
+                const originalValue = rentalInput.value;
+                rentalInput.value = formatNumber(originalValue);
             }
         });
     }
@@ -65,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function() {
         photosInput.addEventListener('change', function() {
             previewContainer.innerHTML = ''; // Limpiar previsualizaciones anteriores
             
-            Array.from(this.files).forEach(file => {
+            Array.from(this.files).forEach((file, index) => {
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
@@ -76,7 +192,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     img.src = e.target.result;
                     img.alt = 'Preview';
                     
+                    // Agregar botón de eliminar
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.type = 'button';
+                    deleteBtn.className = 'delete-image';
+                    deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+                    
+                    // Función para eliminar la imagen
+                    deleteBtn.onclick = function() {
+                        div.remove();
+                        
+                        // Crear un nuevo FileList sin la imagen eliminada
+                        const dt = new DataTransfer();
+                        const { files } = photosInput;
+                        
+                        for (let i = 0; i < files.length; i++) {
+                            if (i !== index) {
+                                dt.items.add(files[i]);
+                            }
+                        }
+                        
+                        photosInput.files = dt.files;
+                    };
+                    
                     div.appendChild(img);
+                    div.appendChild(deleteBtn);
                     previewContainer.appendChild(div);
                 }
                 
@@ -85,34 +225,21 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Eliminación de fotos existentes
-    document.querySelectorAll('.delete-image').forEach(button => {
+    // Mantener el código existente para eliminar fotos en modo edición
+    document.querySelectorAll('.delete-image[data-foto-id]').forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-            const fotoId = this.getAttribute('data-foto-id');
-            const container = document.getElementById(`foto-${fotoId}`);
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-            fetch(`/publicaciones/eliminar-foto/${fotoId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrfToken,
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    container.remove();
-                } else {
-                    alert('Error al eliminar la imagen');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error al eliminar la imagen');
-            });
+            const container = document.getElementById(`foto-${this.getAttribute('data-foto-id')}`);
+            
+            // Solo ocultar la imagen visualmente
+            container.style.display = 'none';
+            
+            // Agregar un input hidden para marcar la imagen como eliminada
+            const hiddenInput = document.createElement('input');
+            hiddenInput.type = 'hidden';
+            hiddenInput.name = 'fotos_eliminar';
+            hiddenInput.value = this.getAttribute('data-foto-id');
+            document.getElementById('publicacionForm').appendChild(hiddenInput);
         });
     });
 
@@ -233,35 +360,189 @@ document.addEventListener('DOMContentLoaded', function() {
         window.agregarPregunta();
     }
 
-    // Modificar el evento submit del formulario
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const preguntas = [];
-            const respuestasOpciones = [];
-            const respuestasEsperadas = [];
+    // Agregar al final del archivo
+    function procesarPago(publicacionId) {
+        Swal.fire({
+            title: 'Procesando',
+            text: 'Iniciando proceso de pago...',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+        fetch(`/pagos/iniciar/${publicacionId}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            credentials: 'same-origin'
+        })
+        .then(async response => {
+            const data = await response.json();
+            console.log('Respuesta completa del servidor:', data); // Debug detallado
             
-            this.querySelectorAll('.pregunta-grupo:not(.pregunta-template)').forEach(grupo => {
-                const pregunta = grupo.querySelector('.pregunta-input').value;
-                const opciones = Array.from(grupo.querySelectorAll('.respuesta-input')).map(input => input.value);
-                const respuestaEsperada = grupo.querySelector('.respuesta-esperada-select').value;
-                
-                if (pregunta.trim() && opciones.length > 0) {
-                    preguntas.push(pregunta);
-                    respuestasOpciones.push(opciones);
-                    respuestasEsperadas.push(respuestaEsperada);
+            if (!response.ok) {
+                throw new Error(data.error || 'Error en la respuesta del servidor');
+            }
+            return data;
+        })
+        .then(data => {
+            if (data.success && data.init_point) {
+                window.location.href = data.init_point;
+            } else {
+                throw new Error(data.error || 'No se pudo iniciar el proceso de pago');
+            }
+        })
+        .catch(error => {
+            console.error('Error completo:', error); // Debug detallado
+            Swal.fire({
+                title: 'Error en el Proceso de Pago',
+                text: error.message || 'Error al procesar el pago. Por favor, intenta nuevamente.',
+                icon: 'error',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#2E7D32',
+                showCancelButton: true,
+                cancelButtonText: 'Volver al Dashboard',
+                reverseButtons: true
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    window.location.href = '/dashboard/';
                 }
             });
-            
-            const preguntasInput = document.createElement('input');
-            preguntasInput.type = 'hidden';
-            preguntasInput.name = 'preguntas_compatibilidad';
-            preguntasInput.value = JSON.stringify({
-                preguntas: preguntas,
-                opciones: respuestasOpciones,
-                respuestas_esperadas: respuestasEsperadas
-            });
-            
-            this.appendChild(preguntasInput);
         });
     }
-}); 
+
+    function prepararFormularioCompatibilidad(form) {
+        const preguntas = [];
+        const respuestasOpciones = [];
+        const respuestasEsperadas = [];
+        
+        form.querySelectorAll('.pregunta-grupo:not(.pregunta-template)').forEach(grupo => {
+            const pregunta = grupo.querySelector('.pregunta-input').value;
+            const opciones = Array.from(grupo.querySelectorAll('.respuesta-input')).map(input => input.value);
+            const respuestaEsperada = grupo.querySelector('.respuesta-esperada-select').value;
+            
+            if (pregunta.trim() && opciones.length > 0) {
+                preguntas.push(pregunta);
+                respuestasOpciones.push(opciones);
+                respuestasEsperadas.push(respuestaEsperada);
+            }
+        });
+        
+        const preguntasInput = document.createElement('input');
+        preguntasInput.type = 'hidden';
+        preguntasInput.name = 'preguntas_compatibilidad';
+        preguntasInput.value = JSON.stringify({
+            preguntas: preguntas,
+            opciones: respuestasOpciones,
+            respuestas_esperadas: respuestasEsperadas
+        });
+        
+        form.appendChild(preguntasInput);
+    }
+
+    // Agregar estilos personalizados para los botones de SweetAlert2
+    const style = document.createElement('style');
+    style.textContent = `
+        .swal-confirm-button {
+            padding: 12px 24px;
+            margin: 0 5px;
+            background-color: #4CAF50 !important;
+            color: white !important;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .swal-confirm-button:hover {
+            background-color: #45a049 !important;
+        }
+        
+        .swal-cancel-button {
+            padding: 12px 24px;
+            margin: 0 5px;
+            background-color: #f44336 !important;
+            color: white !important;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .swal-cancel-button:hover {
+            background-color: #da190b !important;
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Función para iniciar el proceso de pago
+    function iniciarProcesoPago(publicacionId) {
+        mostrarCargando('Inicializando pago...');
+        
+        fetch(`/pagos/iniciar/${publicacionId}/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            ocultarCargando();
+            
+            if (data.success && data.init_point) {
+                // Redirigir al checkout de MercadoPago
+                window.location.href = data.init_point;
+            } else if (data.error) {
+                // Mostrar error específico
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error al iniciar el pago',
+                    text: data.error,
+                    confirmButtonText: 'Aceptar'
+                });
+            } else {
+                // Error genérico
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Hubo un problema al iniciar el proceso de pago. Por favor, intenta de nuevo.',
+                    confirmButtonText: 'Aceptar'
+                });
+            }
+        })
+        .catch(error => {
+            ocultarCargando();
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'Hubo un problema al conectar con el servidor. Por favor, intenta de nuevo.',
+                confirmButtonText: 'Aceptar'
+            });
+        });
+    }
+
+    // Funciones auxiliares para mostrar/ocultar el indicador de carga
+    function mostrarCargando(mensaje = 'Cargando...') {
+        Swal.fire({
+            title: mensaje,
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+    }
+
+    function ocultarCargando() {
+        Swal.close();
+    }
+});
