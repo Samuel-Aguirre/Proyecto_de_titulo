@@ -17,12 +17,14 @@ Including another URLconf
 from django.urls import path,include
 from django.contrib.auth.decorators import login_required
 from ArrendaU_app import views
+from django.contrib import admin
 
 from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    path('admin/', admin.site.urls),
+    path('', include('ArrendaU_app.urls')),  # Incluye las URLs de la app
     path('login/', views.login_view, name='login'),
     path('register/', views.register_view, name='register'),
     path('dashboard/', views.dashboard_view, name='dashboard'),  # Ruta unificada
@@ -33,6 +35,7 @@ urlpatterns = [
     path('publicaciones/', include('ArrendaU_publicaciones_app.urls')),
     path('cambiar-rol/', views.cambiar_rol, name='cambiar_rol'),
     path('pagos/', include('ArrendaU_pagos.urls')),
+    path('configuracion/', login_required(views.configuracion_view), name='configuracion'),
 ]
 
 # Añade esta línea para configurar la URL de los archivos media

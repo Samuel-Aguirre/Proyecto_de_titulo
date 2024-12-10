@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        .code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2E7D32;
+            text-align: center;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .warning {
+            color: #666;
+            font-size: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Hola {{ nombre }},</h2>
+        <p>Tu código de verificación para ArrendaU es:</p>
+        
+        <div class="code">{{ codigo_otp }}</div>
+        
+        <p>Este código expirará en {{ expiracion_minutos }} minutos.</p>
+        
+        <p class="warning">Si no solicitaste este código, por favor ignora este correo.</p>
+    </div>
+</body>
+</html> 

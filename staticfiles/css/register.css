@@ -1,0 +1,293 @@
+/* ArrendaU Design System */
+:root {
+    --primary-color: #2E7D32;
+    --primary-light: rgba(46, 125, 50, 0.1);
+    --secondary-color: #1976D2;
+    --text-primary: #2c3e50;
+    --text-secondary: #64748b;
+    --background-light: #f8f9fa;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --border-color: #e2e8f0;
+    --white: #ffffff;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+}
+
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: var(--background-light);
+}
+
+/* Container principal */
+.register-container {
+    display: flex;
+    min-height: calc(100vh - 130px);
+    width: 100%;
+}
+
+/* Panel izquierdo */
+.register-panel {
+    width: 60%;
+    height: calc(100vh - 130px);
+    overflow-y: auto;
+    background: var(--white);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.register-content {
+    width: 100%;
+    max-width: 500px;
+    padding: 1rem;
+}
+
+/* Estilos de las tarjetas/secciones */
+.form-section {
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+}
+
+.form-section h2 {
+    color: var(--primary-color);
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--primary-light);
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Campos del formulario */
+.form-group {
+    margin-bottom: 1.25rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Estilos unificados para todos los campos con íconos */
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.input-with-icon input {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.5rem; /* Ajustado para el ícono */
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: transparent;
+    color: var(--text-primary);
+}
+
+.input-with-icon input::placeholder {
+    color: #9ca3af;
+}
+
+/* Estilos unificados para todos los íconos */
+.input-with-icon i {
+    position: absolute;
+    left: 0.75rem;
+    color: #9ca3af; /* Color gris más suave */
+    font-size: 1.1rem;
+}
+
+/* Focus states */
+.input-with-icon:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.input-with-icon:focus-within i {
+    color: var(--primary-color);
+}
+
+/* Eliminar círculos extras */
+.form-group input[type="password"] {
+    background-image: none;
+}
+
+/* Panel derecho */
+.image-panel {
+    width: 40%;
+    position: fixed;
+    right: 0;
+    top: 70px;
+    height: calc(100vh - 130px);
+    background: linear-gradient(135deg, 
+        rgba(46, 125, 50, 0.95), 
+        rgba(25, 118, 210, 0.85));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-align: center;
+    padding: 2rem;
+    z-index: 0;
+}
+
+/* Botones y acciones */
+.btn {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+}
+
+/* Footer */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 1rem;
+    background: white;
+    text-align: center;
+    border-top: 1px solid #eee;
+    z-index: 10;
+}
+
+/* Scrollbar personalizado */
+.register-panel::-webkit-scrollbar {
+    width: 8px;
+    position: relative;
+    z-index: 2;
+}
+
+.register-panel::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.register-panel::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.register-panel::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .register-panel {
+        width: 100%;
+    }
+    
+    .image-panel {
+        display: none;
+    }
+}
+
+/* Mejoras visuales del formulario */
+.register-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.register-header h1 {
+    color: var(--text-primary);
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.register-header p {
+    color: var(--text-secondary);
+}
+
+/* Selector de rol mejorado */
+.role-selector {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.role-option {
+    flex: 1;
+}
+
+.role-option input[type="radio"] {
+    display: none;
+}
+
+.role-option label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1.5rem;
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.role-option label i {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.role-option label span {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.role-option label small {
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.role-option input[type="radio"]:checked + label {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.role-option input[type="radio"]:checked + label i {
+    color: var(--primary-color);
+}
+
+/* Botones y acciones */
+.form-actions {
+    text-align: center;
+}

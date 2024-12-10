@@ -231,10 +231,20 @@ console.log('Script de dashboard cargado correctamente');
 
 // Función para aplicar los filtros
 function aplicarFiltros() {
-    const ciudad = document.getElementById('city').value;
-    const habitaciones = document.getElementById('rooms').value;
-    const minPrecio = document.querySelector('.min-price').value;
-    const maxPrecio = document.querySelector('.max-price').value;
+    const ciudad = document.getElementById('city')?.value || '';
+    const habitaciones = document.getElementById('rooms')?.value || '';
+    const minPrecio = document.querySelector('.min-price')?.value || 0;
+    const maxPrecio = document.querySelector('.max-price')?.value || 400000;
+
+    // Obtener el token CSRF de manera robusta
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                     document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+
+    if (!csrfToken) {
+        console.error('No se pudo encontrar el token CSRF');
+        showNotification('Error', 'Error de seguridad. Por favor, recarga la página.');
+        return;
+    }
 
     // Construir la URL con los parámetros de filtrado
     const params = new URLSearchParams();
@@ -243,12 +253,24 @@ function aplicarFiltros() {
     if (minPrecio) params.append('min_precio', minPrecio);
     if (maxPrecio) params.append('max_precio', maxPrecio);
 
+    // Mostrar indicador de carga
+    const listingsContainer = document.querySelector('.dashboard-listings');
+    if (listingsContainer) {
+        listingsContainer.innerHTML = `
+            <div class="loading-indicator">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando resultados...</p>
+            </div>
+        `;
+    }
+
     // Realizar la petición al servidor
     fetch(`/publicaciones/filtrar/?${params.toString()}`, {
         method: 'GET',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json',
+            'X-CSRFToken': csrfToken
         },
         credentials: 'same-origin'
     })
@@ -267,199 +289,88 @@ function aplicarFiltros() {
     })
     .catch(error => {
         console.error('Error al filtrar:', error);
-        // Mostrar mensaje de error más específico
+        if (listingsContainer) {
+            listingsContainer.innerHTML = `
+                <div class="error-message">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Error al cargar las publicaciones. Por favor, intenta de nuevo.</p>
+                </div>
+            `;
+        }
         showNotification('Error', 'No se pudieron aplicar los filtros. Por favor, intenta de nuevo.');
     });
 }
 
 // Función para actualizar el listado de publicaciones en el DOM
 function actualizarListadoPublicaciones(publicaciones) {
-    const listingsContainer = document.querySelector('.listings');
-    const isArrendador = document.body.classList.contains('user-arrendador');
-    
+    const listingsContainer = document.querySelector('.dashboard-listings');
+    if (!listingsContainer) return;
+
     if (!publicaciones || publicaciones.length === 0) {
         listingsContainer.innerHTML = `
-            <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
-                <p>No se encontraron publicaciones con los filtros seleccionados.</p>
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h3>No se encontraron publicaciones</h3>
+                <p>No hay publicaciones que coincidan con los filtros seleccionados.</p>
             </div>
         `;
         return;
     }
 
-    listingsContainer.innerHTML = publicaciones.map(pub => `
-        <article class="property-card" data-publication-id="${pub.id}" onclick="expandirPublicacion(this)">
-            <div class="property-image">
-                ${pub.fotos && pub.fotos.length > 0 
-                    ? `<img src="${pub.fotos[0].imagen_url}" alt="${pub.titulo}" class="property-image">`
-                    : `<img src="/static/img/default_image.jpg" alt="Imagen no disponible" class="property-image">`
-                }
-            </div>
-            <div class="property-details">
-                <h3 class="property-title">${pub.titulo}</h3>
-                <div class="property-info">
-                    <span>📍 ${pub.ciudad} - ${pub.direccion}</span>
-                    <span>💰 ${formatearPrecio(pub.valor_alquiler)}</span>
-                    <span>🛏️ ${pub.habitaciones_disponibles} habitaciones</span>
+    // Crear el HTML para cada publicación
+    const publicacionesHTML = publicaciones.map(pub => {
+        const fotoPrincipal = pub.fotos && pub.fotos.length > 0 
+            ? pub.fotos[0].imagen_url 
+            : '/static/img/default_image.jpg';
+
+        return `
+            <article class="property-card" data-publication-id="${pub.id}">
+                <div class="property-actions">
+                    <button type="button" 
+                            class="btn-action btn-bookmark" 
+                            onclick="event.stopPropagation(); toggleGuardado('${pub.id}')" 
+                            title="Guardar publicación"
+                            data-id="${pub.id}">
+                        <i class="fas fa-bookmark"></i>
+                    </button>
                 </div>
-                <p class="property-description">
-                    ${pub.descripcion}
-                </p>
-            </div>
-            <div class="property-expanded" style="display: none;">
-                <div class="expanded-content">
-                    <div class="expanded-header">
-                        <h2>${pub.titulo}</h2>
-                        <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
-                            <i class="fas fa-times"></i>
-                        </button>
+                <img src="${fotoPrincipal}" alt="${pub.titulo}" class="property-image">
+                <div class="property-details">
+                    <h3 class="property-title">${pub.titulo}</h3>
+                    <div class="property-info">
+                        <span>📍 ${pub.ciudad} - ${pub.direccion}</span>
+                        <span>💰 ${formatearPrecio(pub.valor_alquiler)}</span>
+                        <span>🛏️ ${pub.habitaciones_disponibles} habitaciones</span>
                     </div>
-                    
-                    <div class="expanded-grid">
-                        <div class="expanded-images">
-                            <div class="main-image">
-                                ${pub.fotos && pub.fotos.length > 0 
-                                    ? `<img src="${pub.fotos[0].imagen_url}" alt="${pub.titulo}">`
-                                    : `<img src="/static/img/default_image.jpg" alt="Imagen no disponible">`
-                                }
-                            </div>
-                            <div class="thumbnail-grid">
-                                ${pub.fotos.map(foto => `
-                                    <img src="${foto.imagen_url}" alt="Foto ${foto.id}" 
-                                         onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src)">
-                                `).join('')}
-                            </div>
-                        </div>
-
-                        <div class="expanded-details">
-                            <div class="detail-section">
-                                <h3>Detalles de la Propiedad</h3>
-                                <div class="detail-grid">
-                                    <div class="detail-item">
-                                        <span class="label">Ubicación</span>
-                                        <span class="value">📍 ${pub.ciudad} - ${pub.direccion}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="label">Precio</span>
-                                        <span class="value">💰 ${formatearPrecio(pub.valor_alquiler)}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="label">Habitaciones</span>
-                                        <span class="value">🛏️ ${pub.habitaciones_disponibles}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="detail-section">
-                                <h3>Descripción</h3>
-                                <p>${pub.descripcion}</p>
-                            </div>
-
-                            <div class="detail-section">
-                                <h3>Preferencias del Arrendador</h3>
-                                <div class="preferencias-grid">
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-smoking-ban"></i>
-                                        <span>Fumador: ${pub.preferencias_arrendador.pref_no_fumador}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-glass-cheers"></i>
-                                        <span>Bebedor: ${pub.preferencias_arrendador.pref_no_bebedor}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-paw"></i>
-                                        <span>Mascotas: ${pub.preferencias_arrendador.pref_no_mascotas}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-user-graduate"></i>
-                                        <span>Estudiante Verificado: ${pub.preferencias_arrendador.pref_estudiante_verificado}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-volume-up"></i>
-                                        <span>Nivel de Ruido: ${pub.preferencias_arrendador.pref_nivel_ruido}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-clock"></i>
-                                        <span>Horario de Visitas: ${pub.preferencias_arrendador.horario_visitas}</span>
-                                    </div>
-                                </div>
-                                <div class="reglas-casa">
-                                    <h4>Reglas de la Casa</h4>
-                                    <p>${pub.preferencias_arrendador.reglas_casa}</p>
-                                </div>
-                            </div>
-
-                            <div class="contact-section">
-                                <button class="btn-contact">
-                                    <i class="fas fa-envelope"></i>
-                                    Contactar Arrendador
-                                </button>
-                                <button class="btn-apply">
-                                    <i class="fas fa-file-alt"></i>
-                                    Postular
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <p class="property-description">${pub.descripcion}</p>
                 </div>
-            </div>
-            
-            ${isArrendador ? `
-                <div class="publicacion-estado">
-                    ${pub.estado === 'BORRADOR' ? `
-                        <div class="draft-banner">
-                            <p>Publicación en borrador</p>
-                            <button onclick="procesarPago('${pub.id}')" class="btn-payment">
-                                Proceder al pago
-                            </button>
-                            <button onclick="eliminarBorrador('${pub.id}')" class="btn-delete">
-                                Eliminar
-                            </button>
-                        </div>
-                    ` : ''}
-                    ${pub.estado === 'PENDIENTE_PAGO' ? `
-                        <div class="payment-pending-banner">
-                            <p>Pago en proceso</p>
-                            <button onclick="procesarPago('${pub.id}')" class="btn-payment">
-                                Continuar con el pago
-                            </button>
-                        </div>
-                    ` : ''}
-                </div>
-            ` : ''}
-        </article>
-    `).join('');
+            </article>
+        `;
+    }).join('');
 
-    // Actualizar el CSS para los nuevos elementos
-    const cssAdicional = `
-        .reglas-casa {
-            margin-top: 1.5rem;
-            padding: 1rem;
-            background: var(--background-light);
-            border-radius: 8px;
-        }
+    listingsContainer.innerHTML = publicacionesHTML;
 
-        .reglas-casa h4 {
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .reglas-casa p {
-            color: var(--text-secondary);
-            line-height: 1.5;
-            white-space: pre-line;
-        }
-    `;
-
-    // Añadir el CSS si no existe
-    if (!document.getElementById('preferencias-css')) {
-        const style = document.createElement('style');
-        style.id = 'preferencias-css';
-        style.textContent = cssAdicional;
-        document.head.appendChild(style);
-    }
-
+    // Reinicializar los eventos después de actualizar el DOM
     initPostularButtons();
 }
+
+// Agregar event listeners cuando se carga el documento
+document.addEventListener('DOMContentLoaded', function() {
+    const btnFiltrar = document.getElementById('btnFiltrar');
+    if (btnFiltrar) {
+        btnFiltrar.addEventListener('click', aplicarFiltros);
+    }
+
+    // Aplicar filtros al presionar Enter en los campos de filtro
+    const filtrosInputs = document.querySelectorAll('.filters input, .filters select');
+    filtrosInputs.forEach(input => {
+        input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                aplicarFiltros();
+            }
+        });
+    });
+});
 
 // Función auxiliar para formatear el precio
 function formatearPrecio(valor) {
@@ -519,6 +430,20 @@ function expandirPublicacion(element) {
             },
         });
 
+        // Obtener las coordenadas y mostrar el mapa
+        fetch(`/publicaciones/publicacion/${publicationId}/coordenadas/`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.latitud && data.longitud) {
+                initializeMap(publicationId, data.latitud, data.longitud);
+            }
+        })
+        .catch(error => console.error('Error al cargar el mapa:', error));
+
         // Mostrar detalles
         const expandedView = document.querySelector(`#expandedView[data-publication-id="${publicationId}"]`);
         if (expandedView) {
@@ -526,6 +451,24 @@ function expandirPublicacion(element) {
             document.body.classList.add('modal-open');
         }
     }
+}
+
+function initializeMap(publicacionId, lat, lng) {
+    if (!lat || !lng) return;
+
+    const mapContainer = document.getElementById(`map-${publicacionId}`);
+    if (!mapContainer) return;
+
+    // Crear el mapa
+    const map = L.map(mapContainer).setView([lat, lng], 15);
+
+    // Agregar la capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Agregar el marcador
+    L.marker([lat, lng]).addTo(map);
 }
 
 // Función para contraer la publicación
@@ -1085,6 +1028,291 @@ function procesarPago(publicacionId) {
             text: 'Hubo un error al procesar la solicitud',
             icon: 'error',
             confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#2E7D32'
+        });
+    });
+}
+
+function contactarArrendador(publicacionId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    // Contraer la publicación antes de mostrar cualquier notificación
+    const expandedView = document.querySelector(`#expandedView[data-publication-id="${publicacionId}"]`);
+    if (expandedView) {
+        expandedView.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+
+    // Verificar si ya existe una postulación
+    fetch(`/publicaciones/publicacion/${publicacionId}/verificar-postulacion/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.postulacion_existente) {
+            // Si existe postulación, obtener info de contacto
+            fetch(`/publicaciones/publicacion/${publicacionId}/info-contacto/`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(contactData => {
+                if (contactData.success) {
+                    Swal.fire({
+                        title: 'Información de Contacto',
+                        html: `
+                            <div class="contact-info-modal">
+                                <p><strong>Arrendador:</strong> ${contactData.info_contacto.nombre}</p>
+                                <p><strong>Email:</strong> ${contactData.info_contacto.email}</p>
+                                <p><strong>Teléfono:</strong> ${contactData.info_contacto.telefono}</p>
+                            </div>
+                        `,
+                        icon: 'info',
+                        confirmButtonText: 'Entendido',
+                        customClass: {
+                            container: 'contact-info-container'
+                        }
+                    });
+                }
+            });
+        } else {
+            // Si no existe postulación, mostrar mensaje
+            Swal.fire({
+                title: 'Postulación Requerida',
+                html: `
+                    <p>Para ver la información de contacto del arrendador, primero debes postular a esta propiedad.</p>
+                    <p>¿Deseas postular ahora?</p>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, postular',
+                cancelButtonText: 'No, más tarde',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    verificarPerfilArrendatario(publicacionId, null);
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Hubo un error al verificar tu postulación. Por favor, intenta de nuevo.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+        });
+    });
+}
+
+function toggleReseñas(button) {
+    const reseñasSection = button.closest('.reseñas-section');
+    const reseñasContent = reseñasSection.querySelector('.reseñas-content');
+    const isExpanded = button.classList.contains('active');
+
+    if (isExpanded) {
+        // Contraer
+        button.classList.remove('active');
+        reseñasContent.classList.remove('show');
+    } else {
+        // Expandir
+        button.classList.add('active');
+        reseñasContent.classList.add('show');
+    }
+}
+
+// Inicializar los botones de toggle cuando se carga el documento
+document.addEventListener('DOMContentLoaded', function() {
+    const toggleButtons = document.querySelectorAll('.btn-toggle-reseñas');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', () => toggleReseñas(button));
+    });
+});
+
+// Agregar esta función para manejar la expulsión
+function expulsarArrendatario(postulacionId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Deberás dejar una reseña sobre el arrendatario antes de expulsarlo",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, expulsar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar formulario de reseña
+            mostrarFormularioResena(postulacionId, true);
+        }
+    });
+}
+
+// Modificar la función para mostrar el formulario de reseña
+function mostrarFormularioResena(postulacionId, esExpulsion = false) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.id = 'resenaModal';
+    
+    modal.innerHTML = `
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Dejar Reseña</h2>
+                <button class="btn-close" onclick="cerrarModalResena()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="formResena" onsubmit="enviarResena(event, ${postulacionId}, ${esExpulsion})">
+                <div class="rating-container">
+                    <label>Puntuación:</label>
+                    <div class="stars">
+                        ${[1,2,3,4,5].map(num => `
+                            <input type="radio" id="star${num}" name="puntuacion" value="${num}" required>
+                            <label for="star${num}"><i class="far fa-star"></i></label>
+                        `).join('')}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="comentario">Comentario:</label>
+                    <textarea id="comentario" name="comentario" required></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-submit">Enviar Reseña</button>
+                    <button type="button" class="btn-cancel" onclick="cerrarModalResena(${esExpulsion})">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+}
+
+// Modificar la función para cerrar el modal de reseña
+function cerrarModalResena(esExpulsion = false) {
+    const modal = document.getElementById('resenaModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.remove();
+            if (esExpulsion) {
+                // Si era una expulsión, mostrar mensaje de cancelación
+                Swal.fire({
+                    title: 'Expulsión cancelada',
+                    text: 'La expulsión ha sido cancelada',
+                    icon: 'info',
+                    confirmButtonColor: '#2E7D32'
+                });
+            }
+        }, 300);
+    }
+}
+
+// Modificar la función para enviar la reseña
+function enviarResena(event, postulacionId, esExpulsion = false) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const data = {
+        puntuacion: formData.get('puntuacion'),
+        comentario: formData.get('comentario')
+    };
+
+    fetch(`/publicaciones/postulacion/${postulacionId}/resena/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            cerrarModalResena();
+            
+            if (esExpulsion) {
+                // Solo si la reseña se envió correctamente, proceder con la expulsión
+                realizarExpulsion(postulacionId);
+            } else {
+                Swal.fire({
+                    title: 'Éxito',
+                    text: 'Reseña enviada correctamente',
+                    icon: 'success',
+                    confirmButtonColor: '#2E7D32'
+                }).then(() => {
+                    window.location.reload();
+                });
+            }
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: data.error || 'Error al enviar la reseña',
+                icon: 'error',
+                confirmButtonColor: '#2E7D32'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Error al enviar la reseña',
+            icon: 'error',
+            confirmButtonColor: '#2E7D32'
+        });
+    });
+}
+
+// Nueva función para realizar la expulsión
+function realizarExpulsion(postulacionId) {
+    fetch(`/publicaciones/postulacion/${postulacionId}/expulsar/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Expulsión completada',
+                text: 'El arrendatario ha sido expulsado y se ha enviado la reseña',
+                icon: 'success',
+                confirmButtonColor: '#2E7D32'
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            Swal.fire({
+                title: 'Error',
+                text: data.error || 'Error al expulsar al arrendatario',
+                icon: 'error',
+                confirmButtonColor: '#2E7D32'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Error al expulsar al arrendatario',
+            icon: 'error',
             confirmButtonColor: '#2E7D32'
         });
     });

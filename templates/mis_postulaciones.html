@@ -27,120 +27,131 @@
         </div>
     </div>
 
-    <div class="container">
-        <main class="listings">
-            {% for postulacion in postulaciones %}
-            <article class="property-card" data-postulation-id="{{ postulacion.id }}" onclick="expandirPublicacion('{{ postulacion.id }}')">
-                <div class="property-actions">
-                    <button type="button" 
-                            class="btn-action btn-delete" 
-                            onclick="event.stopPropagation(); showDeleteModal('{{ postulacion.id }}')" 
-                            title="Eliminar Postulación"
-                            data-id="{{ postulacion.id }}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-                {% if postulacion.formulario.publicacion.fotos.all %}
-                    <img src="{{ postulacion.formulario.publicacion.fotos.first.imagen.url }}" alt="{{ postulacion.formulario.publicacion.titulo }}" class="property-image">
-                {% else %}
-                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
-                {% endif %}
-                <div class="property-details">
-                    <h3 class="property-title">{{ postulacion.formulario.publicacion.titulo }}</h3>
-                    <div class="property-info">
-                        <span>📍 {{ postulacion.formulario.publicacion.ciudad }} - {{ postulacion.formulario.publicacion.direccion }}</span>
-                        <span>💰 {{ postulacion.formulario.publicacion.valor_alquiler|format_precio }}</span>
-                        <span>🛏️ {{ postulacion.formulario.publicacion.habitaciones_disponibles }} habitaciones</span>
-                        <span>📅 Postulado el: {{ postulacion.fecha_respuesta|date:"d/m/Y" }}</span>
-                    </div>
-                    
-                </div>
-            </article>
-            <div id="expandedView_{{ postulacion.id }}" class="property-expanded" style="display: none;" data-postulation-id="{{ postulacion.id }}">
-                <div class="expanded-content">
-                    <div class="expanded-header">
-                        <h2>{{ postulacion.formulario.publicacion.titulo }}</h2>
-                        <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
-                            <i class="fas fa-times"></i>
+    <div class="container postulations-container">
+        {% if postulaciones %}
+            <main class="listings postulations-grid">
+                {% for postulacion in postulaciones %}
+                <article class="property-card postulation-card" data-postulation-id="{{ postulacion.id }}" onclick="expandirPublicacion('{{ postulacion.id }}')">
+                    <div class="property-actions postulation-actions">
+                        <button type="button" 
+                                class="btn-action btn-delete postulation-btn-delete" 
+                                onclick="event.stopPropagation(); showDeleteModal('{{ postulacion.id }}')" 
+                                title="Eliminar Postulación"
+                                data-id="{{ postulacion.id }}">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
-                    
-                    <div class="expanded-grid">
-                        <div class="expanded-images">
-                            <div class="main-image">
-                                {% if postulacion.formulario.publicacion.fotos.all %}
-                                    <img src="{{ postulacion.formulario.publicacion.fotos.first.imagen.url }}" alt="{{ postulacion.formulario.publicacion.titulo }}">
-                                {% else %}
-                                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible">
-                                {% endif %}
-                            </div>
-                            <div class="thumbnail-grid">
-                                {% for foto in postulacion.formulario.publicacion.fotos.all %}
-                                    <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }}" 
-                                         onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src, '{{ postulacion.id }}')">
-                                {% endfor %}
-                            </div>
+                    {% if postulacion.formulario.publicacion.fotos.all %}
+                        <img src="{{ postulacion.formulario.publicacion.fotos.first.imagen.url }}" alt="{{ postulacion.formulario.publicacion.titulo }}" class="property-image postulation-image">
+                    {% else %}
+                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image postulation-image">
+                    {% endif %}
+                    <div class="property-details postulation-details">
+                        <h3 class="property-title postulation-title">{{ postulacion.formulario.publicacion.titulo }}</h3>
+                        <div class="property-info postulation-info">
+                            <span>📍 {{ postulacion.formulario.publicacion.ciudad }} - {{ postulacion.formulario.publicacion.direccion }}</span>
+                            <span>💰 {{ postulacion.formulario.publicacion.valor_alquiler|format_precio }}</span>
+                            <span>🛏️ {{ postulacion.formulario.publicacion.habitaciones_disponibles }} habitaciones</span>
+                            <span>📅 Postulado el: {{ postulacion.fecha_respuesta|date:"d/m/Y" }}</span>
                         </div>
-
-                        <div class="expanded-details">
-                            <div class="detail-section">
-                                <h3>Detalles de la Propiedad</h3>
-                                <div class="detail-grid">
-                                    <div class="detail-item">
-                                        <span class="label">Ubicación</span>
-                                        <span class="value">📍 {{ postulacion.formulario.publicacion.ciudad }} - {{ postulacion.formulario.publicacion.direccion }}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="label">Precio</span>
-                                        <span class="value">💰 {{ postulacion.formulario.publicacion.valor_alquiler|format_precio }}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="label">Habitaciones</span>
-                                        <span class="value">🛏️ {{ postulacion.formulario.publicacion.habitaciones_disponibles }}</span>
-                                    </div>
+                        
+                    </div>
+                </article>
+                <div id="expandedView_{{ postulacion.id }}" class="property-expanded postulation-expanded" style="display: none;" data-postulation-id="{{ postulacion.id }}">
+                    <div class="expanded-content postulation-expanded-content">
+                        <div class="expanded-header">
+                            <h2>{{ postulacion.formulario.publicacion.titulo }}</h2>
+                            <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="expanded-grid">
+                            <div class="expanded-images">
+                                <div class="main-image">
+                                    {% if postulacion.formulario.publicacion.fotos.all %}
+                                        <img src="{{ postulacion.formulario.publicacion.fotos.first.imagen.url }}" alt="{{ postulacion.formulario.publicacion.titulo }}">
+                                    {% else %}
+                                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible">
+                                    {% endif %}
                                 </div>
-                            </div>
-
-                            <div class="detail-section">
-                                <h3>Descripción</h3>
-                                <p>{{ postulacion.formulario.publicacion.descripcion }}</p>
-                            </div>
-
-                            <div class="detail-section">
-                                <h3>Mis Respuestas al Formulario</h3>
-                                <div class="respuestas-grid">
-                                    {% for respuesta in postulacion.respuestas.all %}
-                                    <div class="respuesta-item">
-                                        <span class="pregunta">{{ respuesta.pregunta.texto_pregunta }}</span>
-                                        <span class="respuesta">{{ respuesta.respuesta_seleccionada }}</span>
-                                    </div>
+                                <div class="thumbnail-grid">
+                                    {% for foto in postulacion.formulario.publicacion.fotos.all %}
+                                        <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }}" 
+                                             onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src, '{{ postulacion.id }}')">
                                     {% endfor %}
                                 </div>
                             </div>
 
-                            <div class="contact-section">
-                                <button type="button" 
-                                        class="btn-delete-postulation" 
-                                        onclick="eliminarPostulacion('{{ postulacion.id }}')">
-                                    <i class="fas fa-trash"></i>
-                                    Eliminar Postulación
-                                </button>
+                            <div class="expanded-details">
+                                <div class="detail-section">
+                                    <h3>Detalles de la Propiedad</h3>
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="label">Ubicación</span>
+                                            <span class="value">📍 {{ postulacion.formulario.publicacion.ciudad }} - {{ postulacion.formulario.publicacion.direccion }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label">Precio</span>
+                                            <span class="value">💰 {{ postulacion.formulario.publicacion.valor_alquiler|format_precio }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label">Habitaciones</span>
+                                            <span class="value">🛏️ {{ postulacion.formulario.publicacion.habitaciones_disponibles }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="detail-section">
+                                    <h3>Descripción</h3>
+                                    <p>{{ postulacion.formulario.publicacion.descripcion }}</p>
+                                </div>
+
+                                <div class="detail-section">
+                                    <h3>Mis Respuestas al Formulario</h3>
+                                    <div class="respuestas-grid">
+                                        {% for respuesta in postulacion.respuestas.all %}
+                                        <div class="respuesta-item">
+                                            <span class="pregunta">{{ respuesta.pregunta.texto_pregunta }}</span>
+                                            <span class="respuesta">{{ respuesta.respuesta_seleccionada }}</span>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+
+                                <div class="contact-section">
+                                    <button type="button" 
+                                            class="btn-delete-postulation" 
+                                            onclick="eliminarPostulacion('{{ postulacion.id }}')">
+                                        <i class="fas fa-trash"></i>
+                                        Eliminar Postulación
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% empty %}
+                    <div class="empty-state postulations-empty">
+                        <i class="fas fa-clipboard-list fa-3x"></i>
+                        <h2>No tienes postulaciones activas</h2>
+                        <p>Explora las propiedades disponibles y postula a las que te interesen.</p>
+                        <a href="{% url 'dashboard' %}" class="btn-explore">
+                            Explorar Propiedades
+                        </a>
+                    </div>
+                {% endfor %}
+            </main>
+        {% else %}
+            <div class="empty-state postulations-empty">
+                <i class="fas fa-clipboard-list fa-3x"></i>
+                <h2>No tienes postulaciones activas</h2>
+                <p>Explora las propiedades disponibles y postula a las que te interesen.</p>
+                <a href="{% url 'dashboard' %}" class="btn-explore">
+                    Explorar Propiedades
+                </a>
             </div>
-            {% empty %}
-                <div class="empty-state">
-                    <i class="fas fa-clipboard-list fa-3x"></i>
-                    <h2>No tienes postulaciones activas</h2>
-                    <p>Explora las propiedades disponibles y postula a las que te interesen.</p>
-                    <a href="{% url 'dashboard' %}" class="btn-explore">
-                        Explorar Propiedades
-                    </a>
-                </div>
-            {% endfor %}
-        </main>
+        {% endif %}
     </div>
 
     <!-- Modal de confirmación de eliminación -->

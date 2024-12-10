@@ -142,8 +142,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const notifCount = document.querySelector('.notifications-count');
         const notifList = document.querySelector('.notifications-list');
         
-        // Marcar como leída en el servidor
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        // Obtener el token CSRF de manera más robusta
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || 
+                         document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        
+        if (!csrfToken) {
+            console.error('No se pudo encontrar el token CSRF');
+            return;
+        }
+        
         fetch(`/publicaciones/notificacion/${notificationId}/marcar-leida/`, {
             method: 'POST',
             headers: {
@@ -151,6 +158,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 'Content-Type': 'application/json',
             },
             credentials: 'same-origin'
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error('Error al marcar la notificación como leída');
+            }
+            return response.json();
         }).then(() => {
             // Remover la notificación de la UI
             notifElement.remove();
@@ -162,6 +174,12 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 notifCount.style.display = 'none';
                 notifList.innerHTML = '<p class="no-notifications">No hay notificaciones nuevas</p>';
+            }
+        }).catch(error => {
+            console.error('Error:', error);
+            // Opcional: Mostrar un mensaje de error al usuario
+            if (typeof showToast === 'function') {
+                showToast('Error', 'No se pudo eliminar la notificación', 'error');
             }
         });
     };

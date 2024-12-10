@@ -713,4 +713,157 @@ function mostrarPerfilPostulante(userId) {
             console.error('Error:', error);
             alert('Error al cargar el perfil');
         });
+}
+
+function expulsarArrendatario(postulacionId) {
+    console.log('Iniciando expulsión para postulación:', postulacionId); // Debug log
+    
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: "Esta acción expulsará al arrendatario y te permitirá dejar una reseña",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, expulsar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            console.log('CSRF Token:', csrfToken); // Debug log
+            
+            fetch(`/publicaciones/postulacion/${postulacionId}/expulsar/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('Respuesta del servidor:', response); // Debug log
+                return response.json();
+            })
+            .then(data => {
+                console.log('Datos recibidos:', data); // Debug log
+                if (data.success) {
+                    mostrarFormularioReseña(data.usuario_id, postulacionId);
+                } else {
+                    throw new Error(data.message || 'Error al expulsar al arrendatario');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire(
+                    'Error',
+                    error.message || 'Error al expulsar al arrendatario',
+                    'error'
+                );
+            });
+        }
+    });
+}
+
+function mostrarFormularioReseña(usuarioId, postulacionId) {
+    Swal.fire({
+        title: 'Dejar Reseña',
+        html: `
+            <div class="rating-container">
+                <div class="stars">
+                    <i class="far fa-star" data-value="1"></i>
+                    <i class="far fa-star" data-value="2"></i>
+                    <i class="far fa-star" data-value="3"></i>
+                    <i class="far fa-star" data-value="4"></i>
+                    <i class="far fa-star" data-value="5"></i>
+                </div>
+            </div>
+            <textarea id="comentarioReseña" class="swal2-textarea" 
+                      placeholder="Escribe tu reseña aquí..."></textarea>
+        `,
+        didRender: () => {
+            // Inicializar el sistema de estrellas
+            const stars = document.querySelectorAll('.stars i');
+            stars.forEach(star => {
+                star.addEventListener('mouseover', function() {
+                    const value = this.dataset.value;
+                    stars.forEach(s => {
+                        if (s.dataset.value <= value) {
+                            s.classList.remove('far');
+                            s.classList.add('fas');
+                        } else {
+                            s.classList.remove('fas');
+                            s.classList.add('far');
+                        }
+                    });
+                });
+                
+                star.addEventListener('click', function() {
+                    stars.forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+        },
+        showCancelButton: true,
+        confirmButtonText: 'Enviar Reseña',
+        cancelButtonText: 'Cancelar',
+        preConfirm: () => {
+            const puntuacion = document.querySelector('.stars i.selected')?.dataset.value;
+            const comentario = document.getElementById('comentarioReseña').value;
+            
+            if (!puntuacion) {
+                Swal.showValidationMessage('Por favor, selecciona una puntuación');
+                return false;
+            }
+            if (!comentario.trim()) {
+                Swal.showValidationMessage('Por favor, escribe un comentario');
+                return false;
+            }
+            
+            return { puntuacion, comentario };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            enviarResena(usuarioId, result.value.puntuacion, result.value.comentario, postulacionId);
+        } else {
+            // Si el usuario cancela, recargar la página
+            window.location.reload();
+        }
+    });
+}
+
+function enviarResena(usuarioId, puntuacion, comentario, postulacionId) {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/resenas/crear/${usuarioId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            puntuacion: parseInt(puntuacion),
+            comentario: comentario,
+            postulacion_id: postulacionId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Éxito',
+                text: 'Reseña enviada correctamente',
+                icon: 'success'
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            throw new Error(data.error);
+        }
+    })
+    .catch(error => {
+        Swal.fire(
+            'Error',
+            error.message || 'Error al enviar la reseña',
+            'error'
+        );
+    });
 } 

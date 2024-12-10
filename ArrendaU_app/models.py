@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 class Usuario(AbstractUser):
     ROLES = [
@@ -11,10 +12,63 @@ class Usuario(AbstractUser):
     rol = models.CharField(max_length=20, choices=ROLES)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
+    segundo_apellido = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField(unique=True)
     
+    # Campos adicionales
+    telefono_contacto = models.CharField(max_length=20, blank=True, null=True)
+    fecha_nacimiento = models.DateField(null=True, blank=True)
+    genero = models.CharField(
+        max_length=20,
+        choices=[
+            ('M', 'Masculino'),
+            ('F', 'Femenino'),
+            ('O', 'Otro'),
+            ('N', 'Prefiero no decirlo')
+        ],
+        blank=True,
+        null=True
+    )
+    
+    # Campos para verificación OTP
+    otp_code = models.CharField(max_length=6, null=True, blank=True)
+    otp_expiry = models.DateTimeField(null=True, blank=True)
+    email_verified = models.BooleanField(default=False)
+    
     def __str__(self):
-        return f"{self.nombre} {self.apellido}"
+        nombre_completo = f"{self.nombre} {self.apellido}"
+        if self.segundo_apellido:
+            nombre_completo += f" {self.segundo_apellido}"
+        return nombre_completo
+
+    def verificar_otp(self, codigo):
+        """Verifica si el código OTP es válido"""
+        if not self.otp_code or not self.otp_expiry:
+            return False
+            
+        if timezone.now() > self.otp_expiry:
+            # Código expirado
+            self.otp_code = None
+            self.otp_expiry = None
+            self.save()
+            return False
+            
+        if str(self.otp_code) == str(codigo):
+            # Código válido
+            self.email_verified = True
+            self.otp_code = None
+            self.otp_expiry = None
+            self.save()
+            return True
+            
+        return False
+
+    @property
+    def promedio_resenas(self):
+        resenas = self.resenas_recibidas.all()
+        if not resenas:
+            return 0
+        return round(sum(r.puntuacion for r in resenas) / resenas.count(), 1)
 
 class PerfilArrendatario(models.Model):
     OPCIONES_BEBEDOR = [
@@ -144,3 +198,43 @@ class Compatibilidad(models.Model):
 
     def __str__(self):
         return f"Compatibilidad: {self.arrendatario.usuario.nombre} - {self.publicacion.titulo}"
+
+class Resena(models.Model):
+    TIPO_CHOICES = [
+        ('ARRENDADOR_A_ARRENDATARIO', 'Arrendador a Arrendatario'),
+        ('ARRENDATARIO_A_ARRENDADOR', 'Arrendatario a Arrendador')
+    ]
+
+    autor = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='resenas_escritas')
+    usuario_resenado = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='resenas_recibidas')
+    tipo_resena = models.CharField(max_length=50, choices=TIPO_CHOICES)
+    puntuacion = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
+    comentario = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    publicacion = models.ForeignKey('ArrendaU_publicaciones_app.Publicacion', 
+                                  on_delete=models.SET_NULL, 
+                                  null=True, 
+                                  blank=True)
+
+    class Meta:
+        unique_together = ['autor', 'usuario_resenado', 'publicacion']
+
+class Interaccion(models.Model):
+    ESTADO_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('FINALIZADO', 'Finalizado'),
+        ('EXPULSADO', 'Expulsado')
+    ]
+
+    arrendador = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='interacciones_como_arrendador')
+    arrendatario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='interacciones_como_arrendatario')
+    publicacion = models.ForeignKey('ArrendaU_publicaciones_app.Publicacion', on_delete=models.CASCADE)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='ACTIVO')
+    fecha_inicio = models.DateTimeField(auto_now_add=True)
+    fecha_fin = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ['arrendador', 'arrendatario', 'publicacion']
+
+    def __str__(self):
+        return f"Interacción: {self.arrendador.nombre} - {self.arrendatario.nombre} ({self.publicacion.titulo})"

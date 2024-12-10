@@ -2,6 +2,7 @@
 {% load static %}
 <html lang="es">
 <head>
+    {% csrf_token %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ArrendaU{% endblock %}</title>
@@ -33,11 +34,11 @@
                 
                 {% if user.rol == 'Arrendador' %}
                     <a href="{% url 'ArrendaU_publicaciones_app:historial_pagos' %}">Historial de Pagos</a>
-                    <a href="#">Reseñas</a>
+                    <a href="{% url 'mis_resenas_recibidas' %}">Reseñas</a>
                 {% else %}
-                    <a href="#">Buscar Habitación</a>
                     <a href="{% url 'ArrendaU_publicaciones_app:mis_postulaciones' %}">Mis Postulaciones</a>
                     <a href="{% url 'ArrendaU_publicaciones_app:publicaciones_guardadas' %}">Guardados</a>
+                    <a href="{% url 'mis_resenas_recibidas' %}">Reseñas</a>
                 {% endif %}
             </div>
             
@@ -68,7 +69,7 @@
                     </button>
                     <div class="dropdown-content">
                         <a href="{% url 'editar_perfil' %}"><i class="fas fa-user"></i> Mi Perfil</a>
-                        <a href="#"><i class="fas fa-cog"></i> Configuración</a>
+                        <a href="{% url 'configuracion' %}"><i class="fas fa-cog"></i> Configuración</a>
                         {% if user.rol == 'Arrendador' %}
                             <a href="{% url 'cambiar_rol' %}">
                                 <i class="fas fa-exchange-alt"></i> Cambiar a Estudiante

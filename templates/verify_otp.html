@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verificar Correo - ArrendaU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/verify_otp.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="verify-container">
+    <div class="verify-box">
+        <h2>Verificar Correo Electrónico</h2>
+        
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="alert {{ message.tags }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <p>Te hemos enviado un código de verificación a tu correo electrónico.</p>
+        
+        <form method="post" class="verify-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="otp_code">Código de verificación:</label>
+                <input type="text" 
+                       id="otp_code" 
+                       name="otp_code" 
+                       maxlength="6" 
+                       required 
+                       pattern="\d{6}"
+                       placeholder="Ingresa el código de 6 dígitos">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Verificar</button>
+        </form>
+        
+        <div class="verify-footer">
+            <p>¿No recibiste el código? <a href="{% url 'resend_otp' %}">Enviar nuevamente</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

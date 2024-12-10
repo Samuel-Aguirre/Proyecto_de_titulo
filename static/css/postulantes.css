@@ -756,4 +756,26 @@
 .btn-view:hover, .btn-download:hover {
     transform: translateY(-2px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.btn-action-expel {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-action-expel:hover {
+    background-color: #c82333;
+}
+
+.btn-action-expel i {
+    font-size: 1rem;
 } 

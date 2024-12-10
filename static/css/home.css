@@ -235,39 +235,41 @@ footer::before {
 
 /* Estilos mejorados para la sección de contacto */
 .contact-section {
-    padding: 6rem 2rem;
+    padding: 4rem 2rem 8rem;
     background: white;
     position: relative;
-}
-
-.contact-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--primary-color), transparent);
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
 }
 
 .contact-container {
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
+    padding: 0 1rem;
+    display: flex;
+    flex-direction: column;
 }
 
 .contact-section h2 {
     color: var(--primary-color);
-    font-size: 2.8rem;
-    margin-bottom: 1rem;
+    font-size: 2.5rem;
+    margin-bottom: 2rem;
     font-weight: 700;
+    position: relative;
 }
 
 .contact-info {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 3rem;
+    gap: 2.5rem;
     margin-top: 3rem;
+    margin-bottom: 3rem;
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .contact-item {
@@ -275,11 +277,13 @@ footer::before {
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 2rem;
+    padding: 2rem 1.5rem;
     border-radius: 12px;
     background: white;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    min-height: 250px;
 }
 
 .contact-item:hover {
@@ -288,26 +292,29 @@ footer::before {
 }
 
 .contact-icon {
-    width: 70px;
-    height: 70px;
+    width: 60px;
+    height: 60px;
     background: var(--primary-color);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
+    transition: transform 0.3s ease;
 }
 
 .contact-icon i {
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     color: white;
 }
 
 .contact-details {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.8rem;
+    gap: 0.6rem;
+    justify-content: center;
 }
 
 .contact-details h3 {
@@ -339,31 +346,40 @@ footer::before {
 }
 
 @media (max-width: 992px) {
-    .features {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
     .contact-info {
         grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        padding: 0 1rem;
+    }
+
+    .contact-section {
+        padding: 3rem 1.5rem 6rem;
+    }
+
+    .contact-section h2 {
+        font-size: 2.2rem;
     }
 }
 
 @media (max-width: 768px) {
-    .hero h1 {
-        font-size: 2.5rem;
-    }
-    
-    .features {
-        grid-template-columns: 1fr;
-    }
-    
     .contact-info {
         grid-template-columns: 1fr;
-        gap: 2rem;
+        max-width: 500px;
+        gap: 1.5rem;
     }
 
     .contact-item {
+        min-height: 200px;
         padding: 1.5rem;
+    }
+
+    .contact-section {
+        padding: 2.5rem 1rem 5rem;
+    }
+
+    .contact-section h2 {
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
     }
 }
 
@@ -372,6 +388,8 @@ footer::before {
     display: flex;
     flex-direction: column;
     flex: 1;
+    width: 100%;
+    margin-bottom: 0;
 }
 
 /* Hero section */
@@ -389,11 +407,9 @@ footer::before {
 .home-container {
     display: flex;
     flex-direction: column;
-    min-height: calc(100vh - 130px);
+    min-height: calc(100vh - 70px);
     margin: 0;
     padding: 0;
-    position: absolute;
-    top: 70px;
     width: 100%;
 }
 

@@ -94,7 +94,7 @@
             </aside>
         {% endif %}
 
-        <main class="listings">
+        <main class="dashboard-listings">
             {% for publicacion in publicaciones %}
                 {% if user.rol == 'Arrendador' %}
                     <!-- Vista para arrendadores -->
@@ -239,6 +239,10 @@
                                              onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src)">
                                     {% endfor %}
                                 </div>
+                                <div class="detail-section">
+                                    <h3>Ubicación</h3>
+                                    <div id="map-{{ publicacion.id }}" class="property-map"></div>
+                                </div>
                             </div>
 
                             <div class="expanded-details">
@@ -246,16 +250,16 @@
                                     <h3>Detalles de la Propiedad</h3>
                                     <div class="detail-grid">
                                         <div class="detail-item">
-                                            <span class="label">Ubicación</span>
-                                            <span class="value"> {{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
+                                            <span class="label"><strong>Ubicación</strong> 📍</span>
+                                            <span class="value">{{ publicacion.ciudad }} - {{ publicacion.direccion }}</span>
                                         </div>
                                         <div class="detail-item">
-                                            <span class="label">Precio</span>
-                                            <span class="value"> {{ publicacion.valor_alquiler|format_precio }}</span>
+                                            <span class="label"><strong>Precio</strong> 💰</span>
+                                            <span class="value">{{ publicacion.valor_alquiler|format_precio }}</span>
                                         </div>
                                         <div class="detail-item">
-                                            <span class="label">Habitaciones</span>
-                                            <span class="value"> {{ publicacion.habitaciones_disponibles }}</span>
+                                            <span class="label"><strong>Habitaciones</strong> 🛏️</span>
+                                            <span class="value">{{ publicacion.habitaciones_disponibles }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -270,28 +274,28 @@
                                     <div class="preferencias-grid">
                                         <div class="preferencia-item">
                                             <i class="fas fa-smoking-ban"></i>
-                                            <span>Fumador: {{ publicacion.usuario.perfilarrendador.get_pref_no_fumador_display }}</span>
+                                            <span><strong>Fumador:</strong> {{ publicacion.usuario.perfilarrendador.get_pref_no_fumador_display }}</span>
                                         </div>
                                         <div class="preferencia-item">
                                             <i class="fas fa-glass-cheers"></i>
-                                            <span>Bebedor: {{ publicacion.usuario.perfilarrendador.get_pref_no_bebedor_display }}</span>
+                                            <span><strong>Bebedor:</strong> {{ publicacion.usuario.perfilarrendador.get_pref_no_bebedor_display }}</span>
                                         </div>
                                         <div class="preferencia-item">
                                             <i class="fas fa-paw"></i>
-                                            <span>Mascotas: {{ publicacion.usuario.perfilarrendador.get_pref_no_mascotas_display }}</span>
+                                            <span><strong>Mascotas:</strong> {{ publicacion.usuario.perfilarrendador.get_pref_no_mascotas_display }}</span>
                                         </div>
                                         <div class="preferencia-item">
                                             <i class="fas fa-volume-up"></i>
-                                            <span>Nivel de Ruido: {{ publicacion.usuario.perfilarrendador.get_pref_nivel_ruido_display }}</span>
+                                            <span><strong>Nivel de Ruido:</strong> {{ publicacion.usuario.perfilarrendador.get_pref_nivel_ruido_display }}</span>
                                         </div>
                                         <div class="preferencia-item">
                                             <i class="fas fa-user-graduate"></i>
-                                            <span>Estudiante Verificado: {{ publicacion.usuario.perfilarrendador.get_pref_estudiante_verificado_display }}</span>
+                                            <span><strong>Estudiante Verificado:</strong> {{ publicacion.usuario.perfilarrendador.get_pref_estudiante_verificado_display }}</span>
                                         </div>
                                         {% if publicacion.usuario.perfilarrendador.horario_visitas %}
                                         <div class="preferencia-item">
                                             <i class="fas fa-clock"></i>
-                                            <span>Horario de Visitas: {{ publicacion.usuario.perfilarrendador.horario_visitas }}</span>
+                                            <span><strong>Horario de Visitas:</strong> {{ publicacion.usuario.perfilarrendador.horario_visitas }}</span>
                                         </div>
                                         {% endif %}
                                     </div>
@@ -303,8 +307,65 @@
                                     {% endif %}
                                 </div>
 
+                                <div class="detail-section reviews-section">
+                                    <div class="reseñas-section">
+                                        <div class="reseñas-header">
+                                            <div class="reseñas-header-top">
+                                                <h3>
+                                                    <i class="fas fa-star"></i>
+                                                    Reseñas del Arrendador
+                                                </h3>
+                                                <button class="btn-toggle-reseñas">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </button>
+                                            </div>
+                                            <div class="reviews-summary">
+                                                <div class="average-rating">
+                                                    <span class="rating-number">{{ publicacion.usuario.promedio_resenas|default:"0.0" }}</span>
+                                                    <div class="stars">
+                                                        {% for i in "12345"|make_list %}
+                                                            <i class="fa{% if forloop.counter <= publicacion.usuario.promedio_resenas %}s{% else %}r{% endif %} fa-star"></i>
+                                                        {% endfor %}
+                                                    </div>
+                                                    <span class="total-reviews">({{ publicacion.usuario.resenas_recibidas.count }} reseñas)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="reseñas-content">
+                                            <div class="reviews-container">
+                                                {% if publicacion.usuario.resenas_recibidas.all %}
+                                                    <div class="reviews-list">
+                                                        {% for resena in publicacion.usuario.resenas_recibidas.all|slice:":5" %}
+                                                            <div class="review-card">
+                                                                <div class="review-header">
+                                                                    <div class="reviewer-info">
+                                                                        <i class="fas fa-user-circle"></i>
+                                                                        <span class="reviewer-name">{{ resena.autor.nombre }} {{ resena.autor.apellido }}</span>
+                                                                    </div>
+                                                                    <div class="review-rating">
+                                                                        {% for i in "12345"|make_list %}
+                                                                            <i class="fa{% if forloop.counter <= resena.puntuacion %}s{% else %}r{% endif %} fa-star"></i>
+                                                                        {% endfor %}
+                                                                    </div>
+                                                                </div>
+                                                                <p class="review-text">{{ resena.comentario }}</p>
+                                                                <span class="review-date">{{ resena.fecha_creacion|date:"d/m/Y" }}</span>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="empty-reviews">
+                                                        <i class="fas fa-star fa-2x"></i>
+                                                        <p>Este arrendador aún no tiene reseñas</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="contact-section">
-                                    <button class="btn-contact">
+                                    <button class="btn-contact" onclick="contactarArrendador('{{ publicacion.id }}', event)">
                                         <i class="fas fa-envelope"></i>
                                         Contactar Arrendador
                                     </button>
@@ -358,9 +419,30 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de reseñas -->
+    <div id="resenasModal" class="modal">
+        <div class="modal-content resenas-modal">
+            <div class="modal-header">
+                <h2>Todas las Reseñas</h2>
+                <button class="btn-close" onclick="cerrarModalResenas()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="resenas-modal-content">
+                <div class="resenas-summary">
+                    <div class="promedio-general"></div>
+                    <div class="total-resenas"></div>
+                </div>
+                <div class="resenas-list-completa"></div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block extra_js %}
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="{% static 'js/dashboard.js' %}"></script>
 {% endblock %}

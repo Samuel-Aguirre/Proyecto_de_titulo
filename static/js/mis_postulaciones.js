@@ -62,37 +62,36 @@ function confirmDelete() {
         },
         credentials: 'same-origin'
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
+    .then(response => response.json())
     .then(data => {
-        const card = document.querySelector(`[data-postulation-id="${postulacionIdToDelete}"]`);
-        if (card) {
-            card.remove();
-            const expandedView = document.querySelector(`[data-postulation-id="${postulacionIdToDelete}"].property-expanded`);
-            if (expandedView) {
-                expandedView.remove();
+        if (data.success) {
+            const card = document.querySelector(`[data-postulation-id="${postulacionIdToDelete}"]`);
+            if (card) {
+                card.remove();
+                const expandedView = document.querySelector(`[data-postulation-id="${postulacionIdToDelete}"].property-expanded`);
+                if (expandedView) {
+                    expandedView.remove();
+                }
             }
-        }
-        hideDeleteModal();
-        showNotification('Éxito', 'Postulación eliminada correctamente');
-        
-        // Si no quedan postulaciones, mostrar el estado vacío
-        const listings = document.querySelector('.listings');
-        if (!listings.querySelector('.property-card')) {
-            listings.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-clipboard-list fa-3x"></i>
-                    <h2>No tienes postulaciones activas</h2>
-                    <p>Explora las propiedades disponibles y postula a las que te interesen.</p>
-                    <a href="/dashboard" class="btn-explore">
-                        Explorar Propiedades
-                    </a>
-                </div>
-            `;
+            hideDeleteModal();
+            showNotification('Éxito', data.message);
+            
+            // Si no quedan postulaciones, mostrar el estado vacío
+            const listings = document.querySelector('.listings');
+            if (!listings.querySelector('.property-card')) {
+                listings.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list fa-3x"></i>
+                        <h2>No tienes postulaciones activas</h2>
+                        <p>Explora las propiedades disponibles y postula a las que te interesen.</p>
+                        <a href="/dashboard" class="btn-explore">
+                            Explorar Propiedades
+                        </a>
+                    </div>
+                `;
+            }
+        } else {
+            throw new Error(data.error || 'Error al eliminar la postulación');
         }
     })
     .catch(error => {

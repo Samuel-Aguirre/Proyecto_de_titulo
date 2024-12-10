@@ -1,0 +1,392 @@
+/* Banner principal mejorado */
+.hero-banner {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(25, 118, 210, 0.9));
+    padding: 3rem 2rem;
+    text-align: center;
+    color: white;
+    margin-bottom: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-banner h1 {
+    font-size: 2.4rem;
+    margin-bottom: 0.8rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    font-weight: 600;
+}
+
+.hero-banner p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.4;
+}
+
+/* Contenido principal mejorado */
+.main-content {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    position: relative;
+    z-index: 2;
+}
+
+/* Tabla mejorada */
+.table-responsive {
+    margin: 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    background: white;
+    overflow-x: auto;
+}
+
+.payments-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.payments-table th {
+    background: #f8f9fa;
+    padding: 1.25rem 1.5rem;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.payments-table td {
+    padding: 1.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.2s ease;
+}
+
+.payments-table tr:hover td {
+    background-color: #f8f9fa;
+}
+
+/* Columnas específicas mejoradas */
+.fecha-column {
+    color: #495057;
+    font-size: 0.95rem;
+    font-weight: 500;
+    width: 130px;
+}
+
+.publicacion-column {
+    min-width: 250px;
+    font-weight: 600;
+    color: #2E7D32;
+}
+
+.transaccion-wrapper {
+    background: #f8f9fa;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.payment-id, .order-id {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.metodo-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+}
+
+.metodo {
+    color: #212529;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.metodo i {
+    color: #2E7D32;
+}
+
+.cuotas {
+    font-size: 0.85rem;
+    color: #6c757d;
+    padding-left: 1.5rem;
+}
+
+/* Estados de pago mejorados */
+.pago-estado {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    gap: 0.5rem;
+}
+
+.pago-estado i {
+    font-size: 0.8rem;
+}
+
+.pago-estado.pendiente {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.pago-estado.aprobado {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.pago-estado.rechazado {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+/* Monto mejorado */
+.monto-column {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2E7D32;
+    text-align: right;
+    white-space: nowrap;
+}
+
+/* Botones de acción mejorados */
+.btn-action {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background: #2E7D32;
+    color: white;
+    border-color: #2E7D32;
+}
+
+/* Modal mejorado */
+.modal-content {
+    max-width: 700px;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: #f8f9fa;
+    padding: 1.5rem 2rem;
+}
+
+.modal-header h2 {
+    font-size: 1.5rem;
+    color: #2E7D32;
+    margin: 0;
+}
+
+.transaction-details {
+    display: grid;
+    gap: 1.5rem;
+    padding: 1rem;
+}
+
+.detail-group {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #e9ecef;
+    transition: transform 0.2s ease;
+}
+
+.detail-group:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Estado vacío */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin: 2rem auto;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: #adb5bd;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h2 {
+    color: #343a40;
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state p {
+    color: #6c757d;
+    font-size: 1rem;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .main-content {
+        padding: 1rem;
+    }
+
+    .payments-table {
+        font-size: 0.9rem;
+    }
+
+    .monto-column {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-banner {
+        padding: 2rem 1rem;
+    }
+
+    .hero-banner h1 {
+        font-size: 1.8rem;
+    }
+
+    .hero-banner p {
+        font-size: 1rem;
+    }
+
+    .table-responsive {
+        margin: 0 -0.5rem;
+        padding: 0 0.5rem;
+    }
+
+    .payments-table td,
+    .payments-table th {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .main-content {
+        margin: 1rem;
+        padding: 1rem;
+        border-radius: 12px;
+    }
+
+    .table-responsive {
+        margin: 0;
+        border-radius: 8px;
+    }
+}
+
+.transaccion-column {
+    min-width: 180px;
+}
+
+.acciones-column {
+    width: 100px;
+    padding-right: 1rem !important;
+}
+
+.acciones-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: fit-content;
+}
+
+/* Estilos para los banners de estado (solo visibles para arrendadores) */
+.draft-banner, .payment-pending-banner {
+    display: none; /* Oculto por defecto */
+}
+
+/* Mostrar solo cuando el usuario es arrendador */
+.user-arrendador .draft-banner,
+.user-arrendador .payment-pending-banner {
+    display: block;
+    margin-top: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.user-arrendador .draft-banner {
+    background-color: #e9ecef;
+    border: 1px solid #dee2e6;
+}
+
+.user-arrendador .payment-pending-banner {
+    background-color: #fff3cd;
+    border: 1px solid #ffeeba;
+}
+
+.draft-banner p, .payment-pending-banner p {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+}
+
+.btn-payment, .btn-delete {
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-payment {
+    background-color: #2E7D32;
+    color: white;
+    margin-right: 0.5rem;
+}
+
+.btn-payment:hover {
+    background-color: #1b5e20;
+    transform: translateY(-1px);
+}
+
+.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .draft-banner, .payment-pending-banner {
+        padding: 0.5rem;
+    }
+
+    .btn-payment, .btn-delete {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+        display: block;
+        width: 100%;
+        margin: 0.25rem 0;
+    }
+}
+ 
