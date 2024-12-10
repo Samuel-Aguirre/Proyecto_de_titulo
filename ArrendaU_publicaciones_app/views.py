@@ -5,10 +5,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import PublicacionForm
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 from django.db.models import Q
 import json
-from ArrendaU_app.models import Usuario, Compatibilidad  # Importamos Compatibilidad desde ArrendaU_app.models
+from ArrendaU_app.models import Usuario, Compatibilidad, Interaccion, Resena  # Importamos Resena desde ArrendaU_app.models
 from ArrendaU_app.aplicacion_ia import analizar_compatibilidad
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
@@ -122,15 +122,17 @@ def editar_publicacion(request, publicacion_id):
                 for foto_id in fotos_eliminar:
                     try:
                         foto = Foto.objects.get(id=foto_id, publicacion=publicacion)
-                        # Eliminar el archivo físico
                         if foto.imagen:
                             foto.imagen.delete(save=False)
-                        # Eliminar el registro de la base de datos
                         foto.delete()
                     except Foto.DoesNotExist:
                         continue
 
-            # Resto del código existente sin modificar...
+            # Verificar si la dirección o ciudad han cambiado
+            direccion_anterior = publicacion.direccion
+            ciudad_anterior = publicacion.ciudad
+            region_anterior = publicacion.region
+            
             publicacion.titulo = request.POST.get('title')
             publicacion.descripcion = request.POST.get('description')
             publicacion.region = request.POST.get('region')
@@ -139,7 +141,15 @@ def editar_publicacion(request, publicacion_id):
             publicacion.numero_contacto = request.POST.get('contact')
             publicacion.habitaciones_disponibles = int(request.POST.get('rooms'))
             publicacion.valor_alquiler = int(request.POST.get('rental-value'))
-            publicacion.save()
+            
+            try:
+                publicacion.save()
+            except ValueError as e:
+                return JsonResponse({
+                    'success': False,
+                    'field': 'direccion',
+                    'error': str(e).replace('\n', '<br>')
+                }, status=400)
             
             # Manejar fotos nuevas
             nuevas_fotos = request.FILES.getlist('photos')
@@ -188,7 +198,7 @@ def editar_publicacion(request, publicacion_id):
         except Exception as e:
             return JsonResponse({
                 'success': False,
-                'error': str(e)
+                'error': 'Error en el servidor: ' + str(e)
             }, status=400)
     
     # Preparar datos del formulario existente para el template
@@ -244,15 +254,17 @@ def eliminar_foto(request, foto_id):
 def filtrar_publicaciones(request):
     try:
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            # Iniciar con el queryset base según el rol del usuario
-            if request.user.rol == 'Arrendador':
+            # Iniciar con el queryset base
+            if request.user.is_authenticated and request.user.rol == 'Arrendador':
                 queryset = Publicacion.objects.filter(usuario=request.user)
             else:
+                # Obtener las publicaciones activas y con pago aprobado
                 queryset = Publicacion.objects.filter(
                     activa=True,
-                    estado__in=['PUBLICADA', 'ACTIVA'],
-                    pago__estado='APROBADO'
-                )
+                    estado__in=['PUBLICADA', 'ACTIVA']
+                ).filter(
+                    pagos__estado='APROBADO'
+                ).distinct()
 
             # Aplicar filtros adicionales
             ciudad = request.GET.get('ciudad', '').strip()
@@ -269,10 +281,10 @@ def filtrar_publicaciones(request):
                 max_precio = 400000
 
             # Aplicar filtros solo si se proporcionan valores válidos
-            if ciudad:
-                queryset = queryset.filter(ciudad__icontains=ciudad)
+            if ciudad and ciudad != 'todas':
+                queryset = queryset.filter(ciudad__iexact=ciudad)
             
-            if habitaciones:
+            if habitaciones and habitaciones != '':
                 if habitaciones == '4':  # Para "4+" habitaciones
                     queryset = queryset.filter(habitaciones_disponibles__gte=4)
                 else:
@@ -287,9 +299,14 @@ def filtrar_publicaciones(request):
                 valor_alquiler__lte=max_precio
             )
 
+            # Debug logs
+            print(f"Filtros aplicados: ciudad={ciudad}, habitaciones={habitaciones}, precio={min_precio}-{max_precio}")
+            print(f"Query SQL: {queryset.query}")
+            print(f"Resultados encontrados: {queryset.count()}")
+
             # Preparar datos para la respuesta
             publicaciones = []
-            for pub in queryset:
+            for pub in queryset.prefetch_related('reseñas__usuario', 'fotos'):
                 fotos = [{'imagen_url': foto.imagen.url} for foto in pub.fotos.all()]
                 
                 # Obtener el perfil del arrendador
@@ -315,6 +332,14 @@ def filtrar_publicaciones(request):
                         'reglas_casa': 'No especificadas'
                     }
 
+                # Agregar reseñas
+                reseñas = [{
+                    'usuario': f"{reseña.usuario.nombre} {reseña.usuario.apellido}",
+                    'puntuacion': reseña.puntuacion,
+                    'comentario': reseña.comentario,
+                    'fecha': reseña.fecha_creacion.strftime('%d/%m/%Y %H:%M')
+                } for reseña in pub.reseñas.all()]
+
                 publicaciones.append({
                     'id': pub.id,
                     'titulo': pub.titulo,
@@ -324,7 +349,9 @@ def filtrar_publicaciones(request):
                     'valor_alquiler': pub.valor_alquiler,
                     'habitaciones_disponibles': pub.habitaciones_disponibles,
                     'fotos': fotos,
-                    'preferencias_arrendador': preferencias
+                    'preferencias_arrendador': preferencias,
+                    'estado': pub.estado,
+                    'reseñas': reseñas
                 })
 
             return JsonResponse({'publicaciones': publicaciones})
@@ -446,7 +473,8 @@ def obtener_formulario(request, publicacion_id):
 @login_required
 def mis_postulaciones(request):
     postulaciones = RespuestaArrendatario.objects.filter(
-        usuario=request.user
+        usuario=request.user,
+        oculta_para_arrendatario=False  # Solo mostrar las no ocultas
     ).select_related(
         'formulario__publicacion'
     ).prefetch_related(
@@ -466,11 +494,30 @@ def eliminar_postulacion(request, postulacion_id):
                 id=postulacion_id,
                 usuario=request.user
             )
-            postulacion.delete()
-            return JsonResponse({'success': True})
+            
+            # Si la postulación está pendiente, eliminarla completamente
+            if postulacion.estado == 'PENDIENTE':
+                postulacion.delete()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Postulación eliminada correctamente'
+                })
+            # Si tiene otro estado, solo ocultarla
+            else:
+                postulacion.oculta_para_arrendatario = True
+                postulacion.save()
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Postulación eliminada de tu lista'
+                })
+                
         except RespuestaArrendatario.DoesNotExist:
-            return JsonResponse({'error': 'Postulación no encontrada'}, status=404)
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
+            return JsonResponse({
+                'error': 'Postulación no encontrada'
+            }, status=404)
+    return JsonResponse({
+        'error': 'Método no permitido'
+    }, status=405)
 
 @login_required
 def publicaciones_guardadas(request):
@@ -615,7 +662,8 @@ def aceptar_postulacion(request, postulacion_id):
         return JsonResponse({
             'success': True,
             'message': 'Postulación aceptada correctamente',
-            'cupos_restantes': publicacion.habitaciones_disponibles
+            'cupos_restantes': publicacion.habitaciones_disponibles,
+            'publicacion_activa': publicacion.activa
         })
         
     except Exception as e:
@@ -1030,3 +1078,282 @@ def eliminar_borrador(request, pk):
             'success': False, 
             'error': str(e)
         }, status=400)
+
+@login_required
+def crear_resena(request, publicacion_id):
+    if request.method == 'POST':
+        try:
+            publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+            data = json.loads(request.body)
+            puntuacion = int(data.get('puntuacion'))
+            comentario = data.get('comentario')
+            
+            if not puntuacion or not comentario:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'La puntuación y el comentario son obligatorios'
+                }, status=400)
+            
+            # Crear o actualizar la reseña
+            resena, created = Resena.objects.update_or_create(
+                publicacion=publicacion,
+                usuario=request.user,
+                defaults={
+                    'puntuacion': puntuacion,
+                    'comentario': comentario
+                }
+            )
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Reseña guardada exitosamente'
+            })
+        except Exception as e:
+            print(f"Error al crear reseña: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=400)
+    return JsonResponse({
+        'success': False,
+        'error': 'Método no permitido'
+    }, status=405)
+
+@login_required
+def obtener_resenas(request, publicacion_id):
+    try:
+        resenas = Resena.objects.filter(publicacion_id=publicacion_id).select_related('usuario')
+        data = [{
+            'id': r.id,
+            'usuario': f"{r.usuario.nombre} {r.usuario.apellido}",
+            'puntuacion': r.puntuacion,
+            'comentario': r.comentario,
+            'fecha': r.fecha_creacion.strftime('%d/%m/%Y %H:%M')
+        } for r in resenas]
+        return JsonResponse({'resenas': data})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def mis_resenas(request):
+    if request.user.rol != 'Arrendador':
+        messages.error(request, 'No tienes permiso para ver esta página')
+        return redirect('dashboard')
+    
+    # Obtener todas las resenas de las publicaciones del arrendador
+    resenas = Resena.objects.filter(
+        publicacion__usuario=request.user
+    ).select_related(
+        'publicacion',
+        'usuario'
+    ).order_by('-fecha_creacion')
+    
+    # Agrupar resenas por publicación
+    publicaciones = {}
+    for resena in resenas:
+        if resena.publicacion.id not in publicaciones:
+            publicaciones[resena.publicacion.id] = {
+                'publicacion': resena.publicacion,
+                'resenas': [],
+                'promedio': 0,
+                'total': 0
+            }
+        publicaciones[resena.publicacion.id]['resenas'].append(resena)
+        
+    # Calcular promedios
+    for pub_data in publicaciones.values():
+        total_puntuacion = sum(r.puntuacion for r in pub_data['resenas'])
+        pub_data['total'] = len(pub_data['resenas'])
+        promedio = total_puntuacion / pub_data['total'] if pub_data['total'] > 0 else 0
+        pub_data['promedio'] = min(round(promedio, 1), 5.0)  # Limitar a 5.0 como máximo
+    
+    return render(request, 'mis_resenas.html', {
+        'publicaciones': publicaciones.values()
+    })
+
+@login_required
+def obtener_coordenadas(request, publicacion_id):
+    try:
+        publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+        return JsonResponse({
+            'latitud': float(publicacion.latitud) if publicacion.latitud else None,
+            'longitud': float(publicacion.longitud) if publicacion.longitud else None
+        })
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@login_required
+def verificar_postulacion_existente(request, publicacion_id):
+    try:
+        # Verificar si existe una postulación activa
+        postulacion_existente = RespuestaArrendatario.objects.filter(
+            usuario=request.user,
+            formulario__publicacion_id=publicacion_id,
+            estado__in=['PENDIENTE', 'ACEPTADO']  # Solo considerar postulaciones activas
+        ).exists()
+        
+        return JsonResponse({
+            'success': True,
+            'postulacion_existente': postulacion_existente
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+@login_required
+def obtener_info_contacto(request, publicacion_id):
+    try:
+        # Verificar si existe una postulación activa
+        postulacion_existente = RespuestaArrendatario.objects.filter(
+            usuario=request.user,
+            formulario__publicacion_id=publicacion_id,
+            estado__in=['PENDIENTE', 'ACEPTADO']
+        ).exists()
+        
+        if not postulacion_existente:
+            return JsonResponse({
+                'success': False,
+                'error': 'Debes postular primero para ver la información de contacto'
+            }, status=403)
+        
+        # Si existe postulación, obtener info del arrendador
+        publicacion = get_object_or_404(Publicacion, id=publicacion_id)
+        arrendador = publicacion.usuario
+        
+        return JsonResponse({
+            'success': True,
+            'info_contacto': {
+                'nombre': f"{arrendador.nombre} {arrendador.apellido}",
+                'email': arrendador.email,
+                'telefono': publicacion.numero_contacto
+            }
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=400)
+
+@login_required
+@require_POST
+def expulsar_arrendatario(request, postulacion_id):
+    try:
+        postulacion = get_object_or_404(RespuestaArrendatario, id=postulacion_id)
+        publicacion = postulacion.formulario.publicacion
+        
+        # Verificar permisos
+        if request.user != publicacion.usuario:
+            return JsonResponse({
+                'success': False,
+                'message': 'No tienes permiso para realizar esta acción'
+            }, status=403)
+            
+        # Verificar que la postulación esté aceptada
+        if postulacion.estado != 'ACEPTADO':
+            return JsonResponse({
+                'success': False,
+                'message': 'Solo se pueden expulsar arrendatarios aceptados'
+            }, status=400)
+        
+        # Actualizar estado de la postulación
+        postulacion.estado = 'EXPULSADO'
+        postulacion.save()
+        
+        # Incrementar cupos disponibles y reactivar la publicación si estaba desactivada
+        publicacion.habitaciones_disponibles += 1
+        if not publicacion.activa:
+            publicacion.activa = True
+        publicacion.save()
+        
+        # Crear notificación para el arrendatario
+        Notificacion.objects.create(
+            usuario=postulacion.usuario,
+            publicacion=publicacion,
+            tipo='EXPULSADO',
+            mensaje=f'Has sido expulsado de la publicación "{publicacion.titulo}".'
+        )
+        
+        # Habilitar la opción de dejar reseña
+        postulacion.puede_dejar_reseña = True
+        postulacion.save()
+        
+        # Crear o actualizar la interacción
+        interaccion, created = Interaccion.objects.get_or_create(
+            arrendador=publicacion.usuario,
+            arrendatario=postulacion.usuario,
+            publicacion=publicacion,
+            defaults={'estado': 'EXPULSADO'}
+        )
+        if not created:
+            interaccion.estado = 'EXPULSADO'
+            interaccion.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Arrendatario expulsado correctamente',
+            'usuario_id': postulacion.usuario.id,  # Añadir el ID del usuario
+            'cupos_restantes': publicacion.habitaciones_disponibles
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        }, status=400)
+
+@login_required
+def obtener_resenas_usuario(request, usuario_id):
+    try:
+        usuario = get_object_or_404(Usuario, id=usuario_id)
+        resenas = Resena.objects.filter(
+            usuario_resenado=usuario
+        ).select_related('autor').order_by('-fecha_creacion')
+        
+        data = {
+            'promedio': usuario.promedio_resenas,
+            'total': resenas.count(),
+            'resenas': [{
+                'id': r.id,
+                'autor': f"{r.autor.nombre} {r.autor.apellido}",
+                'puntuacion': r.puntuacion,
+                'comentario': r.comentario,
+                'fecha': r.fecha_creacion.strftime('%d/%m/%Y')
+            } for r in resenas]
+        }
+        
+        return JsonResponse(data)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+@require_http_methods(["GET"])
+def obtener_estado_postulacion(request, postulacion_id):
+    try:
+        postulacion = RespuestaArrendatario.objects.get(id=postulacion_id)
+        return JsonResponse({
+            'success': True,
+            'estado': postulacion.estado
+        })
+    except RespuestaArrendatario.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Postulación no encontrada'
+        }, status=404)
+
+@require_http_methods(["POST"])
+def ocultar_postulacion(request, postulacion_id):
+    try:
+        postulacion = RespuestaArrendatario.objects.get(id=postulacion_id)
+        # En lugar de eliminar, marcar como oculta para el arrendatario
+        postulacion.oculta_para_arrendatario = True
+        postulacion.save()
+        return JsonResponse({
+            'success': True,
+            'message': 'Postulación ocultada correctamente'
+        })
+    except RespuestaArrendatario.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'error': 'Postulación no encontrada'
+        }, status=404)

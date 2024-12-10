@@ -1,0 +1,228 @@
+/* Variables globales */
+:root {
+    --primary-color: #2E7D32;
+    --secondary-color: #1976D2;
+    --text-primary: #2c3e50;
+    --text-secondary: #546e7a;
+    --background-light: #f8f9fa;
+}
+
+/* Reset básico */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Contenedor principal */
+.postulation-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Listado de postulaciones */
+.postulation-listings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+}
+
+/* Tarjeta de postulación */
+.postulation-card {
+    flex: 0 1 calc(33.333% - 1.334rem);
+    min-width: 280px;
+    max-width: 400px;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.postulation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.postulation-image-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+}
+
+.postulation-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.postulation-details {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.postulation-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.postulation-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.postulation-info span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #64748b;
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+/* Botones y acciones */
+.postulation-actions {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+}
+
+.postulation-btn-action {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.postulation-btn-action:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.postulation-btn-delete {
+    color: #dc3545;
+}
+
+.postulation-btn-delete:hover {
+    background: #dc3545;
+    color: white;
+}
+
+/* Vista expandida */
+.postulation-expanded {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.expanded-content {
+    width: 90%;
+    max-width: 1000px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+/* Estado vacío */
+.empty-state {
+    width: 100%;
+    max-width: 600px;
+    margin: 4rem auto;
+    padding: 3rem 2rem;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .postulation-card {
+        flex: 0 1 calc(50% - 1rem); /* 2 tarjetas por fila */
+    }
+}
+
+@media (max-width: 768px) {
+    .postulation-card {
+        flex: 0 1 calc(100% - 1rem); /* 1 tarjeta por fila */
+    }
+}
+
+/* Hero section */
+.hero-image {
+    background: linear-gradient(135deg, #2E7D32 0%, #1976D2 100%);
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('../img/pattern.png') repeat;
+    opacity: 0.1;
+}
+
+.hero-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.hero-content h1 {
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 1rem 0;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero-content p {
+    color: rgba(255,255,255,0.9);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}

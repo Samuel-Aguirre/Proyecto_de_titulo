@@ -1,0 +1,7 @@
+Hola {{ nombre }},
+
+Tu código de verificación para ArrendaU es: {{ codigo_otp }}
+
+Este código expirará en {{ expiracion_minutos }} minutos.
+
+Si no solicitaste este código, por favor ignora este correo. 

@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mis Reseñas - ArrendaU{% endblock %}
+
+{% block content %}
+{% csrf_token %}
+<div class="hero-image">
+    <div class="hero-content">
+        <h1>{% if tipo == 'recibidas' %}Reseñas Recibidas{% else %}Reseñas Escritas{% endif %}</h1>
+        <p>{% if tipo == 'recibidas' %}Aquí puedes ver todas las reseñas que has recibido de otros usuarios{% else %}Aquí puedes ver todas las reseñas que has escrito{% endif %}</p>
+    </div>
+</div>
+
+<div class="resenas-container">
+    <div class="resenas-grid">
+        {% if user.rol == 'Arrendatario' %}
+        <!-- Columna Izquierda - Escribir Reseñas -->
+        <div class="resenas-column write-column">
+            <div class="column-header">
+                <h2><i class="fas fa-pen"></i> Escribir Reseñas</h2>
+            </div>
+            {% if interacciones_pendientes %}
+                <div class="pending-reviews">
+                    <h3>Interacciones pendientes de reseñar:</h3>
+                    {% for interaccion in interacciones_pendientes %}
+                        <div class="pending-review-card">
+                            <div class="interaction-info">
+                                <p>Arrendador: {{ interaccion.arrendador.nombre }} {{ interaccion.arrendador.apellido }}</p>
+                                <p>Publicación: {{ interaccion.publicacion.titulo }}</p>
+                                <p>Estado: {{ interaccion.get_estado_display }}</p>
+                            </div>
+                            <button class="btn-resena" onclick="crearResena('{{ interaccion.arrendador.id }}', '{{ interaccion.publicacion.id }}')">
+                                <i class="fas fa-star"></i>
+                                Dejar Reseña
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-pen-alt fa-3x"></i>
+                    <h3>No hay reseñas pendientes</h3>
+                    <p>Cuando tengas interacciones con arrendadores, podrás dejar tus reseñas aquí.</p>
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- Columna Derecha - Reseñas Recibidas -->
+        <div class="resenas-column received-column {% if user.rol != 'Arrendatario' %}full-width{% endif %}">
+            <div class="column-header">
+                <h2><i class="fas fa-inbox"></i> Reseñas Recibidas</h2>
+            </div>
+            {% if not resenas %}
+                <div class="empty-state">
+                    <i class="fas fa-star fa-3x"></i>
+                    <h3>No hay reseñas recibidas</h3>
+                    <p>Cuando otros usuarios te dejen reseñas, aparecerán aquí.</p>
+                </div>
+            {% else %}
+                <div class="resenas-list">
+                    {% for resena in resenas %}
+                        <div class="resena-card">
+                            <div class="resena-header">
+                                <div class="user-info">
+                                    <i class="fas fa-user-circle"></i>
+                                    {% if tipo == 'recibidas' %}
+                                        <span class="user-name">{{ resena.autor.nombre }} {{ resena.autor.apellido }}</span>
+                                    {% else %}
+                                        <span class="user-name">{{ resena.usuario_resenado.nombre }} {{ resena.usuario_resenado.apellido }}</span>
+                                    {% endif %}
+                                </div>
+                                <div class="review-date">
+                                    {{ resena.fecha_creacion|date:"d/m/Y" }}
+                                </div>
+                            </div>
+                            <div class="rating">
+                                {% for i in "12345"|make_list %}
+                                    <i class="fa{% if forloop.counter <= resena.puntuacion %}s{% else %}r{% endif %} fa-star"></i>
+                                {% endfor %}
+                            </div>
+                            <p class="review-text">{{ resena.comentario }}</p>
+                            {% if resena.publicacion %}
+                                <div class="publicacion-context">
+                                    <small>Contexto: {{ resena.publicacion.titulo }}</small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/resenas.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/resenas.js' %}"></script>
+{% endblock %} 

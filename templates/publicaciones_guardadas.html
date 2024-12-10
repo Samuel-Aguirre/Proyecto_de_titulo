@@ -27,148 +27,222 @@
         </div>
     </div>
 
-    <div class="container">
-        <main class="listings">
-            {% for guardado in publicaciones_guardadas %}
-            <article class="property-card" data-publication-id="{{ guardado.publicacion.id }}" onclick="expandirPublicacion('{{ guardado.publicacion.id }}')">
-                <div class="property-actions">
-                    <button type="button" 
-                            class="btn-action btn-bookmark active" 
-                            onclick="event.stopPropagation(); toggleGuardado('{{ guardado.publicacion.id }}')" 
-                            title="Quitar de guardados"
-                            data-id="{{ guardado.publicacion.id }}">
-                        <i class="fas fa-bookmark"></i>
-                    </button>
-                </div>
-                {% if guardado.publicacion.fotos.all %}
-                    <img src="{{ guardado.publicacion.fotos.first.imagen.url }}" alt="{{ guardado.publicacion.titulo }}" class="property-image">
-                {% else %}
-                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image">
-                {% endif %}
-                <div class="property-details">
-                    <h3 class="property-title">{{ guardado.publicacion.titulo }}</h3>
-                    <div class="property-info">
-                        <span>📍 {{ guardado.publicacion.ciudad }} - {{ guardado.publicacion.direccion }}</span>
-                        <span>💰 {{ guardado.publicacion.valor_alquiler|format_precio }}</span>
-                        <span>🛏️ {{ guardado.publicacion.habitaciones_disponibles }} habitaciones</span>
-                        <span>📅 Guardado el: {{ guardado.fecha_guardado|date:"d/m/Y" }}</span>
-                    </div>
-                    
-                </div>
-            </article>
-            <div id="expandedView_{{ guardado.publicacion.id }}" class="property-expanded" style="display: none;" data-publication-id="{{ guardado.publicacion.id }}">
-                <div class="expanded-content">
-                    <div class="expanded-header">
-                        <h2>{{ guardado.publicacion.titulo }}</h2>
-                        <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
-                            <i class="fas fa-times"></i>
+    <div class="container saved-publications-container">
+        {% if publicaciones_guardadas %}
+            <main class="listings saved-publications-grid">
+                {% for guardado in publicaciones_guardadas %}
+                <article class="property-card saved-publication-card" data-publication-id="{{ guardado.publicacion.id }}" onclick="expandirPublicacion('{{ guardado.publicacion.id }}')">
+                    <div class="property-actions saved-publication-actions">
+                        <button type="button" 
+                                class="btn-action btn-bookmark saved-publication-btn-bookmark active" 
+                                onclick="event.stopPropagation(); toggleGuardado('{{ guardado.publicacion.id }}')" 
+                                title="Quitar de guardados"
+                                data-id="{{ guardado.publicacion.id }}">
+                            <i class="fas fa-bookmark"></i>
                         </button>
                     </div>
-                    
-                    <div class="expanded-grid">
-                        <div class="expanded-images">
-                            <div class="main-image">
-                                {% if guardado.publicacion.fotos.all %}
-                                    <img src="{{ guardado.publicacion.fotos.first.imagen.url }}" alt="{{ guardado.publicacion.titulo }}">
-                                {% else %}
-                                    <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible">
-                                {% endif %}
-                            </div>
-                            <div class="thumbnail-grid">
-                                {% for foto in guardado.publicacion.fotos.all %}
-                                    <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }}" 
-                                         onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src, '{{ guardado.publicacion.id }}')">
-                                {% endfor %}
-                            </div>
+                    {% if guardado.publicacion.fotos.all %}
+                        <img src="{{ guardado.publicacion.fotos.first.imagen.url }}" alt="{{ guardado.publicacion.titulo }}" class="property-image saved-publication-image">
+                    {% else %}
+                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible" class="property-image saved-publication-image">
+                    {% endif %}
+                    <div class="property-details saved-publication-details">
+                        <h3 class="property-title saved-publication-title">{{ guardado.publicacion.titulo }}</h3>
+                        <div class="property-info saved-publication-info">
+                            <span>📍 {{ guardado.publicacion.ciudad }} - {{ guardado.publicacion.direccion }}</span>
+                            <span>💰 {{ guardado.publicacion.valor_alquiler|format_precio }}</span>
+                            <span>🛏️ {{ guardado.publicacion.habitaciones_disponibles }} habitaciones</span>
+                            <span>📅 Guardado el: {{ guardado.fecha_guardado|date:"d/m/Y" }}</span>
                         </div>
-
-                        <div class="expanded-details">
-                            <div class="detail-section">
-                                <h3>Detalles de la Propiedad</h3>
-                                <div class="detail-grid">
-                                    <div class="detail-item">
-                                        <span class="label">Ubicación</span>
-                                        <span class="value">📍 {{ guardado.publicacion.ciudad }} - {{ guardado.publicacion.direccion }}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="label">Precio</span>
-                                        <span class="value">💰 {{ guardado.publicacion.valor_alquiler|format_precio }}</span>
-                                    </div>
-                                    <div class="detail-item">
-                                        <span class="label">Habitaciones</span>
-                                        <span class="value">🛏️ {{ guardado.publicacion.habitaciones_disponibles }}</span>
-                                    </div>
+                        
+                    </div>
+                </article>
+                <div id="expandedView_{{ guardado.publicacion.id }}" class="property-expanded saved-publication-expanded" style="display: none;" data-publication-id="{{ guardado.publicacion.id }}">
+                    <div class="expanded-content saved-publication-expanded-content">
+                        <div class="expanded-header">
+                            <h2>{{ guardado.publicacion.titulo }}</h2>
+                            <button class="btn-close" onclick="event.stopPropagation(); contraerPublicacion(this)">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="expanded-grid">
+                            <div class="expanded-images">
+                                <div class="main-image">
+                                    {% if guardado.publicacion.fotos.all %}
+                                        <img src="{{ guardado.publicacion.fotos.first.imagen.url }}" alt="{{ guardado.publicacion.titulo }}">
+                                    {% else %}
+                                        <img src="{% static 'img/default_image.jpg' %}" alt="Imagen no disponible">
+                                    {% endif %}
+                                </div>
+                                <div class="thumbnail-grid">
+                                    {% for foto in guardado.publicacion.fotos.all %}
+                                        <img src="{{ foto.imagen.url }}" alt="Foto {{ forloop.counter }}" 
+                                             onclick="event.stopPropagation(); cambiarImagenPrincipal(this.src, '{{ guardado.publicacion.id }}')">
+                                    {% endfor %}
+                                </div>
+                                <div class="detail-section">
+                                    <h3>Ubicación</h3>
+                                    <div id="map-{{ guardado.publicacion.id }}" class="property-map"></div>
                                 </div>
                             </div>
 
-                            <div class="detail-section">
-                                <h3>Descripción</h3>
-                                <p>{{ guardado.publicacion.descripcion }}</p>
-                            </div>
+                            <div class="expanded-details">
+                                <div class="detail-section">
+                                    <h3>Detalles de la Propiedad</h3>
+                                    <div class="detail-grid">
+                                        <div class="detail-item">
+                                            <span class="label"><strong>Ubicación</strong> 📍</span>
+                                            <span class="value">{{ guardado.publicacion.ciudad }} - {{ guardado.publicacion.direccion }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label"><strong>Precio</strong> 💰</span>
+                                            <span class="value">{{ guardado.publicacion.valor_alquiler|format_precio }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <span class="label"><strong>Habitaciones</strong> 🛏️</span>
+                                            <span class="value">{{ guardado.publicacion.habitaciones_disponibles }}</span>
+                                        </div>
+                                    </div>
+                                </div>
 
-                            <div class="detail-section">
-                                <h3>Preferencias del Arrendador</h3>
-                                <div class="preferencias-grid">
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-smoking-ban"></i>
-                                        <span>Fumador: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_fumador_display }}</span>
+                                <div class="detail-section">
+                                    <h3>Descripción</h3>
+                                    <p>{{ guardado.publicacion.descripcion }}</p>
+                                </div>
+
+                                <div class="detail-section">
+                                    <h3>Preferencias del Arrendador</h3>
+                                    <div class="preferencias-grid">
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-smoking-ban"></i>
+                                            <span><strong>Fumador:</strong> {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_fumador_display }}</span>
+                                        </div>
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-glass-cheers"></i>
+                                            <span><strong>Bebedor:</strong> {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_bebedor_display }}</span>
+                                        </div>
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-paw"></i>
+                                            <span><strong>Mascotas:</strong> {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_mascotas_display }}</span>
+                                        </div>
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-volume-up"></i>
+                                            <span><strong>Nivel de Ruido:</strong> {{ guardado.publicacion.usuario.perfilarrendador.get_pref_nivel_ruido_display }}</span>
+                                        </div>
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-user-graduate"></i>
+                                            <span><strong>Estudiante Verificado:</strong> {{ guardado.publicacion.usuario.perfilarrendador.get_pref_estudiante_verificado_display }}</span>
+                                        </div>
+                                        {% if guardado.publicacion.usuario.perfilarrendador.horario_visitas %}
+                                        <div class="preferencia-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span><strong>Horario de Visitas:</strong> {{ guardado.publicacion.usuario.perfilarrendador.horario_visitas }}</span>
+                                        </div>
+                                        {% endif %}
                                     </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-glass-cheers"></i>
-                                        <span>Bebedor: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_bebedor_display }}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-paw"></i>
-                                        <span>Mascotas: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_no_mascotas_display }}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-volume-up"></i>
-                                        <span>Nivel de Ruido: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_nivel_ruido_display }}</span>
-                                    </div>
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-user-graduate"></i>
-                                        <span>Estudiante Verificado: {{ guardado.publicacion.usuario.perfilarrendador.get_pref_estudiante_verificado_display }}</span>
-                                    </div>
-                                    {% if guardado.publicacion.usuario.perfilarrendador.horario_visitas %}
-                                    <div class="preferencia-item">
-                                        <i class="fas fa-clock"></i>
-                                        <span>Horario de Visitas: {{ guardado.publicacion.usuario.perfilarrendador.horario_visitas }}</span>
+                                    {% if guardado.publicacion.usuario.perfilarrendador.reglas_casa %}
+                                    <div class="reglas-casa">
+                                        <h4>Reglas de la Casa</h4>
+                                        <p>{{ guardado.publicacion.usuario.perfilarrendador.reglas_casa }}</p>
                                     </div>
                                     {% endif %}
                                 </div>
-                                {% if guardado.publicacion.usuario.perfilarrendador.reglas_casa %}
-                                <div class="reglas-casa">
-                                    <h4>Reglas de la Casa</h4>
-                                    <p>{{ guardado.publicacion.usuario.perfilarrendador.reglas_casa }}</p>
-                                </div>
-                                {% endif %}
-                            </div>
 
-                            <div class="contact-section">
-                                <button class="btn-contact">
-                                    <i class="fas fa-envelope"></i>
-                                    Contactar Arrendador
-                                </button>
-                                <button type="button" class="btn-apply" data-publication-id="{{ guardado.publicacion.id }}">
-                                    <i class="fas fa-file-alt"></i>
-                                    Postular
-                                </button>
+                                <div class="detail-section reviews-section">
+                                    <div class="reseñas-section">
+                                        <div class="reseñas-header">
+                                            <div class="reseñas-header-top">
+                                                <h3>
+                                                    <i class="fas fa-star"></i>
+                                                    Reseñas del Arrendador
+                                                </h3>
+                                                <button class="btn-toggle-reseñas">
+                                                    <i class="fas fa-chevron-down"></i>
+                                                </button>
+                                            </div>
+                                            <div class="reviews-summary">
+                                                <div class="average-rating">
+                                                    <span class="rating-number">{{ guardado.publicacion.usuario.promedio_resenas|default:"0.0" }}</span>
+                                                    <div class="stars">
+                                                        {% for i in "12345"|make_list %}
+                                                            <i class="fa{% if forloop.counter <= guardado.publicacion.usuario.promedio_resenas %}s{% else %}r{% endif %} fa-star"></i>
+                                                        {% endfor %}
+                                                    </div>
+                                                    <span class="total-reviews">({{ guardado.publicacion.usuario.resenas_recibidas.count }} reseñas)</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="reseñas-content">
+                                            <div class="reviews-container">
+                                                {% if guardado.publicacion.usuario.resenas_recibidas.all %}
+                                                    <div class="reviews-list">
+                                                        {% for resena in guardado.publicacion.usuario.resenas_recibidas.all|slice:":5" %}
+                                                            <div class="review-card">
+                                                                <div class="review-header">
+                                                                    <div class="reviewer-info">
+                                                                        <i class="fas fa-user-circle"></i>
+                                                                        <span class="reviewer-name">{{ resena.autor.nombre }} {{ resena.autor.apellido }}</span>
+                                                                    </div>
+                                                                    <div class="review-rating">
+                                                                        {% for i in "12345"|make_list %}
+                                                                            <i class="fa{% if forloop.counter <= resena.puntuacion %}s{% else %}r{% endif %} fa-star"></i>
+                                                                        {% endfor %}
+                                                                    </div>
+                                                                </div>
+                                                                <p class="review-text">{{ resena.comentario }}</p>
+                                                                <span class="review-date">{{ resena.fecha_creacion|date:"d/m/Y" }}</span>
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                {% else %}
+                                                    <div class="empty-reviews">
+                                                        <i class="fas fa-star fa-2x"></i>
+                                                        <p>Este arrendador aún no tiene reseñas</p>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="contact-section">
+                                    <button class="btn-contact" onclick="contactarArrendador('{{ guardado.publicacion.id }}', event)">
+                                        <i class="fas fa-envelope"></i>
+                                        Contactar Arrendador
+                                    </button>
+                                    <button type="button" class="btn-apply" 
+                                            onclick="verificarPerfilArrendatario('{{ guardado.publicacion.id }}', event)"
+                                            data-publication-id="{{ guardado.publicacion.id }}">
+                                        <i class="fas fa-file-alt"></i>
+                                        Postular
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                {% empty %}
+                    <div class="empty-state saved-publications-empty">
+                        <i class="fas fa-bookmark fa-3x"></i>
+                        <h2>No tienes publicaciones guardadas</h2>
+                        <p>Guarda las publicaciones que te interesen para revisarlas más tarde</p>
+                        <a href="{% url 'dashboard' %}" class="btn-explore">
+                            Explorar Propiedades
+                        </a>
+                    </div>
+                {% endfor %}
+            </main>
+        {% else %}
+            <div class="empty-state saved-publications-empty">
+                <i class="fas fa-bookmark fa-3x"></i>
+                <h2>No tienes publicaciones guardadas</h2>
+                <p>Guarda las publicaciones que te interesen para revisarlas más tarde</p>
+                <a href="{% url 'dashboard' %}" class="btn-explore">
+                    Explorar Propiedades
+                </a>
             </div>
-            {% empty %}
-                <div class="empty-state">
-                    <i class="fas fa-bookmark fa-3x"></i>
-                    <h2>No tienes publicaciones guardadas</h2>
-                    <p>Guarda las publicaciones que te interesen para revisarlas más tarde</p>
-                    <a href="{% url 'dashboard' %}" class="btn-explore">
-                        Explorar Propiedades
-                    </a>
-                </div>
-            {% endfor %}
-        </main>
+        {% endif %}
     </div>
 
     <!-- Modales -->
@@ -185,5 +259,7 @@
 
 {% block extra_js %}
     <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="{% static 'js/publicaciones_guardadas.js' %}"></script>
 {% endblock %} 

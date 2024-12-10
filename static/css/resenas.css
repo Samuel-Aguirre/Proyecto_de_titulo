@@ -1,0 +1,446 @@
+.resenas-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.header-section {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.header-section h1 {
+    color: var(--text-primary);
+    font-size: 2rem;
+    margin: 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.empty-state i {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.empty-state h2 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+}
+
+.resenas-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.resenas-list.recibidas {
+    margin-left: auto;
+    max-width: 800px;
+}
+
+.resenas-list.escritas {
+    margin-right: auto;
+    max-width: 800px;
+}
+
+.resena-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease;
+}
+
+.resena-card:hover {
+    transform: translateY(-2px);
+}
+
+.resena-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-info i {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.user-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.review-date {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.rating {
+    margin-bottom: 1rem;
+}
+
+.rating i {
+    color: #ffd700;
+    margin-right: 0.25rem;
+}
+
+.review-text {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    white-space: pre-line;
+}
+
+.publicacion-context {
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.publicacion-context small {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Botones de acción */
+.resena-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.btn-resena {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-resena i {
+    font-size: 1rem;
+}
+
+.btn-resena.edit {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-resena.delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn-resena:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+@media (max-width: 768px) {
+    .resenas-container {
+        padding: 0 1rem;
+    }
+
+    .header-section h1 {
+        font-size: 1.5rem;
+    }
+
+    .resena-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .resena-actions {
+        flex-direction: column;
+    }
+
+    .btn-resena {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+.pending-reviews {
+    margin-bottom: 2rem;
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.pending-reviews h3 {
+    color: var(--text-primary);
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #eee;
+}
+
+.pending-review-card {
+    background: var(--background-light);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.pending-review-card:hover {
+    transform: translateY(-2px);
+}
+
+.pending-review-card:last-child {
+    margin-bottom: 0;
+}
+
+.interaction-info {
+    flex: 1;
+}
+
+.interaction-info p {
+    margin: 0.25rem 0;
+    color: var(--text-secondary);
+}
+
+.interaction-info p:first-child {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.btn-resena {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-resena:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hero-image {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/static/img/hero-bg.jpg');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 3rem;
+}
+
+.hero-content {
+    text-align: center;
+    color: white;
+    padding: 2rem;
+    max-width: 800px;
+}
+
+.hero-content h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.hero-content p {
+    font-size: 1rem;
+    opacity: 0.9;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 768px) {
+    .hero-image {
+        height: 150px;
+    }
+
+    .hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .hero-content p {
+        font-size: 0.9rem;
+    }
+
+    .resenas-container {
+        padding: 0 1rem;
+    }
+}
+
+.resenas-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    background: white;
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.nav-link i {
+    font-size: 1.2rem;
+}
+
+.nav-link:hover {
+    background: var(--background-light);
+    color: var(--text-primary);
+    transform: translateY(-2px);
+}
+
+.nav-link.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Ajustar el layout según el tipo de reseña */
+.resenas-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.resenas-list.recibidas {
+    margin-left: auto;
+    max-width: 800px;
+}
+
+.resenas-list.escritas {
+    margin-right: auto;
+    max-width: 800px;
+}
+
+@media (max-width: 768px) {
+    .resenas-navigation {
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .nav-link {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .resenas-list.recibidas,
+    .resenas-list.escritas {
+        margin: 0 auto;
+        width: 100%;
+    }
+}
+
+.resenas-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-top: -2rem; /* Para compensar el margin del hero */
+}
+
+.resenas-column {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.column-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.column-header h2 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.column-header h2 i {
+    color: var(--primary-color);
+}
+
+.write-column {
+    position: sticky;
+    top: 2rem;
+    height: fit-content;
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+.received-column {
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+}
+
+/* Cuando solo se muestra la columna de reseñas recibidas */
+.received-column.full-width {
+    grid-column: 1 / -1;  /* Ocupa todas las columnas disponibles */
+    max-width: 800px;     /* Limitar el ancho máximo */
+    margin: 0 auto;       /* Centrar en la página */
+}
+
+/* Ajustar los estilos existentes */
+.resenas-list {
+    display: grid;
+    gap: 1.5rem;
+}
+
+@media (max-width: 992px) {
+    .resenas-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .write-column,
+    .received-column {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+    }
+} 

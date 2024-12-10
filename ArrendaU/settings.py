@@ -164,8 +164,8 @@ SESSION_COOKIE_HTTPONLY = True
 
 ANTHROPIC_API_KEY = '' #Llave de Antrhopic 
 
-MERCADOPAGO_ACCESS_TOKEN = ''  # Token del usuario de prueba vendedor
-MERCADOPAGO_PUBLIC_KEY = ''   # Public key del usuario de prueba vendedor
+MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-8384282309005476-120400-21c3232ae64707fae413eb08b41a93f4-2137348952' # Token del usuario de prueba vendedor
+MERCADOPAGO_PUBLIC_KEY = 'APP_USR-1f0509b4-a4c6-4548-aed2-c856a4388b94' # Public key del usuario de prueba vendedor
 
 # Configuración de pruebas
 MERCADOPAGO_TEST_MODE = True  # Para indicar que estamos usando usuarios de prueba
@@ -174,3 +174,27 @@ PRECIO_PUBLICACION = 5000  # Precio en pesos chilenos
 CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
 
 MERCADOPAGO_WEBHOOK_ENABLED = False
+
+LOGIN_URL = 'login'
+
+# Configuración de correo electrónico
+ENABLE_EMAIL_OTP = False
+
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = ''  # Reemplaza con tu correo de Gmail
+    EMAIL_HOST_PASSWORD = ''  # Reemplaza con tu contraseña de aplicación de Gmail
+else:
+    # Configuración para producción
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = 'smtp.gmail.com'
+    EMAIL_PORT = 587
+    EMAIL_USE_TLS = True
+    EMAIL_HOST_USER = 'noreply@arrendau.com'  # Tu correo corporativo
+    EMAIL_HOST_PASSWORD = 'contraseña_segura'  # Contraseña de aplicación
+
+# Tiempo de expiración del código OTP en minutos
+OTP_EXPIRY_TIME = 5

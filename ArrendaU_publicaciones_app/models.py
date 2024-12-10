@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.text import capfirst
 from unidecode import unidecode
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 
 User = get_user_model()
 
@@ -49,6 +51,9 @@ class Publicacion(models.Model):
         choices=ESTADO_CHOICES,
         default='BORRADOR'
     )
+    latitud = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitud = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    oculta_para_arrendatario = models.BooleanField(default=False)
 
     @property
     def estado_publicacion(self):
@@ -103,10 +108,47 @@ class Publicacion(models.Model):
     def save(self, *args, **kwargs):
         # Formatear ciudad antes de guardar
         if self.ciudad:
-            # Eliminar acentos y convertir a minúsculas
             ciudad_limpia = unidecode(self.ciudad.lower())
-            # Capitalizar primera letra
             self.ciudad = capfirst(ciudad_limpia)
+        
+        # Actualizar coordenadas si la dirección está completa
+        if self.direccion and self.ciudad and self.region:
+            try:               
+                geolocator = Nominatim(user_agent="arrendau_app")
+                direccion_completa = f"{self.direccion}, {self.ciudad}, {self.get_region_display()}, Chile"
+                
+                try:
+                    location = geolocator.geocode(direccion_completa)
+                    if location:
+                        self.latitud = location.latitude
+                        self.longitud = location.longitude
+                        print(f"Coordenadas actualizadas: {self.latitud}, {self.longitud}")
+                    else:
+                        raise ValueError(
+                            "No se pudo encontrar la ubicación especificada. Por favor, verifica que: \n\n" +
+                            "1. La dirección esté escrita correctamente\n" +
+                            "2. El número de la calle esté incluido\n" +
+                            "3. La ciudad y región correspondan a la dirección\n" +
+                            "4. La dirección exista en los mapas de Google\n\n" +
+                            "Dirección ingresada: " + direccion_completa
+                        )
+                except GeocoderTimedOut:
+                    raise ValueError(
+                        "El servicio de ubicación está demorando demasiado en responder.\n\n" +
+                        "Esto puede deberse a:\n" +
+                        "1. Problemas de conexión a internet\n" +
+                        "2. El servicio de mapas está sobrecargado\n\n" +
+                        "Por favor, espera un momento y vuelve a intentarlo."
+                    )
+            except Exception as e:
+                raise ValueError(
+                    "Ocurrió un error al procesar la ubicación:\n\n" +
+                    "1. Verifica que la dirección esté completa\n" +
+                    "2. Asegúrate de incluir calle, número, ciudad y región\n" +
+                    "3. Evita usar caracteres especiales\n\n" +
+                    f"Error específico: {str(e)}"
+                )
+        
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
@@ -162,12 +204,14 @@ class RespuestaArrendatario(models.Model):
         ('PENDIENTE', 'Pendiente'),
         ('ACEPTADO', 'Aceptado'),
         ('RECHAZADO', 'Rechazado'),
+        ('EXPULSADO', 'Expulsado'),
     )
     
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     formulario = models.ForeignKey(FormularioCompatibilidad, on_delete=models.CASCADE, related_name='respuestas_arrendatarios')
     fecha_respuesta = models.DateTimeField(auto_now_add=True)
     estado = models.CharField(max_length=20, choices=ESTADOS, default='PENDIENTE')
+    oculta_para_arrendatario = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Respuesta de {self.usuario.username} para {self.formulario.publicacion.titulo}"
@@ -212,3 +256,17 @@ class Notificacion(models.Model):
     def __str__(self):
         return f"Notificación para {self.usuario.username}: {self.tipo}"
 
+class Reseña(models.Model):
+    publicacion = models.ForeignKey(Publicacion, on_delete=models.CASCADE, related_name='reseñas')
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE)
+    puntuacion = models.IntegerField(choices=[(i, i) for i in range(1, 6)])  # 1-5 estrellas
+    comentario = models.TextField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_creacion']
+        unique_together = ['publicacion', 'usuario']  # Un usuario solo puede dejar una reseña por publicación
+
+    def __str__(self):
+        return f"Reseña de {self.usuario.username} para {self.publicacion.titulo}"
+    

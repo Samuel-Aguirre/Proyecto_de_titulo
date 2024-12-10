@@ -26,10 +26,12 @@ function initModal() {
 
 function closeModal() {
     const modal = document.getElementById('detallesModal');
-    modal.style.opacity = '0';
+    modal.classList.remove('show');
+    
     setTimeout(() => {
         modal.style.display = 'none';
-        modal.style.opacity = '1';
+        // Remover clase del body
+        document.body.classList.remove('modal-open');
     }, 200);
 }
 
@@ -37,18 +39,34 @@ function closeModal() {
 async function verDetalles(pagoId) {
     try {
         const response = await fetch(`/pagos/${pagoId}/detalles/`);
-        if (!response.ok) throw new Error('Error al obtener los detalles');
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Error al obtener los detalles');
+        }
         
         const data = await response.json();
         mostrarDetallesEnModal(data);
     } catch (error) {
         console.error('Error:', error);
-        mostrarError('No se pudieron cargar los detalles de la transacción');
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message || 'No se pudieron cargar los detalles de la transacción',
+            confirmButtonColor: '#2E7D32'
+        });
     }
 }
 
 function mostrarDetallesEnModal(detalles) {
-    const modalBody = document.querySelector('.modal-body');
+    const modal = document.getElementById('detallesModal');
+    const modalBody = modal.querySelector('.modal-body');
+    
+    // Añadir clase al body
+    document.body.classList.add('modal-open');
+    
+    // Traducir el estado y asegurar que sea en minúsculas para la clase CSS
+    const estadoTraducido = traducirEstado(detalles.status);
+    const estadoClase = estadoTraducido.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     
     const detallesHTML = `
         <div class="transaction-details">
@@ -60,8 +78,8 @@ function mostrarDetallesEnModal(detalles) {
             <div class="detail-group">
                 <div class="detail-label">Estado</div>
                 <div class="detail-value">
-                    <span class="pago-estado ${detalles.status?.toLowerCase()}">
-                        ${detalles.status_detail || detalles.status || 'No disponible'}
+                    <span class="pago-estado ${estadoClase}">
+                        ${estadoTraducido}
                     </span>
                 </div>
             </div>
@@ -98,8 +116,22 @@ function mostrarDetallesEnModal(detalles) {
 
     modalBody.innerHTML = detallesHTML;
     
-    const modal = document.getElementById('detallesModal');
-    modal.style.display = 'block';
+    modal.style.display = 'flex';
+    modal.scrollTop = 0;
+    modal.offsetHeight;
+    modal.classList.add('show');
+}
+
+function traducirEstado(estado) {
+    const traducciones = {
+        'accredited': 'Aprobado',
+        'approved': 'Aprobado',
+        'pending': 'Pendiente',
+        'in_process': 'En proceso',
+        'rejected': 'Rechazado',
+        'cancelled': 'Cancelado'
+    };
+    return traducciones[estado?.toLowerCase()] || estado;
 }
 
 // Descargar comprobante

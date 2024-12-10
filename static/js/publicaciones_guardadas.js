@@ -9,6 +9,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Inicializar los botones de postular
     initPostularButtons();
+
+    // Inicializar los botones de toggle cuando se carga el documento
+    const toggleButtons = document.querySelectorAll('.btn-toggle-reseñas');
+    toggleButtons.forEach(button => {
+        button.addEventListener('click', () => toggleReseñas(button));
+    });
 });
 
 function toggleGuardado(publicacionId) {
@@ -73,8 +79,40 @@ function expandirPublicacion(publicacionId) {
         }
     });
 
+    // Obtener las coordenadas y mostrar el mapa
+    fetch(`/publicaciones/publicacion/${publicacionId}/coordenadas/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.latitud && data.longitud) {
+            initializeMap(publicacionId, data.latitud, data.longitud);
+        }
+    })
+    .catch(error => console.error('Error al cargar el mapa:', error));
+
     document.body.classList.add('modal-open');
     expandedView.style.display = 'block';
+}
+
+function initializeMap(publicacionId, lat, lng) {
+    if (!lat || !lng) return;
+
+    const mapContainer = document.getElementById(`map-${publicacionId}`);
+    if (!mapContainer) return;
+
+    // Crear el mapa
+    const map = L.map(mapContainer).setView([lat, lng], 15);
+
+    // Agregar la capa de OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Agregar el marcador
+    L.marker([lat, lng]).addTo(map);
 }
 
 function contraerPublicacion(button) {
@@ -136,7 +174,7 @@ function mostrarFormularioPostulacion(publicacionId) {
     console.log('Intentando mostrar formulario para publicación:', publicacionId);
     
     // Cerrar la ventana de descripción
-    const expandedView = document.getElementById(`expandedView_${publicacionId}`);
+    const expandedView = document.querySelector(`#expandedView_${publicacionId}`);
     if (expandedView) {
         expandedView.style.display = 'none';
         document.body.classList.remove('modal-open');
@@ -152,6 +190,28 @@ function mostrarFormularioPostulacion(publicacionId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
+            // Verificar si hay preguntas en el formulario
+            if (!data.formulario.preguntas || data.formulario.preguntas.length === 0) {
+                // Si no hay preguntas, mostrar un mensaje y proceder directamente con la postulación
+                Swal.fire({
+                    title: 'Postulación Directa',
+                    text: 'Esta publicación no requiere un formulario de compatibilidad. ¿Deseas postular directamente?',
+                    icon: 'info',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, postular',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#2E7D32',
+                    cancelButtonColor: '#d33'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Enviar postulación directa sin respuestas
+                        enviarPostulacionDirecta(publicacionId);
+                    }
+                });
+                return;
+            }
+
+            // Si hay preguntas, mostrar el formulario normal
             const modalHTML = `
                 <div id="formularioModal" class="modal">
                     <div class="modal-content">
@@ -182,10 +242,7 @@ function mostrarFormularioPostulacion(publicacionId) {
                 </div>
             `;
             
-            // Agregar el modal al DOM
             document.body.insertAdjacentHTML('beforeend', modalHTML);
-            
-            // Mostrar el modal
             const modal = document.getElementById('formularioModal');
             modal.style.display = 'flex';
             setTimeout(() => modal.classList.add('show'), 10);
@@ -318,4 +375,203 @@ function handlePostularButtonClick(e) {
     if (postularButton) {
         handlePostularClick(e);
     }
+}
+
+function toggleReseñas(button) {
+    const reseñasSection = button.closest('.reseñas-section');
+    const reseñasContent = reseñasSection.querySelector('.reseñas-content');
+    const isExpanded = button.classList.contains('active');
+
+    if (isExpanded) {
+        // Contraer
+        button.classList.remove('active');
+        reseñasContent.classList.remove('show');
+    } else {
+        // Expandir
+        button.classList.add('active');
+        reseñasContent.classList.add('show');
+    }
+}
+
+function contactarArrendador(publicacionId, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    // Contraer la publicación antes de mostrar cualquier notificación
+    const expandedView = document.querySelector(`#expandedView_${publicacionId}`);
+    if (expandedView) {
+        expandedView.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+
+    // Verificar si ya existe una postulación
+    fetch(`/publicaciones/publicacion/${publicacionId}/verificar-postulacion/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.postulacion_existente) {
+            // Si existe postulación, obtener info de contacto
+            fetch(`/publicaciones/publicacion/${publicacionId}/info-contacto/`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(contactData => {
+                if (contactData.success) {
+                    Swal.fire({
+                        title: 'Información de Contacto',
+                        html: `
+                            <div class="contact-info-modal">
+                                <p><strong>Arrendador:</strong> ${contactData.info_contacto.nombre}</p>
+                                <p><strong>Email:</strong> ${contactData.info_contacto.email}</p>
+                                <p><strong>Teléfono:</strong> ${contactData.info_contacto.telefono}</p>
+                            </div>
+                        `,
+                        icon: 'info',
+                        confirmButtonText: 'Entendido',
+                        customClass: {
+                            container: 'contact-info-container'
+                        }
+                    });
+                }
+            });
+        } else {
+            // Si no existe postulación, mostrar mensaje
+            Swal.fire({
+                title: 'Postulación Requerida',
+                html: `
+                    <p>Para ver la información de contacto del arrendador, primero debes postular a esta propiedad.</p>
+                    <p>¿Deseas postular ahora?</p>
+                `,
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, postular',
+                cancelButtonText: 'No, más tarde',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    verificarPerfilArrendatario(publicacionId, null);
+                }
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Hubo un error al verificar tu postulación. Por favor, intenta de nuevo.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+        });
+    });
+}
+
+function verificarPerfilArrendatario(publicacionId, event) {
+    // Prevenir cualquier comportamiento por defecto
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+
+    // Contraer la publicación antes de mostrar cualquier notificación
+    const expandedView = document.querySelector(`#expandedView_${publicacionId}`);
+    if (expandedView) {
+        expandedView.style.display = 'none';
+        document.body.classList.remove('modal-open');
+    }
+
+    fetch('/perfil/verificar/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (!data.perfil_completo) {
+            Swal.fire({
+                title: 'Perfil Incompleto',
+                html: `
+                    <p>Para postular a una propiedad, primero debes completar tu perfil de arrendatario.</p>
+                    <p>Esto es necesario para el sistema de compatibilidad con los arrendadores.</p>
+                `,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Ir a completar perfil',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '/perfil/editar/';
+                }
+            });
+            return false;
+        } else {
+            // Solo mostrar el formulario si el perfil está completo
+            mostrarFormularioPostulacion(publicacionId);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Hubo un error al verificar tu perfil. Por favor, intenta de nuevo.',
+            icon: 'error',
+            confirmButtonText: 'Aceptar'
+        });
+    });
+}
+
+// Agregar la función para postulación directa
+function enviarPostulacionDirecta(publicacionId) {
+    fetch(`/publicaciones/publicacion/${publicacionId}/postular-directo/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(data => {
+                throw new Error(data.message || 'Error en la postulación');
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Éxito',
+                text: data.message || 'Tu postulación ha sido enviada correctamente',
+                icon: 'success',
+                confirmButtonText: 'Aceptar',
+                confirmButtonColor: '#2E7D32'
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            throw new Error(data.message || 'Error al enviar la postulación');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error',
+            text: error.message || 'Ocurrió un error al enviar tu postulación',
+            icon: 'error',
+            confirmButtonText: 'Aceptar',
+            confirmButtonColor: '#2E7D32'
+        });
+    });
 }

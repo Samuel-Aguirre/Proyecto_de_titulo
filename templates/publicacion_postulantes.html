@@ -171,11 +171,12 @@
                                     title="Rechazar postulación">
                                 <i class="fas fa-times"></i>
                             </button>
-                        {% else %}
-                            <button class="btn-action cancel" 
-                                    onclick="cancelarGestion('{{ postulante.id }}')"
-                                    title="Cancelar gestión">
-                                <i class="fas fa-undo"></i>
+                        {% elif postulante.estado == 'ACEPTADO' %}
+                            <button class="btn-action-expel" 
+                                    onclick="expulsarArrendatario('{{ postulante.id }}')"
+                                    title="Expulsar arrendatario">
+                                <i class="fas fa-user-times"></i>
+                                Expulsar
                             </button>
                         {% endif %}
                     </div>
@@ -266,5 +267,6 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/postulantes.js' %}"></script>
 {% endblock %} 

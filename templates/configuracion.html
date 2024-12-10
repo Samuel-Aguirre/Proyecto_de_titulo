@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Configuración - ArrendaU{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/configuracion.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-material-ui/material-ui.css">
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <div class="settings-header">
+        <h1>Configuración de la cuenta</h1>
+        <p>Gestiona tu información personal y preferencias</p>
+    </div>
+    
+    <div class="settings-tabs">
+        <button class="tab-button active" data-tab="personal">
+            <i class="fas fa-user-circle"></i> Información Personal
+        </button>
+        <button class="tab-button" data-tab="security">
+            <i class="fas fa-shield-alt"></i> Seguridad
+        </button>
+        <button class="tab-button danger" data-tab="danger">
+            <i class="fas fa-exclamation-triangle"></i> Zona de Peligro
+        </button>
+    </div>
+
+    <div class="settings-content">
+        <!-- Información Personal -->
+        <div class="tab-content active" id="personal">
+            <div class="settings-section">
+                <form id="personal-info-form" class="settings-form">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Nombre</label>
+                            <input type="text" id="nombre" name="nombre" 
+                                   value="{{ user.nombre }}" required
+                                   placeholder="Tu nombre">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Primer Apellido</label>
+                            <input type="text" id="apellido" name="apellido" 
+                                   value="{{ user.apellido }}" required
+                                   placeholder="Tu primer apellido">
+                        </div>
+                        
+                        <div class="form-group optional">
+                            <label><i class="fas fa-user"></i> Segundo Apellido</label>
+                            <input type="text" id="segundo_apellido" name="segundo_apellido" 
+                                   value="{{ user.segundo_apellido|default:'' }}"
+                                   placeholder="Tu segundo apellido">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope"></i> Correo Electrónico</label>
+                            <input type="email" id="email" name="email" 
+                                   value="{{ user.email }}" required
+                                   placeholder="ejemplo@correo.com">
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Teléfono de Contacto</label>
+                            <input type="tel" id="telefono_contacto" name="telefono_contacto" 
+                                   value="{{ user.telefono_contacto|default:'' }}" 
+                                   pattern="[+]?[0-9]{8,15}" 
+                                   placeholder="+56 9 XXXX XXXX"
+                                   title="Ingrese un número de teléfono válido">
+                        </div>
+
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar"></i> Fecha de Nacimiento</label>
+                            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" 
+                                   value="{{ user.fecha_nacimiento|date:'Y-m-d' }}">
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label><i class="fas fa-venus-mars"></i> Género</label>
+                            <select id="genero" name="genero">
+                                <option value="">Seleccione una opción</option>
+                                <option value="M" {% if user.genero == 'M' %}selected{% endif %}>Masculino</option>
+                                <option value="F" {% if user.genero == 'F' %}selected{% endif %}>Femenino</option>
+                                <option value="O" {% if user.genero == 'O' %}selected{% endif %}>Otro</option>
+                                <option value="N" {% if user.genero == 'N' %}selected{% endif %}>Prefiero no decirlo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Seguridad -->
+        <div class="tab-content" id="security">
+            <div class="settings-section">
+                <form id="security-form" class="settings-form">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label><i class="fas fa-lock"></i> Contraseña Actual</label>
+                        <input type="password" id="current_password" name="current_password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-key"></i> Nueva Contraseña</label>
+                        <input type="password" id="new_password" name="new_password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-check-circle"></i> Confirmar Nueva Contraseña</label>
+                        <input type="password" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-key"></i> Cambiar Contraseña
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Zona de Peligro -->
+        <div class="tab-content" id="danger">
+            <div class="settings-section danger-zone">
+                <div class="danger-content">
+                    <div class="danger-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3>Eliminar Cuenta</h3>
+                    <p>Esta acción eliminará permanentemente tu cuenta y todos tus datos asociados. Esta acción no se puede deshacer.</p>
+                    <button type="button" class="btn-delete" onclick="confirmarEliminarCuenta()">
+                        <i class="fas fa-trash-alt"></i> Eliminar mi cuenta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/configuracion.js' %}"></script>
+{% endblock %} 

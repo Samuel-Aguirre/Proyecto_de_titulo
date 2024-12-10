@@ -1,0 +1,354 @@
+:root {
+    --primary-color: #2E7D32;
+    --secondary-color: #1976D2;
+    --text-primary: #2c3e50;
+    --text-secondary: #546e7a;
+    --background-light: #f8f9fa;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --spacing-xs: 0.25rem;   /* 4px */
+    --spacing-sm: 0.5rem;    /* 8px */
+    --spacing-md: 1rem;      /* 16px */
+    --spacing-lg: 1.5rem;    /* 24px */
+    --spacing-xl: 2rem;      /* 32px */
+}
+
+/* Reset y estilos base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    line-height: 1.6;
+    color: var(--text-primary); 
+}
+
+/* Container principal */
+.login-container {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    perspective: 1000px;
+    overflow: hidden;
+}
+
+/* Panel izquierdo */
+.login-card {
+    width: 60%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+    height: 100vh;
+}
+
+.card-front,
+.card-back {
+    position: absolute;
+    width: 100%;
+    max-width: 400px;
+    padding: 1rem;
+    background: white;
+    border-radius: 12px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden; /* Para Safari */
+}
+
+.card-back {
+    transform: rotateY(180deg);
+}
+
+/* Ajustes para el contenido */
+.login-content {
+    max-width: none;
+    padding: 0;
+}
+
+/* Asegurar que los formularios tengan altura completa */
+.login-form,
+.recovery-form {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Logo y encabezado */
+.login-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.logo {
+    width: 120px;
+    margin-bottom: 1.5rem;
+}
+
+.login-header h1 {
+    font-size: 1.75rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.login-header p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+/* Formulario */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Grupos de campos */
+.form-group {
+    margin-bottom: 0.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 500;
+    margin: 0;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.input-with-icon input {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 2.75rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: transparent;
+}
+
+.input-with-icon input::placeholder {
+    color: #9ca3af;
+}
+
+.input-with-icon i {
+    position: absolute;
+    left: 1rem;
+    color: #9ca3af;
+    font-size: 1.1rem;
+}
+
+.input-with-icon:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+}
+
+.input-with-icon:focus-within i {
+    color: var(--primary-color);
+}
+
+/* Toggle contraseña */
+.toggle-password {
+    display: none;
+}
+
+/* Opciones y botones */
+.form-options {
+    text-align: left;
+    margin: 0;
+}
+
+.forgot-password {
+    display: inline-block;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.btn {
+    width: 100%;
+    padding: 0.65rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--spacing-md);
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: var(--spacing-xs);
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: var(--spacing-sm);
+}
+
+.btn-secondary:hover {
+    background-color: rgba(46, 125, 50, 0.1);
+}
+
+/* Panel derecho */
+.image-panel {
+    width: 40%;
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, 
+        rgba(46, 125, 50, 0.95), 
+        rgba(25, 118, 210, 0.85));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.overlay {
+    max-width: 440px;
+}
+
+.overlay h2 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: white;
+    text-align: center;
+}
+
+.overlay p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    color: white;
+}
+
+/* Alertas */
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.alert-error {
+    background-color: #fde8e8;
+    color: var(--error-color);
+    border: 1px solid #fbd5d5;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: var(--spacing-lg);
+    width: 90%;
+    max-width: 400px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.modal-content h2 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.modal-content p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-md);
+}
+
+.close {
+    position: absolute;
+    right: var(--spacing-md);
+    top: var(--spacing-md);
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.close:hover {
+    color: var(--text-primary);
+}
+
+.recovery-form .form-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.recovery-form .btn-primary {
+    width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-panel {
+        width: 100%;
+    }
+    
+    .image-panel {
+        display: none;
+    }
+}
+
+/* Reducir espacio entre contraseña y botones */
+.form-group:last-of-type {
+    margin-bottom: 0;
+}
+
+/* Añadir estos estilos para el flip card */
+.login-card.flipped {
+    transform: rotateY(180deg);
+}

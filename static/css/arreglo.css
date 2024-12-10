@@ -1,0 +1,202 @@
+/* Estilos para la sección de reseñas */
+.reseñas-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.reseñas-header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.reseñas-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.reseñas-header h3 {
+    font-size: 1.4rem;
+    color: var(--text-primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.reseñas-header h3 i {
+    color: var(--primary-color);
+}
+
+/* Estilos para el resumen de reseñas */
+.reviews-summary {
+    padding: 1rem 1.5rem;
+    background: var(--background-light);
+    border-radius: 8px;
+}
+
+.average-rating {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.rating-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.stars {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.stars i {
+    color: #ffd700;
+    font-size: 1.2rem;
+    filter: drop-shadow(0 1px 1px rgba(0,0,0,0.1));
+}
+
+.total-reviews {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Botón de toggle */
+.btn-toggle-reseñas {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0.5rem;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-toggle-reseñas:hover {
+    background-color: var(--background-light);
+    color: var(--primary-color);
+}
+
+.btn-toggle-reseñas i {
+    transition: transform 0.3s ease;
+}
+
+.btn-toggle-reseñas.active i {
+    transform: rotate(180deg);
+}
+
+/* Contenido de reseñas */
+.reseñas-content {
+    transition: all 0.3s ease;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+}
+
+.reseñas-content.show {
+    opacity: 1;
+    max-height: 2000px;
+}
+
+/* Lista de reseñas */
+.reviews-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.review-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    border: 1px solid #e0e0e0;
+    transition: transform 0.2s ease;
+}
+
+.review-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.reviewer-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.reviewer-info i {
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+.reviewer-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.review-rating {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.review-rating i {
+    color: #ffd700;
+    font-size: 1rem;
+}
+
+.review-text {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    margin: 1rem 0;
+}
+
+.review-date {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+/* Estado vacío */
+.empty-reviews {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    background: var(--background-light);
+    border-radius: 8px;
+}
+
+.empty-reviews i {
+    font-size: 2.5rem;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin-bottom: 1rem;
+}
+
+.empty-reviews p {
+    margin: 0;
+    font-size: 1.1rem;
+}

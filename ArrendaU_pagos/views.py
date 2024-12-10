@@ -337,10 +337,10 @@ def generar_comprobante(request, pago_id):
         
         # 1. Logo y Encabezado
         try:
-            logo_path = os.path.join(settings.STATIC_ROOT, 'img', 'logo.png')
+            logo_path = os.path.join(settings.BASE_DIR, 'static', 'img', 'logo_2500x2500.png')
             if os.path.exists(logo_path):
-                elements.append(RLImage(logo_path, width=200, height=50))
-                elements.append(Spacer(1, 20))
+                elements.append(RLImage(logo_path, width=200, height=200))
+                elements.append(Spacer(1, -50))
         except Exception as e:
             print(f"Error al cargar el logo: {e}")
             pass
@@ -354,7 +354,8 @@ def generar_comprobante(request, pago_id):
                 parent=styles['Heading1'],
                 fontSize=20,
                 textColor=colors.HexColor('#2E7D32'),
-                spaceAfter=20
+                spaceAfter=15,
+                spaceBefore=0
             )
         ))
 

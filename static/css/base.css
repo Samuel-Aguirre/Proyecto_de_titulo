@@ -303,22 +303,24 @@ main {
 
 /* Footer */
 .footer {
-    position: relative; /* Cambiado de fixed a relative */
+    position: relative;
     width: 100%;
     height: 60px;
     background-color: white;
     box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
-    z-index: 1000;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-top: auto; /* Empuja el footer al final del contenido */
+    margin-top: auto;
 }
 
 .footer-content {
     color: #000000;
     padding: 1rem;
     text-align: center;
+    position: relative;
+    z-index: 10;
 }
 
 /* ArrendaU Design System - Navbar Component */
