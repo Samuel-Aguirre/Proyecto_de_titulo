@@ -1,0 +1,208 @@
+/* Variables del sistema de diseño */
+:root {
+    --primary-color: #2E7D32;
+    --primary-light: rgba(46, 125, 50, 0.1);
+    --secondary-color: #1976D2;
+    --text-primary: #2c3e50;
+    --text-secondary: #64748b;
+    --background-light: #f8f9fa;
+    --error-color: #dc3545;
+    --success-color: #28a745;
+    --border-color: #e2e8f0;
+    --white: #ffffff;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.verify-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: calc(100vh - 130px);
+    background: linear-gradient(135deg, var(--background-light) 0%, #ffffff 100%);
+    padding: 2rem;
+}
+
+.verify-box {
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: var(--shadow-md);
+    width: 100%;
+    max-width: 450px;
+    position: relative;
+    overflow: hidden;
+}
+
+.verify-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+}
+
+.verify-box h2 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    text-align: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.verify-box > p {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.verify-form {
+    margin-top: 2rem;
+}
+
+.verify-form .form-group {
+    margin-bottom: 2rem;
+}
+
+.verify-form label {
+    display: block;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.verify-form input {
+    width: 100%;
+    padding: 1rem;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1.5rem;
+    text-align: center;
+    letter-spacing: 1rem;
+    font-family: monospace;
+    transition: all 0.3s ease;
+    background-color: var(--background-light);
+}
+
+.verify-form input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light);
+    outline: none;
+}
+
+.verify-form input::placeholder {
+    letter-spacing: normal;
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
+
+.verify-form button {
+    width: 100%;
+    padding: 1rem;
+    border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.verify-form button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
+}
+
+.verify-form button:active {
+    transform: translateY(0);
+}
+
+.verify-footer {
+    margin-top: 2rem;
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.verify-footer p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.verify-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.verify-footer a:hover {
+    background-color: var(--primary-light);
+    text-decoration: none;
+}
+
+/* Estilos para los mensajes de alerta */
+.messages {
+    margin-bottom: 2rem;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.alert-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.2);
+    color: var(--success-color);
+}
+
+.alert-error {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 1px solid rgba(220, 53, 69, 0.2);
+    color: var(--error-color);
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.verify-box {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .verify-container {
+        padding: 1rem;
+    }
+    
+    .verify-box {
+        padding: 1.5rem;
+    }
+    
+    .verify-form input {
+        font-size: 1.25rem;
+        letter-spacing: 0.75rem;
+    }
+} 
